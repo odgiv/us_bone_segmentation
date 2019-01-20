@@ -17,9 +17,25 @@ if __name__ == "__main__":
     model_dir = os.path.join('./models/', args.model_name)
 
     sys.path.append(model_dir)
-    from model import model_fn 
+    #from model import model_fn 
     from training import train_and_evaluate
 
+    if args.model_name == "unet":
+        from model import Unet
+        model = Unet()
+    elif args.model_name == "attenion-unet":
+        # from model import AttentionalUnet
+        # model = AttentionalUnet()
+        pass
+    elif args.model_name == "unet++":
+        # from model import UnetPlusPlus
+        # model = UnetPlusPlus()
+        pass
+    elif args.model_name == "segan":
+        # from model import SegAn
+        # model = SegAn()    
+        pass
+        
     json_path = os.path.join(model_dir, 'params.json')
     assert os.path.isfile(json_path), "No json configuration file found at {}".format(json_path)
 
@@ -40,10 +56,10 @@ if __name__ == "__main__":
     train_inputs = input_fn(True, X_train, Y_train, params)
     eval_inputs = input_fn(False, X_val, Y_val, params)
 
-    train_model_specs = model_fn("train", train_inputs, params)
-    eval_model_specs = model_fn("eval", eval_inputs, params, reuse=True)
+    train_model_specs = model.model_fn("train", train_inputs, params)
+    eval_model_specs = model.model_fn("eval", eval_inputs, params, reuse=True)
 
     params.train_size = X_train.shape[0]
     params.eval_size = X_val.shape[0]
 
-    train_and_evaluate(train_model_specs, eval_model_specs, params)
+    train_and_evaluate(train_model_specs, eval_model_specs, model_dir, params)
