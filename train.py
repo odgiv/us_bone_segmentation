@@ -18,20 +18,31 @@ parser.add_argument("--model_name",help="Name of directory of specific model in 
 if __name__ == "__main__":
 
     args = parser.parse_args()
-    model_dir = os.path.join('./models/', args.model_name)
+    assert(args.model_name in ['unet', 'segan', 'nested-unet', 'attention-unet'])    
 
+    if args.model_name == 'segan':
+        sys.path.append('./models/segan/')
+        model_dir = './models/segan'
+    elif args.model_name == 'unet':
+        sys.path.append('./models/unet/')
+        model_dir = './models/unet'
+    else:
+        sys.path.append('./models/unet/')
+        model_dir = os.path.join('./models/unet/', args.model_name)
+        
     sys.path.append(model_dir)
-    #from model import model_fn 
-    from training import train_and_evaluate
+    
+    from trainer import train_and_evaluate
 
     if args.model_name == "unet":
-        from model import Unet
+        from base_model import Unet
         model = Unet()
-    elif args.model_name == "attenion-unet":
-        # from model import AttentionalUnet
-        # model = AttentionalUnet()
-        pass
-    elif args.model_name == "unet++":
+
+    elif args.model_name == "attention-unet":
+        from model import AttentionalUnet
+        model = AttentionalUnet()
+        
+    elif args.model_name == "nested-unet":
         # from model import UnetPlusPlus
         # model = UnetPlusPlus()
         pass

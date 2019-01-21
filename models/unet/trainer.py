@@ -6,6 +6,8 @@ from tqdm import trange
 
 import tensorflow as tf
 
+
+
 def train_sess(sess, model_spec, num_steps, writer, params):
     loss = model_spec["loss"]
     mean_iou = model_spec["mean_iou"]
@@ -59,15 +61,17 @@ def train_and_evaluate(train_model_spec, eval_model_spec, model_dir, params):
     best_saver = tf.train.Saver(max_to_keep=1) # only keep 1 best checkpoint (best on eval)
     num_steps = (params.train_size + params.batch_size -1) // params.batch_size
 
-    shutil.rmtree(os.path.join(model_dir, 'train_summaries'))
-    shutil.rmtree(os.path.join(model_dir, 'eval_summaries'))
+    if os.path.exists('./train_summaries'):
+        shutil.rmtree('./train_summaries')
+    if os.path.exists('./eval_summaries'):
+        shutil.rmtree('./eval_summaries')
 
     with tf.Session() as sess:
         sess.run(train_model_spec['variable_init_op'])
         sess.run(train_model_spec['local_variable_init_op'])
 
-        train_writer = tf.summary.FileWriter(os.path.join(model_dir, 'train_summaries'), sess.graph)
-        eval_writer = tf.summary.FileWriter(os.path.join(model_dir, 'eval_summaries'), sess.graph)
+        train_writer = tf.summary.FileWriter('./train_summaries', sess.graph)
+        eval_writer = tf.summary.FileWriter('./eval_summaries', sess.graph)
 
         best_eval_acc = 0.0
         for epoch in range(params.num_epochs):
