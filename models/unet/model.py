@@ -33,6 +33,11 @@ class Unet:
 
         return (ch1, ch2), (cw1, cw2)
 
+    def UnetConv2D(self, input, filters, kernel=(3, 3), activation="relu", padding="same"):
+        conv = Conv2D(filters, kernel, activation=activation, padding=padding)(input)
+        conv = Conv2D(filters, kernel, activation=activation, padding=padding)(conv)
+        return conv
+
 
     def build_model(self, inputs, num_classes):
         """U-net model
@@ -43,54 +48,45 @@ class Unet:
         concat_axis = 3
 
         inputs = Input(tensor=inputs["images"])
-        conv1 = Conv2D(32, (3,3), activation="relu", padding="same")(inputs)
-        conv1 = Conv2D(32, (3,3), activation="relu", padding="same")(conv1)
+        conv1 = self.UnetConv2D(inputs, 32)
         pool1 = MaxPooling2D(pool_size=(2,2))(conv1)
 
-        conv2 = Conv2D(64, (3,3), activation="relu", padding="same")(pool1)
-        conv2 = Conv2D(64, (3,3), activation="relu", padding="same")(conv2)
+        conv2 = self.UnetConv2D(pool1, 64)
         pool2 = MaxPooling2D(pool_size=(2,2))(conv2)
 
-        conv3 = Conv2D(128, (3,3), activation="relu", padding="same")(pool2)
-        conv3 = Conv2D(128, (3,3), activation="relu", padding="same")(conv3)
+        conv3 = self.UnetConv2D(pool2, 128)
         pool3 = MaxPooling2D(pool_size=(2,2))(conv3)
 
-        conv4 = Conv2D(256, (3,3), activation="relu", padding="same")(pool3)
-        conv4 = Conv2D(256, (3,3), activation="relu", padding="same")(conv4)
+        conv4 = self.UnetConv2D(pool3, 256)
         pool4 = MaxPooling2D(pool_size=(2,2))(conv4)
 
-        conv5 = Conv2D(512, (3,3), activation="relu", padding="same")(pool4)
-        conv5 = Conv2D(512, (3,3), activation="relu", padding="same")(conv5)
+        center = self.UnetConv2D(pool4, 512)
 
-        up_conv5 = UpSampling2D(size=(2,2))(conv5)
-        ch, cw = get_crop_shape(conv4, up_conv5)
+        up_conv5 = UpSampling2D(size=(2,2))(center)
+        ch, cw = self.get_crop_shape(conv4, up_conv5)
         crop_conv4 = Cropping2D(cropping=(ch, cw))(conv4)
         up6 = concatenate([up_conv5, crop_conv4], axis=concat_axis)
-        conv6 = Conv2D(256, (3,3), activation="relu", padding="same")(up6)
-        conv6 = Conv2D(256, (3,3), activation="relu", padding="same")(conv6)
+        conv6 = self.UnetConv2D(up6, 256)
 
         up_conv6 = UpSampling2D(size=(2,2))(conv6)
-        ch, cw = get_crop_shape(conv3, up_conv6)
+        ch, cw = self.get_crop_shape(conv3, up_conv6)
         crop_conv3 = Cropping2D(cropping=(ch, cw))(conv3)
         up7 = concatenate([up_conv6, crop_conv3], axis=concat_axis)
-        conv7 = Conv2D(128, (3,3), activation="relu", padding="same")(up7)
-        conv7 = Conv2D(128, (3,3), activation="relu", padding="same")(conv7)
+        conv7 = self.UnetConv2D(up7, 128)
 
         up_conv7 = UpSampling2D(size=(2,2))(conv7)
-        ch, cw = get_crop_shape(conv2, up_conv7)
+        ch, cw = self.get_crop_shape(conv2, up_conv7)
         crop_conv2 = Cropping2D(cropping=(ch, cw))(conv2)
         up8 = concatenate([up_conv7, crop_conv2], axis=concat_axis)
-        conv8 = Conv2D(64, (3,3), activation="relu", padding="same")(up8)
-        conv8 = Conv2D(64, (3,3), activation="relu", padding="same")(conv8)
+        conv8 = self.UnetConv2D(up8, 64)
 
         up_conv8 = UpSampling2D(size=(2,2))(conv8)
-        ch, cw = get_crop_shape(conv1, up_conv8)
+        ch, cw = self.get_crop_shape(conv1, up_conv8)
         crop_conv1 = Cropping2D(cropping=(ch, cw))(conv1)
         up9 = concatenate([up_conv8, crop_conv1], axis=concat_axis)
-        conv9 = Conv2D(32, (3,3), activation="relu", padding="same")(up9)
-        conv9 = Conv2D(32, (3,3), activation="relu", padding="same")(conv9)
+        conv9 = self.UnetConv2D(up9, 32)
 
-        ch, cw = get_crop_shape(inputs, conv9)
+        ch, cw = self.get_crop_shape(inputs, conv9)
         conv9 = ZeroPadding2D(padding=((ch[0], ch[1]), (cw[0], cw[1])))(conv9)
         conv10 = Conv2D(num_classes, (1,1))(conv9)
 
@@ -105,7 +101,7 @@ class Unet:
         labels = tf.cast(labels, tf.int32)
 
         with tf.variable_scope('model', reuse=reuse):
-            model = build_model(inputs, params.num_classes)
+            model = self.build_model(inputs, params.num_classes)
             prediction = model.outputs[0]
 
         _loss, prediction = focal_loss_softmax(labels=labels, logits=prediction)

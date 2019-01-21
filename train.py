@@ -8,6 +8,10 @@ from utils import Params, set_logger
 from data_loader import DataLoader
 from input_fn import input_fn
 
+"""
+python train.py --model_name unet
+"""
+
 parser = argparse.ArgumentParser()
 parser.add_argument("--model_name",help="Name of directory of specific model in ./models parent directory, such as unet, attention-unet or segan")
 

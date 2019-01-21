@@ -59,8 +59,8 @@ def train_and_evaluate(train_model_spec, eval_model_spec, model_dir, params):
     best_saver = tf.train.Saver(max_to_keep=1) # only keep 1 best checkpoint (best on eval)
     num_steps = (params.train_size + params.batch_size -1) // params.batch_size
 
-    shutil.rmtree(os.path.join(model_dir, 'train_summaries'), ignore_errors=True)
-    shutil.rmtree(os.path.join(model_dir, 'eval_summaries'), ignore_errors=True)
+    shutil.rmtree(os.path.join(model_dir, 'train_summaries'))
+    shutil.rmtree(os.path.join(model_dir, 'eval_summaries'))
 
     with tf.Session() as sess:
         sess.run(train_model_spec['variable_init_op'])
