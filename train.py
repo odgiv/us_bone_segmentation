@@ -7,6 +7,7 @@ import numpy as np
 from utils import Params, set_logger
 from data_loader import DataLoader
 from input_fn import input_fn
+# from evaluate import evaluate
 
 """
 python train.py --model_name unet
@@ -29,7 +30,7 @@ if __name__ == "__main__":
     else:
         sys.path.append('./models/unet/')
         model_dir = os.path.join('./models/unet/', args.model_name)
-        
+
     sys.path.append(model_dir)
     
     from trainer import train_and_evaluate
