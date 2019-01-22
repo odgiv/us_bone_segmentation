@@ -15,7 +15,7 @@ from base_model import Unet
 class AttentionalUnet(Unet):
 
     def resize_bilinear(self, g, x):
-        return Lambda(lambda g, x: tf.image.resize_bilinear(g, size=(x.shape[1], x.shape[2]), align_corners=True), arguments={'x': x})(g)
+        return Lambda(lambda g, x: tf.image.resize_bilinear(g, size=(int(x.shape[1]), int(x.shape[2])), align_corners=True), arguments={'x': x})(g)
     
     def AttentionBlock(self, x, g, num_filters, is_batchnorm=False):
         # x: 29x46x256, g: 14x23x256;
@@ -31,7 +31,7 @@ class AttentionalUnet(Unet):
         up_xg = self.resize_bilinear(act_xg, x)
         mul_x_up_xg = multiply([x, up_xg])
 
-        result = Conv2D(x.shape[-1], (1,1))(mul_x_up_xg)
+        result = Conv2D(int(x.shape[-1]), (1,1))(mul_x_up_xg)
         result = BatchNormalization()(result)
         return result
 
