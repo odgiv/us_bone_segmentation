@@ -1,11 +1,11 @@
-import argparse
 import logging
 import os
 import shutil
-from tqdm import trange
-
 import tensorflow as tf
+from tqdm import trange
+from tensorflow.python.keras.layers import Input
 
+from evaluation import evaluate_sess
 
 
 def train_sess(sess, model_spec, num_steps, writer, params):
@@ -23,6 +23,9 @@ def train_sess(sess, model_spec, num_steps, writer, params):
 
     features_placeholder = model_spec["X_placeholder"]
     labels_placeholder = model_spec["Y_placeholder"]
+
+    model = model_spec["model"]
+    model.inputs[0] = Input(tensor=model_spec["images"])
 
     sess.run(metric_init_op)
     sess.run(iterator_init_op, feed_dict={
@@ -46,6 +49,7 @@ def train_sess(sess, model_spec, num_steps, writer, params):
 
         else:
             _, _, _, loss_val, mean_iou_val = sess.run([train_op, update_metrics, conf_mat, loss, mean_iou])
+
         t.set_postfix(loss='{:05.3f}'.format(loss_val), mean_iou='{:05.3f}'.format(mean_iou_val))
 
     metrics_values = {k: v[0] for k, v in metrics.items()}
@@ -59,7 +63,6 @@ def train_and_evaluate(train_model_spec, eval_model_spec, model_dir, params):
     """
     last_saver = tf.train.Saver() # will keep last 5 epochs
     best_saver = tf.train.Saver(max_to_keep=1) # only keep 1 best checkpoint (best on eval)
-    num_steps = (params.train_size + params.batch_size -1) // params.batch_size
 
     if os.path.exists('./train_summaries'):
         shutil.rmtree('./train_summaries')
@@ -70,6 +73,9 @@ def train_and_evaluate(train_model_spec, eval_model_spec, model_dir, params):
         sess.run(train_model_spec['variable_init_op'])
         sess.run(train_model_spec['local_variable_init_op'])
 
+        # sess.run(eval_model_spec['variable_init_op'])
+        # sess.run(eval_model_spec['local_variable_init_op'])
+
         train_writer = tf.summary.FileWriter('./train_summaries', sess.graph)
         eval_writer = tf.summary.FileWriter('./eval_summaries', sess.graph)
 
@@ -77,7 +83,13 @@ def train_and_evaluate(train_model_spec, eval_model_spec, model_dir, params):
         for epoch in range(params.num_epochs):
             logging.info("Epoch {}/{}".format(epoch + 1, params.num_epochs))
 
+            num_steps = (params.train_size + params.batch_size -1) // params.batch_size
             train_sess(sess, train_model_spec, num_steps, train_writer, params)
+
+            # num_steps = (params.eval_size + params.batch_size - 1) // params.batch_size
+            # metrics = evaluate_sess(sess, eval_model_spec, num_steps, eval_writer)
+
+
 
 
 

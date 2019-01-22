@@ -100,9 +100,15 @@ class Unet:
         labels = inputs["labels"]
         labels = tf.cast(labels, tf.int32)
 
-        with tf.variable_scope('model', reuse=reuse):
+        if is_training:
+            # with tf.variable_scope('segmetation_models', reuse=reuse):
             model = self.build_model(inputs, params.num_classes)
-            prediction = model.outputs[0]
+            # prediction = model.outputs[0]
+        else: 
+            model = inputs["model"]
+            model.inputs[0] = Input(tensor=inputs["images"])
+
+        prediction = model.outputs[0]
 
         _loss, prediction = focal_loss_softmax(labels=labels, logits=prediction)
         loss = tf.reduce_mean(_loss)
@@ -123,11 +129,11 @@ class Unet:
             global_step = tf.train.get_or_create_global_step()
             train_op = optimizer.minimize(loss, global_step=global_step)
 
-        with tf.variable_scope("metrics"):
-            metrics = {
-                'mean_iou': tf.metrics.mean_iou(labels, prediction, num_classes=2),
-                'loss': tf.metrics.mean(_loss)
-            }
+        # with tf.variable_scope("metrics"):
+        metrics = {
+            'mean_iou': tf.metrics.mean_iou(labels, prediction, num_classes=2),
+            'loss': tf.metrics.mean(_loss)
+        }
         # Group the update ops for the tf.metrics
         update_metrics_op = tf.group(*[op for _, op in metrics.values()])
 
@@ -143,6 +149,7 @@ class Unet:
         model_spec = inputs
         model_spec['variable_init_op'] = tf.global_variables_initializer()
         model_spec['local_variable_init_op'] = tf.local_variables_initializer()
+        model_spec['model'] = model
         model_spec['prediction'] = prediction
         model_spec['loss'] = loss
         model_spec['mean_iou'] = mean_iou

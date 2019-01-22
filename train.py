@@ -7,6 +7,7 @@ import numpy as np
 from utils import Params, set_logger
 from data_loader import DataLoader
 from input_fn import input_fn
+# from evaluate import evaluate
 
 """
 python train.py --model_name unet
@@ -29,7 +30,7 @@ if __name__ == "__main__":
     else:
         sys.path.append('./models/unet/')
         model_dir = os.path.join('./models/unet/', args.model_name)
-        
+
     sys.path.append(model_dir)
     
     from trainer import train_and_evaluate
@@ -72,7 +73,11 @@ if __name__ == "__main__":
     eval_inputs = input_fn(False, X_val, Y_val, params)
 
     train_model_specs = model.model_fn("train", train_inputs, params)
-    eval_model_specs = model.model_fn("eval", eval_inputs, params, reuse=True)
+    # sharing model weights for train and valid
+    #eval_inputs["prediction"] = train_model_specs["prediction"]
+    eval_inputs["model"] = train_model_specs["model"]
+
+    eval_model_specs = model.model_fn("eval", eval_inputs, params, reuse=False)
 
     params.train_size = X_train.shape[0]
     params.eval_size = X_val.shape[0]
