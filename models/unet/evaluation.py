@@ -16,9 +16,6 @@ def evaluate_sess(sess, model_spec, num_steps, writer=None, params=None):
     features_placeholder = model_spec["X_placeholder"]
     labels_placeholder = model_spec["Y_placeholder"]
 
-    # model = model_spec["model"]
-    # model.inputs[0] = Input(tensor=model_spec["images"])
-
     sess.run(metric_init_op)
     sess.run(iterator_init_op, feed_dict={
         features_placeholder: model_spec["X"],
