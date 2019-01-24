@@ -110,8 +110,9 @@ class Unet:
 
         prediction = model.outputs[0]
 
-        _loss, prediction = focal_loss_softmax(labels=labels, logits=prediction)
-        loss = tf.reduce_mean(_loss)
+        # _loss, prediction = focal_loss_softmax(labels=labels, logits=prediction)        
+        # loss = tf.reduce_mean(_loss)
+        loss = tf.losses.sparse_softmax_cross_entropy(labels=labels, logits=prediction)
 
         prediction = tf.argmax(prediction, axis=-1, output_type=tf.int32)
         prediction = tf.expand_dims(prediction, -1)
