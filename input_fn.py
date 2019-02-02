@@ -3,7 +3,7 @@ from data_loader import DataLoader
 
 def _parse_function(image, label):
     image = tf.image.convert_image_dtype(image, tf.float32)
-    return image, label
+    return image, tf.cast(label, tf.float32)
 
 def input_fn(is_training, X, Y, params):
     features_placeholder = tf.placeholder(X.dtype, X.shape)

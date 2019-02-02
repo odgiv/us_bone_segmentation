@@ -133,7 +133,7 @@ class Unet:
         # with tf.variable_scope("metrics"):
         metrics = {
             'mean_iou': tf.metrics.mean_iou(labels, prediction, num_classes=2),
-            'loss': tf.metrics.mean(_loss)
+            'loss': tf.metrics.mean(loss)
         }
         # Group the update ops for the tf.metrics
         update_metrics_op = tf.group(*[op for _, op in metrics.values()])

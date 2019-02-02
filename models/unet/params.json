@@ -4,6 +4,7 @@
     "lr_decay": 0.9,
     "img_h": 266,
     "img_w": 369,
+    "img_c": 1,
     "num_epochs": 50,
     "num_classes": 2,
     "num_parallel_calls": 4,

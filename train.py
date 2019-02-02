@@ -48,8 +48,8 @@ if __name__ == "__main__":
         # model = UnetPlusPlus()
         pass
     elif args.model_name == "segan":
-        # from model import SegAn
-        # model = SegAn()    
+        from model import SegAN
+        model = SegAN()    
         pass
         
     json_path = os.path.join(model_dir, 'params.json')
@@ -75,9 +75,10 @@ if __name__ == "__main__":
     train_model_specs = model.model_fn("train", train_inputs, params)
     # sharing model weights for train and valid
     #eval_inputs["prediction"] = train_model_specs["prediction"]
-    eval_inputs["model"] = train_model_specs["model"]
+    # eval_inputs["model"] = train_model_specs["model"]
 
-    eval_model_specs = model.model_fn("eval", eval_inputs, params, reuse=False)
+    # eval_model_specs = model.model_fn("eval", eval_inputs, params, reuse=False)
+    eval_model_specs = {}
 
     params.train_size = X_train.shape[0]
     params.eval_size = X_val.shape[0]
