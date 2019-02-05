@@ -1,6 +1,5 @@
 import logging
 import os
-import shutil
 import tensorflow as tf
 from tqdm import trange
 from tensorflow.python.keras.layers import Input
@@ -19,7 +18,7 @@ def train_sess(sess, model_spec, num_steps, writer, params):
 
     global_step = tf.train.get_global_step()
     iterator_init_op = model_spec["iterator_init_op"]
-    metric_init_op = model_spec["metrics_init_op"]            
+    metric_init_op = model_spec["metrics_init_op"]
 
     features_placeholder = model_spec["X_placeholder"]
     labels_placeholder = model_spec["Y_placeholder"]
@@ -44,30 +43,30 @@ def train_sess(sess, model_spec, num_steps, writer, params):
         #print(imgs.shape, lbls.shape)
 
         if i % params.save_summary_steps == 0:
-            _, _, _, loss_val, mean_iou_val, summ, global_step_val = sess.run([train_op, update_metrics, conf_mat, loss, mean_iou, summary_op, global_step])
+            _, _, _, loss_val, mean_iou_val, summ, global_step_val = sess.run(
+                [train_op, update_metrics, conf_mat, loss, mean_iou, summary_op, global_step])
             writer.add_summary(summ, global_step_val)
 
         else:
-            _, _, _, loss_val, mean_iou_val = sess.run([train_op, update_metrics, conf_mat, loss, mean_iou])
+            _, _, _, loss_val, mean_iou_val = sess.run(
+                [train_op, update_metrics, conf_mat, loss, mean_iou])
 
-        t.set_postfix(loss='{:05.3f}'.format(loss_val), mean_iou='{:05.3f}'.format(mean_iou_val))
+        t.set_postfix(loss='{:05.3f}'.format(loss_val),
+                      mean_iou='{:05.3f}'.format(mean_iou_val))
 
     metrics_values = {k: v[0] for k, v in metrics.items()}
     metrics_val = sess.run(metrics_values)
-    metrics_string = " ; ".join("{}: {:05.3f}".format(k, v) for k, v in metrics_val.items())
+    metrics_string = " ; ".join("{}: {:05.3f}".format(k, v)
+                                for k, v in metrics_val.items())
     logging.info("- Train metrics: " + metrics_string)
 
 
 def train_and_evaluate(train_model_spec, eval_model_spec, model_dir, params):
     """Train the model and evaluate every epoch
     """
-    last_saver = tf.train.Saver() # will keep last 5 epochs
-    best_saver = tf.train.Saver(max_to_keep=1) # only keep 1 best checkpoint (best on eval)
-
-    if os.path.exists('./train_summaries'):
-        shutil.rmtree('./train_summaries')
-    if os.path.exists('./eval_summaries'):
-        shutil.rmtree('./eval_summaries')
+    last_saver = tf.train.Saver()  # will keep last 5 epochs
+    # only keep 1 best checkpoint (best on eval)
+    best_saver = tf.train.Saver(max_to_keep=1)
 
     with tf.Session() as sess:
         sess.run(train_model_spec['variable_init_op'])
@@ -83,16 +82,9 @@ def train_and_evaluate(train_model_spec, eval_model_spec, model_dir, params):
         for epoch in range(params.num_epochs):
             logging.info("Epoch {}/{}".format(epoch + 1, params.num_epochs))
 
-            num_steps = (params.train_size + params.batch_size -1) // params.batch_size
+            num_steps = (params.train_size + params.batch_size -
+                         1) // params.batch_size
             train_sess(sess, train_model_spec, num_steps, train_writer, params)
 
             # num_steps = (params.eval_size + params.batch_size - 1) // params.batch_size
             # metrics = evaluate_sess(sess, eval_model_spec, num_steps, eval_writer)
-
-
-
-
-
-
-
-            

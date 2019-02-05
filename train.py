@@ -3,6 +3,7 @@ import logging
 import os
 import random
 import sys
+import shutil
 import numpy as np
 from utils import Params, set_logger
 from data_loader import DataLoader
@@ -14,26 +15,35 @@ python train.py --model_name unet
 """
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--model_name",help="Name of directory of specific model in ./models parent directory, such as unet, attention-unet or segan")
+parser.add_argument(
+    "--model_name", help="Name of directory of specific model in ./models parent directory, such as unet, attention-unet or segan")
 
 if __name__ == "__main__":
 
     args = parser.parse_args()
-    assert(args.model_name in ['unet', 'segan', 'nested-unet', 'attention-unet'])    
+    assert(args.model_name in ['unet', 'segan',
+                               'nested-unet', 'attention-unet'])
 
     if args.model_name == 'segan':
         sys.path.append('./models/segan/')
         model_dir = './models/segan'
+        from trainer_eager import train_and_evaluate
+
     elif args.model_name == 'unet':
         sys.path.append('./models/unet/')
         model_dir = './models/unet'
-    else:
+        from trainer import train_and_evaluate
+
+    elif args.model_name == 'attention-unet':
         sys.path.append('./models/unet/')
         model_dir = os.path.join('./models/unet/', args.model_name)
+        from trainer import train_and_evaluate
+
+    else:
+        print("No model named " + args.model_name + " exists.")
+        exit(0)
 
     sys.path.append(model_dir)
-    
-    from trainer import train_and_evaluate
 
     if args.model_name == "unet":
         from base_model import Unet
@@ -42,22 +52,29 @@ if __name__ == "__main__":
     elif args.model_name == "attention-unet":
         from model import AttentionalUnet
         model = AttentionalUnet()
-        
+
     elif args.model_name == "nested-unet":
         # from model import UnetPlusPlus
         # model = UnetPlusPlus()
         pass
     elif args.model_name == "segan":
         from model import SegAN
-        model = SegAN()    
+        model = SegAN()
         pass
-        
+
     json_path = os.path.join(model_dir, 'params.json')
-    assert os.path.isfile(json_path), "No json configuration file found at {}".format(json_path)
+    assert os.path.isfile(
+        json_path), "No json configuration file found at {}".format(json_path)
 
     params = Params(json_path)
 
     set_logger(os.path.join(model_dir, 'train.log'))
+
+    if os.path.exists('./train_summaries'):
+        shutil.rmtree('./train_summaries')
+    if os.path.exists('./eval_summaries'):
+        shutil.rmtree('./eval_summaries')
+
     logging.info("Loading the datasets...")
 
     data_loader = DataLoader()
@@ -73,6 +90,7 @@ if __name__ == "__main__":
     eval_inputs = input_fn(False, X_val, Y_val, params)
 
     train_model_specs = model.model_fn("train", train_inputs, params)
+
     # sharing model weights for train and valid
     #eval_inputs["prediction"] = train_model_specs["prediction"]
     # eval_inputs["model"] = train_model_specs["model"]
