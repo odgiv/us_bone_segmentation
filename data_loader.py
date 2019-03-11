@@ -1,9 +1,12 @@
-import os, random, json
+import os
+import random
+import json
 import h5py
 import numpy as np
 
-MIN_IMG_SIZE = (266,369)
+MIN_IMG_SIZE = (266, 369)
 NUM_ROWS_CUT_BOTTOM = 33
+
 
 class DataLoader():
 
@@ -19,10 +22,11 @@ class DataLoader():
 
     def _load_XY_from(self, path):
         list_us_array = []
-        list_gt_array = []    
+        list_gt_array = []
 
         for f in sorted(os.listdir(path)):
-            files_directory = os.path.join(path, f) # If f is directory, not a file
+            # If f is directory, not a file
+            files_directory = os.path.join(path, f)
             if not os.path.isdir(files_directory):
                 continue
             print("entering directory: ", files_directory)
@@ -63,15 +67,15 @@ class DataLoader():
 
             list_us_array.append(us_vol)
             list_gt_array.append(gt_vol)
-        
+
         X = np.dstack(list_us_array)
         Y = np.dstack(list_gt_array)
-        
+
         X = np.transpose(X, (2, 0, 1))
         Y = np.transpose(Y, (2, 0, 1))
 
         X = np.expand_dims(X, -1)
-        Y = np.expand_dims(Y, -1) 
+        Y = np.expand_dims(Y, -1)
 
         np.random.seed(1)
         np.random.shuffle(X)
@@ -80,24 +84,23 @@ class DataLoader():
 
         return X, Y
 
-    def loadTestDatasets(self):    
-        X, Y = self._load_XY_from(self.test_datasets_path)    
+    def loadTestDatasets(self):
+        X, Y = self._load_XY_from(self.test_datasets_path)
         return X, Y
 
-    def loadTrainValDatasets(self, val_ratio=0.8):    
+    def loadTrainValDatasets(self, val_ratio=0.8):
         X, Y = self._load_XY_from(self.train_val_datasets_path)
 
         X_train, Y_train = np.array([]), np.array([])
         X_valid, Y_valid = np.array([]), np.array([])
-        
-        X_train = X[0:int(X.shape[0]*val_ratio),:,:]
-        Y_train = Y[0:int(Y.shape[0]*val_ratio),:,:]  
-        X_valid = X[int(X.shape[0]*val_ratio):,:,:]
-        Y_valid = Y[int(Y.shape[0]*val_ratio):,:,:]        
+
+        X_train = X[0:int(X.shape[0]*val_ratio), :, :]
+        Y_train = Y[0:int(Y.shape[0]*val_ratio), :, :]
+        X_valid = X[int(X.shape[0]*val_ratio):, :, :]
+        Y_valid = Y[int(Y.shape[0]*val_ratio):, :, :]
 
         return X_train, Y_train, X_valid, Y_valid
 
-    
 
 if __name__ == "__main__":
     loader = DataLoader()

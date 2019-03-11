@@ -22,11 +22,7 @@ def input_fn(is_training, X, Y, params):
                    .prefetch(1)
                    )
     else:
-        dataset = (tf.data.Dataset.from_tensor_slices((X, Y))
-                   .map(parse_fn, num_parallel_calls=params.num_parallel_calls)
-                   .batch(params.batch_size)
-                   .prefetch(1)
-                   )
+        dataset = (X, Y)
 
     # iterator = dataset.make_initializable_iterator()
     # images, labels = iterator.get_next()

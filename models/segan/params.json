@@ -8,5 +8,7 @@
     "num_epochs": 50,
     "num_classes": 2,
     "num_parallel_calls": 4,
-    "save_summary_steps": 50
+    "save_summary_steps": 50,
+    "save_weights_path": "C:\\Users\\odgiiv\\tmp\\code\\ultrasound_bone_segmentation_frmwrk\\models\\segan\\model_weights\\",
+    "test_results_path": "C:\\Users\\odgiiv\\tmp\\code\\ultrasound_bone_segmentation_frmwrk\\models\\segan\\test_results\\"
 }

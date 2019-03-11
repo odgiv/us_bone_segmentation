@@ -10,6 +10,7 @@ from tensorflow.python.keras.layers import Lambda, Input, Conv2D, UpSampling2D, 
 from tensorflow.python.keras.activations import sigmoid
 from tensorflow.python.keras import Model
 from tensorflow.python.keras.losses import mean_absolute_error as mea
+import numpy as np
 
 
 def conv_lrelu(nb_filters, kernel=(4, 4), stride=(2, 2)):
@@ -125,112 +126,12 @@ class SegAN(Model):
     def __init__(self):
         super(SegAN, self).__init__()
 
-        self.num_filters = [64, 128, 256, 512]
-
-    def get_crop_shape(self, target, refer):
-        """
-        https://www.tensorflow.org/api_docs/python/tf/keras/layers/Cropping2D
-        https://stackoverflow.com/questions/41925765/keras-cropping2d-changes-color-channel
-        """
-        # width, the 3rd dimension
-        cw = (target.get_shape()[2] - refer.get_shape()[2]).value
-        assert (cw >= 0)
-        if cw % 2 != 0:
-            cw1, cw2 = int(cw/2), int(cw/2) + 1
-        else:
-            cw1, cw2 = int(cw/2), int(cw/2)
-        # height, the 2nd dimension
-        ch = (target.get_shape()[1] - refer.get_shape()[1]).value
-        assert (ch >= 0)
-        if ch % 2 != 0:
-            ch1, ch2 = int(ch/2), int(ch/2) + 1
-        else:
-            ch1, ch2 = int(ch/2), int(ch/2)
-
-        return ((ch1, ch2), (cw1, cw2))
-
-    # def cropping_2d(self, target, refer):
-    #     return
-
-    def conv_lrelu(self, x, nb_filters, kernel=(4, 4), stride=(2, 2)):
-        x = Conv2D(nb_filters, kernel, stride, padding="same")(x)
-        return LeakyReLU()(x)
-
-    def conv_bn_lrelu(self, x, nb_filters, kernel=(4, 4), stride=(2, 2)):
-        x = Conv2D(nb_filters,  kernel, stride, padding="same")(x)
-        x = BatchNormalization()(x)
-        return LeakyReLU()(x)
-
-    def up_conv(self, x, nb_filters, kernel=(3, 3), stride=(1, 1)):
-        x = UpSampling2D(size=(2, 2))(x)
-        x = Conv2D(nb_filters, kernel, stride, padding="same")(x)
-        return x
-
-    def up_conv_bn_relu(self, x, nb_filters, kernel=(3, 3), stride=(1, 1)):
-        x = UpSampling2D(size=(2, 2))(x)
-        x = Conv2D(nb_filters, kernel, stride, padding="same")(x)
-        x = BatchNormalization()(x)
-        return Activation('relu')(x)
-
-    def segmentor(self, input):
-        seg_inputs = input
-        seg_conv1 = self.conv_lrelu(seg_inputs, self.num_filters[0])
-        seg_conv2 = self.conv_bn_lrelu(seg_conv1, self.num_filters[1])
-        seg_conv3 = self.conv_bn_lrelu(seg_conv2, self.num_filters[2])
-        seg_center = self.conv_bn_lrelu(seg_conv3, self.num_filters[3])
-        seg_up_con4 = self.up_conv_bn_relu(seg_center, self.num_filters[2])
-        seg_up_con5 = self.up_conv_bn_relu(
-            seg_up_con4, self.num_filters[1])
-        seg_up_con6 = self.up_conv_bn_relu(
-            seg_up_con5, self.num_filters[0])
-        pred = self.up_conv(seg_up_con6, 1)
-
-        ch, cw = self.get_crop_shape(pred, input)
-        pred = Cropping2D(cropping=((ch, cw)))(pred)
-
-        # pred = self.cropping_2d(pred, input)
-        # pred = Lambda(lambda target, refer: self.get_crop_shape(
-        #     target, refer), arguments={'refer': input})(pred)
-
-        pred = Activation("sigmoid")(pred)
-
-        return Model([seg_inputs], [pred], name="segmentor_net")
-
-    def critic(self, input):
-        cri_inputs = input
-        cri_conv1 = self.conv_lrelu(cri_inputs, self.num_filters[0])
-        cri_conv2 = self.conv_bn_lrelu(cri_conv1, self.num_filters[1])
-        cri_conv3 = self.conv_bn_lrelu(cri_conv2, self.num_filters[2])
-        features = Concatenate()([Flatten()(cri_inputs), Flatten()(
-            cri_conv1), Flatten()(cri_conv2), Flatten()(cri_conv3)])
-        return features
-
-    def build_model(self, inputs, params):
-        # images = inputs["images"]
-        # targets = inputs["labels"]
-        # segmentor_net = self.segmentor((params.img_h, params.img_w, params.img_c))  # images
-        # shared_critic_net = self.critic(
-        #     (params.img_h, params.img_w, params.img_c))
-
-        # masked_input_seg = multiply([images, segmentor_net.outputs[0]])
-        # critic_net_output_for_seg = shared_critic_net(masked_input_seg)
-
-        # masket_input_gt = multiply([images, targets])
-        # critic_net_output_for_target = shared_critic_net(masket_input_gt)
-
-        return {
-            "segmentor_net": SegmentorNet(),
-            "critic_net": CriticNet(),
-            # "critic_net_output_for_seg": critic_net_output_for_seg,
-            # "critic_net_output_for_target": critic_net_output_for_target
-        }
-
-    def model_fn(self, mode, inputs, params):
+    def model_fn(self, mode, inputs={}, params={}):
 
         is_training = (mode == "train")
         # labels = tf.cast(inputs["labels"], tf.int32)
 
-        networks = self.build_model(inputs, params)
+        # networks = self.build_model(inputs, params)
 
         # critic_net_output_for_segmentor = networks["critic_net_output_for_seg"]
         # critic_net_output_for_target = networks["critic_net_output_for_target"]
@@ -263,11 +164,20 @@ class SegAN(Model):
         # tf.summary.image("predicted_label", tf.cast(
         #     255 * seg_prediction_binary, tf.uint8))
 
+
+        segNet = SegmentorNet()
+        criNet = CriticNet()
+
+        if not is_training:
+            segNet.compile(optimizer='adam', loss='sparse_categorical_crossentropy')
+            segNet.fit(x=np.zeros((1,1,1,1)), y=np.zeros((1,1,1,1)), epochs=0, steps_per_epoch=0)
+            segNet.load_weights(params.save_weights_path + 'segan_best_weights.h5')
+
         model_spec = inputs
         # model_spec["variable_init_op"] = tf.global_variables_initializer()
         # model_spec["local_variable_init_op"] = tf.local_variables_initializer()
-        model_spec["segmentor_net"] = networks["segmentor_net"]
-        model_spec["critic_net"] = networks["critic_net"]
+        model_spec["segmentor_net"] = segNet
+        model_spec["critic_net"] = criNet
 
         # model_spec["seg_loss"] = seg_loss
         # model_spec["cri_loss"] = cri_loss

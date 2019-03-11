@@ -15,8 +15,7 @@ python train.py --model_name unet
 """
 
 parser = argparse.ArgumentParser()
-parser.add_argument(
-    "--model_name", help="Name of directory of specific model in ./models parent directory, such as unet, attention-unet or segan")
+parser.add_argument("--model_name", help="Name of directory of specific model in ./models parent directory, such as unet, attention-unet or segan")
 
 if __name__ == "__main__":
 
@@ -25,46 +24,32 @@ if __name__ == "__main__":
                                'nested-unet', 'attention-unet'])
 
     if args.model_name == 'segan':
-        sys.path.append('./models/segan/')
         model_dir = './models/segan'
+        sys.path.append(model_dir)
         from trainer_eager import train_and_evaluate
+        from model import SegAN
+        model = SegAN()
 
     elif args.model_name == 'unet':
-        sys.path.append('./models/unet/')
         model_dir = './models/unet'
+        sys.path.append(model_dir)
         from trainer import train_and_evaluate
+        from base_model import Unet
+        model = Unet()
 
     elif args.model_name == 'attention-unet':
-        sys.path.append('./models/unet/')
         model_dir = os.path.join('./models/unet/', args.model_name)
+        sys.path.append(model_dir)
         from trainer import train_and_evaluate
+        from model import AttentionalUnet
+        model = AttentionalUnet()
 
     else:
         print("No model named " + args.model_name + " exists.")
         exit(0)
 
-    sys.path.append(model_dir)
-
-    if args.model_name == "unet":
-        from base_model import Unet
-        model = Unet()
-
-    elif args.model_name == "attention-unet":
-        from model import AttentionalUnet
-        model = AttentionalUnet()
-
-    elif args.model_name == "nested-unet":
-        # from model import UnetPlusPlus
-        # model = UnetPlusPlus()
-        pass
-    elif args.model_name == "segan":
-        from model import SegAN
-        model = SegAN()
-        pass
-
     json_path = os.path.join(model_dir, 'params.json')
-    assert os.path.isfile(
-        json_path), "No json configuration file found at {}".format(json_path)
+    assert os.path.isfile(json_path), "No json configuration file found at {}".format(json_path)
 
     params = Params(json_path)
 
@@ -87,7 +72,7 @@ if __name__ == "__main__":
     print("Y_valid shape {}".format(Y_val.shape))
 
     train_inputs = input_fn(True, X_train, Y_train, params)
-    eval_inputs = input_fn(False, X_val, Y_val, params)
+    val_inputs = input_fn(False, X_val, Y_val, params)
 
     train_model_specs = model.model_fn("train", train_inputs, params)
 
@@ -96,9 +81,9 @@ if __name__ == "__main__":
     # eval_inputs["model"] = train_model_specs["model"]
 
     # eval_model_specs = model.model_fn("eval", eval_inputs, params, reuse=False)
-    eval_model_specs = {}
+    val_model_specs = val_inputs
 
     params.train_size = X_train.shape[0]
     params.eval_size = X_val.shape[0]
 
-    train_and_evaluate(train_model_specs, eval_model_specs, model_dir, params)
+    train_and_evaluate(train_model_specs, val_model_specs, model_dir, params)
