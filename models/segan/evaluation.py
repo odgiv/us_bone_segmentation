@@ -4,6 +4,7 @@ import numpy as np
 import os
 from input_fn import _parse_function
 import shutil
+import scipy
 
 def sigmoid(x):
     return 1./ (1. + np.exp(-x))
@@ -30,12 +31,12 @@ def evaluate(test_model_specs, params):
 
         # print(img.shape, label.shape)
         pred = segmentor_net.predict_on_batch(img)
-        pred = sigmoid(pred)
+        pred = scipy.special.expit(pred)
         pred = np.squeeze(pred)    
 
     
-        pred[pred < 0.5] = 0
-        pred[pred >= 0.5] = 1
+        pred[pred < 1.0] = 0
+        pred[pred >= 1.0] = 1
         
         pred = pred * 255
 
