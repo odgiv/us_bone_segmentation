@@ -132,18 +132,20 @@ def train_and_evaluate(train_model_specs, val_model_specs, model_dir, params):
             pred = segmentor_net(imgs)
             gt = labels.numpy()
             pred_np = pred.numpy()
-            pred_np[pred_np < 0.5] = 0
-            pred_np[pred_np >= 0.5] = 1
 
-            
+            pred_np[pred_np <= 0.5] = 0
+            pred_np[pred_np > 0.5] = 1
+
             for x in range(imgs.shape[0]):
-                IoU = np.sum(pred_np[x][gt[x] == 1]) / float(np.sum(pred_np[x]) + np.sum(gt[x]) - np.sum(pred_np[x][gt[x] == 1]))
+                IoU = np.sum(pred_np[x][gt[x] == 1]) / float(np.sum(pred_np[x]
+                                                                    ) + np.sum(gt[x]) - np.sum(pred_np[x][gt[x] == 1]))
                 IoUs.append(IoU)
-            
+
         IoUs = np.array(IoUs, dtype=np.float64)
         mIoU = np.mean(IoUs, axis=0)
         print('mIoU on validation set: {:.4f}'.format(mIoU))
 
         if maxIoU < mIoU:
             maxIoU = mIoU
-            segmentor_net.save_weights(params.save_weights_path + 'segan_best_weights.h5')
+            segmentor_net.save_weights(
+                params.save_weights_path + 'segan_weights' + maxIoU + '.h5')

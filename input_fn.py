@@ -24,14 +24,4 @@ def input_fn(is_training, X, Y, params):
     else:
         dataset = (X, Y)
 
-    # iterator = dataset.make_initializable_iterator()
-    # images, labels = iterator.get_next()
-    # iterator_init_op = iterator.initializer
-
-    inputs = {"dataset": dataset,
-              #   "images": images, "labels": labels, "iterator_init_op": iterator_init_op,
-              #   "X": X,
-              #   "Y": Y,
-              #   "X_placeholder": features_placeholder, "Y_placeholder": labels_placeholder
-              }
-    return inputs
+    return {"dataset": dataset}

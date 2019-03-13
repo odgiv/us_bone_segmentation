@@ -2,11 +2,12 @@ import tensorflow as tf
 from PIL import Image
 import numpy as np
 import os
-from input_fn import _parse_function
 import shutil
+from scipy.special import expit
+
 
 def sigmoid(x):
-    return 1./ (1. + np.exp(-x))
+    return 1. / (1. + np.exp(-x))
 
 
 def evaluate(test_model_specs, params):
@@ -19,32 +20,34 @@ def evaluate(test_model_specs, params):
         for d in dirs:
             shutil.rmtree(os.path.join(root, d))
 
+    IoUs = []
     for i in range(X_test.shape[0]):
 
-        img = X_test[i,:]
-        label = Y_test[i,:]
-        #img, label = _parse_function(img, label)
-        
-        img = np.expand_dims(img, axis=0)   
-        img = img.astype('float32')
+        img = X_test[i, :]
+        label = Y_test[i, :]
 
-        # print(img.shape, label.shape)
-        pred = segmentor_net.predict_on_batch(img)
-        pred = sigmoid(pred)
-        pred = np.squeeze(pred)    
+        img = np.expand_dims(img, axis=0)
+        img_norm = img/np.max(img)
+        img_norm = img_norm.astype('float32')
 
-    
-        pred[pred < 0.5] = 0
-        pred[pred >= 0.5] = 1
-        
-        pred = pred * 255
+        pred = segmentor_net.predict_on_batch(img_norm)
+        pred = expit(pred)  # sigmoid
 
-        label = np.squeeze(label) * 255    
+        # round like tf.round
+        pred[pred <= 0.5] = 0
+        pred[pred > 0.5] = 1
+
+        # IoU = np.sum(pred[i][label[i] == 1]) / float(np.sum(pred[i]) +
+        #                                              np.sum(label[i]) - np.sum(pred[i][label[i] == 1]))
+        # IoUs.append(IoU)
+
+        pred = np.squeeze(pred) * 255
+        label = np.squeeze(label) * 255
         img = np.squeeze(img)
 
         # print(img.shape, pred.shape, label.shape)
 
-        pred_img = Image.fromarray(pred.astype(np.uint8), mode='P')        
+        pred_img = Image.fromarray(pred.astype(np.uint8), mode='P')
         label_img = Image.fromarray(label.astype(np.uint8), mode='P')
         img = Image.fromarray(img.astype(np.uint8), mode='P')
 
@@ -55,4 +58,7 @@ def evaluate(test_model_specs, params):
 
         name = str(i) + '.jpg'
         I.save(os.path.join(params.test_results_path, name))
-        
+
+    IoUs = np.array(IoUs, dtype=np.float64)
+    mIoU = np.mean(IoUs, axis=0)
+    print("mIoU: ", mIoU)

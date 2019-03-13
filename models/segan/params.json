@@ -1,14 +1,14 @@
 {
-    "batch_size": 20,
-    "learning_rate": 0.0002,
-    "lr_decay": 0.5,
-    "img_h": 266,
-    "img_w": 369,
-    "img_c": 1,
-    "num_epochs": 50,
-    "num_classes": 2,
-    "num_parallel_calls": 4,
-    "save_summary_steps": 50,
-    "save_weights_path": "C:\\Users\\odgiiv\\tmp\\code\\ultrasound_bone_segmentation_frmwrk\\models\\segan\\model_weights\\",
-    "test_results_path": "C:\\Users\\odgiiv\\tmp\\code\\ultrasound_bone_segmentation_frmwrk\\models\\segan\\test_results\\"
+  "batch_size": 20,
+  "learning_rate": 0.0002,
+  "lr_decay": 0.5,
+  "img_h": 266,
+  "img_w": 369,
+  "img_c": 1,
+  "num_epochs": 50,
+  "num_classes": 2,
+  "num_parallel_calls": 4,
+  "save_summary_steps": 50,
+  "save_weights_path": "D:\\python_libs\\us_bone_segmentation\\models\\segan\\model_weights\\",
+  "test_results_path": "D:\\python_libs\\us_bone_segmentation\\models\\segan\\test_results\\"
 }
