@@ -101,7 +101,6 @@ class DataLoader():
 
         return X_train, Y_train, X_valid, Y_valid
 
-
 if __name__ == "__main__":
     loader = DataLoader()
     X_train, Y_train, X_val, Y_val = loader.loadTrainValDatasets()
