@@ -27,28 +27,33 @@ def evaluate(test_model_specs, params):
         label = Y_test[i, :]
 
         img = np.expand_dims(img, axis=0)
-        img_norm = img/np.max(img)
+        img_norm = img/255 #np.max(img)
         img_norm = img_norm.astype('float32')
 
         pred = segmentor_net.predict_on_batch(img_norm)
-        pred = expit(pred)  # sigmoid
+        # pred = expit(pred)  # sigmoid
 
         # round like tf.round
         pred[pred <= 0.5] = 0
         pred[pred > 0.5] = 1
 
-        # IoU = np.sum(pred[i][label[i] == 1]) / float(np.sum(pred[i]) +
-        #                                              np.sum(label[i]) - np.sum(pred[i][label[i] == 1]))
-        # IoUs.append(IoU)
+        pred = np.squeeze(pred, axis=(0))
 
-        pred = np.squeeze(pred) * 255
-        label = np.squeeze(label) * 255
+        print("pred shape: ", pred.shape)
+        print("img shape: ", img.shape)
+        print("label shape: ", label.shape)
+
+        IoU = np.sum(pred[label == 1]) / (float(np.sum(pred) + np.sum(label) - np.sum(pred[label == 1])))
+        IoUs.append(IoU)
+
+        pred_img = np.squeeze(pred) * 255
+        label_img = np.squeeze(label) * 255
         img = np.squeeze(img)
 
         # print(img.shape, pred.shape, label.shape)
 
-        pred_img = Image.fromarray(pred.astype(np.uint8), mode='P')
-        label_img = Image.fromarray(label.astype(np.uint8), mode='P')
+        pred_img = Image.fromarray(pred_img.astype(np.uint8), mode='P')
+        label_img = Image.fromarray(label_img.astype(np.uint8), mode='P')
         img = Image.fromarray(img.astype(np.uint8), mode='P')
 
         I = Image.new('RGB', (pred.shape[1]*3, pred.shape[0]))

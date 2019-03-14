@@ -28,11 +28,12 @@ def train_and_evaluate(train_model_specs, val_model_specs, model_dir, params):
     summary_writer.set_as_default()
     global_step = tf.train.get_or_create_global_step()
 
-    # Optimizer for segmentor
-    optimizerS = tf.train.AdamOptimizer(learning_rate=params.learning_rate)
+    lr = params.learning_rate
 
+    # Optimizer for segmentor
+    optimizerS = tf.train.AdamOptimizer(learning_rate=lr, beta1=params.beta1)
     # Optimizer for critic
-    optimizerC = tf.train.AdamOptimizer(learning_rate=params.learning_rate)
+    optimizerC = tf.train.AdamOptimizer(learning_rate=lr, beta1=params.beta1)
 
     maxIoU = 0
 
@@ -54,6 +55,8 @@ def train_and_evaluate(train_model_specs, val_model_specs, model_dir, params):
             with tf.GradientTape() as tape:
                 # Run image through segmentor net and get result
                 seg_result = segmentor_net(img)
+                print("img shape: ", img.shape)
+                print("segmentor result shape: ", seg_result.shape)
                 seg_result = tf.sigmoid(seg_result)
                 seg_result_masked = img * seg_result
                 target_masked = img * label
@@ -137,8 +140,7 @@ def train_and_evaluate(train_model_specs, val_model_specs, model_dir, params):
             pred_np[pred_np > 0.5] = 1
 
             for x in range(imgs.shape[0]):
-                IoU = np.sum(pred_np[x][gt[x] == 1]) / float(np.sum(pred_np[x]
-                                                                    ) + np.sum(gt[x]) - np.sum(pred_np[x][gt[x] == 1]))
+                IoU = np.sum(pred_np[x][gt[x] == 1]) / float(np.sum(pred_np[x]) + np.sum(gt[x]) - np.sum(pred_np[x][gt[x] == 1]))
                 IoUs.append(IoU)
 
         IoUs = np.array(IoUs, dtype=np.float64)
@@ -147,5 +149,15 @@ def train_and_evaluate(train_model_specs, val_model_specs, model_dir, params):
 
         if maxIoU < mIoU:
             maxIoU = mIoU
-            segmentor_net.save_weights(
-                params.save_weights_path + 'segan_weights' + maxIoU + '.h5')
+            # segmentor_net.save_weights(params.save_weights_path + 'segan_weights' + maxIoU + '.h5')
+            tf.keras.models.save_model(segmentor_net, params.save_weight + 'segan_model_'+ maxIoU + '.h5', overwrite=True, include_optimizer=False)
+
+        # Learning rate decay
+        if epoch % 25 == 0:
+            lr = lr * params.decay
+            if lr <= 0.00000001:
+                lr = 0.00000001
+            print("Learning rate: {:.6f}", format(lr))
+
+            optimizerS = tf.train.AdamOptimizer(learning_rate=lr, beta1=params.beta1)
+            optimizerC = tf.train.AdamOptimizer(learning_rate=lr, beta1=params.beta1)
