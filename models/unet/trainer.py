@@ -82,9 +82,10 @@ def train_and_evaluate(train_model_spec, eval_model_spec, model_dir, params):
         for epoch in range(params.num_epochs):
             logging.info("Epoch {}/{}".format(epoch + 1, params.num_epochs))
 
-            num_steps = (params.train_size + params.batch_size -
-                         1) // params.batch_size
+            num_steps = (params.train_size + params.batch_size - 1) // params.batch_size
             train_sess(sess, train_model_spec, num_steps, train_writer, params)
 
-            # num_steps = (params.eval_size + params.batch_size - 1) // params.batch_size
-            # metrics = evaluate_sess(sess, eval_model_spec, num_steps, eval_writer)
+            eval_num_steps = (params.eval_size + params.batch_size - 1) // params.batch_size
+            metrics = evaluate_sess(sess, eval_model_spec, eval_num_steps, eval_writer)
+
+            print(metrics)

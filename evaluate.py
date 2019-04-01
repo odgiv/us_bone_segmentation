@@ -21,6 +21,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     assert(args.model_name in ['unet', 'segan', 'attention-unet'])
+    is_eager = True
 
     if args.model_name == 'segan':
         model_dir = './models/segan'
@@ -28,17 +29,32 @@ if __name__ == "__main__":
         from evaluation import evaluate
         from model import SegAN
         model = SegAN()
+    
+    elif args.model_name == 'unet':
+        model_dir = './models/unet'
+        sys.path.append(model_dir)
+        from evaluation import evaluate
+        from base_model import Unet
+        model = Unet()
+
+    elif args.model_name == 'attention-unet' :
+        sys.path.append('./models/unet')
+        model_dir = './models/unet/attention-unet'
+        sys.path.append(model_dir)
+        from evaluation import evaluate
+        from model import AttentionalUnet
+
+        model = AttentionalUnet()
 
     json_path = os.path.join(model_dir, 'params.json')
-    assert os.path.isfile(
-        json_path), "No json configuration file found at {}".format(json_path)
+    assert os.path.isfile(json_path), "No json configuration file found at {}".format(json_path)
 
     params = Params(json_path)
 
     data_loader = DataLoader()
     X_test, Y_test = data_loader.loadTestDatasets()
 
-    test_inputs = input_fn(False, X_test, Y_test, params)
+    test_inputs = input_fn(False, is_eager, X_test, Y_test, params)
 
     predict_model_specs = model.model_fn("eval", test_inputs, params)
     evaluate(predict_model_specs, params)

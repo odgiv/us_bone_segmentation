@@ -88,7 +88,7 @@ class DataLoader():
         X, Y = self._load_XY_from(self.test_datasets_path)
         return X, Y
 
-    def loadTrainValDatasets(self, val_ratio=0.8):
+    def loadTrainValDatasets(self, val_ratio=0.95):
         X, Y = self._load_XY_from(self.train_val_datasets_path)
 
         X_train, Y_train = np.array([]), np.array([])

@@ -67,6 +67,8 @@ class SegmentorNet(Model):
     def __init__(self):
         super(SegmentorNet, self).__init__()
 
+        print("Creating SegAN model.")
+
         self.num_filters = [64, 128, 256, 512]
 
         self.conv_lrelu1 = conv_lrelu(self.num_filters[0])
@@ -89,16 +91,15 @@ class SegmentorNet(Model):
         seg_up_con5 = self.up_conv_bn_relu2(seg_up_con4)
         seg_up_con6 = self.up_conv_bn_relu3(seg_up_con5)
         pred = self.up_conv1(seg_up_con6)
-
+        # print(pred.shape)
         ch, cw = self.get_crop_shape(pred, inputs)
         pred = Cropping2D(cropping=((ch, cw)))(pred)
-
+        
         # pred = self.cropping_2d(pred, input)
         # pred = Lambda(lambda target, refer: self.get_crop_shape(
         #     target, refer), arguments={'refer': input})(pred)
 
         # pred = Activation("sigmoid")(pred)
-
         return pred
 
 
@@ -129,64 +130,17 @@ class SegAN(Model):
     def model_fn(self, mode, inputs={}, params={}):
 
         is_training = (mode == "train")
-        # labels = tf.cast(inputs["labels"], tf.int32)
-
-        # networks = self.build_model(inputs, params)
-
-        # critic_net_output_for_segmentor = networks["critic_net_output_for_seg"]
-        # critic_net_output_for_target = networks["critic_net_output_for_target"]
-
-        # seg_prediction = segmentor_net.outputs[0]
-        # seg_prediction_binary = tf.round(seg_prediction)
-
-        # seg_loss = tf.reduce_mean(
-        #     tf.abs(critic_net_output_for_segmentor - critic_net_output_for_target))
-        # cri_loss = - \
-        #     tf.reduce_mean(
-        #         tf.abs(critic_net_output_for_segmentor - critic_net_output_for_target))
-
-        # if is_training:
-        #     optimizerG = tf.train.AdamOptimizer(
-        #         learning_rate=params.learning_rate)
-        #     optimizerD = tf.train.AdamOptimizer(
-        #         learning_rate=params.learning_rate)
-
-        #     global_step = tf.train.get_or_create_global_step()
-        #     seg_train_op = optimizerG.minimize(
-        #         seg_loss, global_step=global_step)
-        #     cri_train_op = optimizerD.minimize(
-        #         cri_loss, global_step=global_step)
-
-        # tf.summary.scalar("seg_loss", seg_loss)
-        # tf.summary.scalar("cri_loss", cri_loss)
-        # tf.summary.image("train_image", inputs["images"])
-        # # tf.summary.image("label", tf.cast(255 * labels, tf.uint8))
-        # tf.summary.image("predicted_label", tf.cast(
-        #     255 * seg_prediction_binary, tf.uint8))
-
 
         segNet = SegmentorNet()
         criNet = CriticNet()
 
-        if not is_training:
-            segNet.compile(optimizer='adam', loss='sparse_categorical_crossentropy')
-            segNet.fit(x=np.zeros((1,1,1,1)), y=np.zeros((1,1,1,1)), epochs=0, steps_per_epoch=0)
-            segNet.load_weights(params.save_weights_path + 'segan_best_weights.h5')
+        # if not is_training:
+        #     segNet.compile(optimizer='adam', loss='sparse_categorical_crossentropy')
+        #     segNet.fit(x=np.zeros((1,1,1,1)), y=np.zeros((1,1,1,1)), epochs=0, steps_per_epoch=0)
+        #     segNet.load_weights(params.save_weights_path + 'segan_best_weights.h5')
 
         model_spec = inputs
-        # model_spec["variable_init_op"] = tf.global_variables_initializer()
-        # model_spec["local_variable_init_op"] = tf.local_variables_initializer()
         model_spec["segmentor_net"] = segNet
         model_spec["critic_net"] = criNet
-
-        # model_spec["seg_loss"] = seg_loss
-        # model_spec["cri_loss"] = cri_loss
-
-        # model_spec["seg_prediction"] = seg_prediction
-        # model_spec['summary_op'] = tf.summary.merge_all()
-
-        # if is_training:
-        #     model_spec["seg_train_op"] = seg_train_op,
-        #     model_spec["cri_train_op"] = cri_train_op,
 
         return model_spec

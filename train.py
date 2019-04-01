@@ -22,6 +22,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     assert(args.model_name in ['unet', 'segan',
                                'nested-unet', 'attention-unet'])
+    is_eager = True
 
     if args.model_name == 'segan':
         model_dir = './models/segan'
@@ -33,16 +34,20 @@ if __name__ == "__main__":
     elif args.model_name == 'unet':
         model_dir = './models/unet'
         sys.path.append(model_dir)
-        from trainer import train_and_evaluate
+        from trainer_eager import train_and_evaluate
         from base_model import Unet
         model = Unet()
+        is_eager = True
+
 
     elif args.model_name == 'attention-unet':
+        sys.path.append('./models/unet')
         model_dir = os.path.join('./models/unet/', args.model_name)
         sys.path.append(model_dir)
-        from trainer import train_and_evaluate
+        from trainer_eager import train_and_evaluate
         from model import AttentionalUnet
         model = AttentionalUnet()
+        is_eager = True
 
     else:
         print("No model named " + args.model_name + " exists.")
@@ -71,8 +76,8 @@ if __name__ == "__main__":
     print("X_valid shape {}".format(X_val.shape))
     print("Y_valid shape {}".format(Y_val.shape))
 
-    train_inputs = input_fn(True, X_train, Y_train, params)
-    val_inputs = input_fn(False, X_val, Y_val, params)
+    train_inputs = input_fn(True, is_eager, X_train, Y_train, params)
+    val_inputs = input_fn(True, is_eager, X_val, Y_val, params)
 
     train_model_specs = model.model_fn("train", train_inputs, params)
 
@@ -80,7 +85,7 @@ if __name__ == "__main__":
     #eval_inputs["prediction"] = train_model_specs["prediction"]
     # eval_inputs["model"] = train_model_specs["model"]
 
-    # eval_model_specs = model.model_fn("eval", eval_inputs, params, reuse=False)
+    # val_model_specs = model.model_fn("eval", val_inputs, params, reuse=True)
     val_model_specs = val_inputs
 
     params.train_size = X_train.shape[0]

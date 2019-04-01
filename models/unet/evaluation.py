@@ -1,50 +1,78 @@
-import logging
-import os
 import tensorflow as tf
-from tqdm import trange
-from tensorflow.python.keras.layers import Input
+from PIL import Image
+import numpy as np
+import os
+import shutil
+from scipy.special import expit
 
 
-def evaluate_sess(sess, model_spec, num_steps, writer=None, params=None):
-    update_metrics = model_spec["update_metrics"]
-    eval_metrics = model_spec["metrics"]
+def evaluate(test_model_specs, params):
+    (X_test, Y_test) = test_model_specs["dataset"]
+    unet = test_model_specs["unet"]
 
-    global_step = tf.train.get_global_step()
-    iterator_init_op = model_spec["iterator_init_op"]
-    metric_init_op = model_spec["metrics_init_op"]    
+    for root, dirs, files in os.walk(params.test_results_path):
+        for f in files:
+            os.unlink(os.path.join(root, f))
+        for d in dirs:
+            shutil.rmtree(os.path.join(root, d))
 
-    features_placeholder = model_spec["X_placeholder"]
-    labels_placeholder = model_spec["Y_placeholder"]
+    IoUs = []
+    sess = tf.keras.backend.get_session()   
+    sess.run(tf.global_variables_initializer())
 
-    sess.run(metric_init_op)
-    sess.run(iterator_init_op, feed_dict={
-        features_placeholder: model_spec["X"],
-        labels_placeholder: model_spec["Y"]
-    })
+    unet.compile(optimizer='adam', loss='sparse_categorical_crossentropy')
+    unet.fit(x=np.zeros((1,params.img_h,params.img_w,1)), y=np.zeros((1,params.img_h,params.img_w,1)), epochs=0, steps_per_epoch=0)
+    unet.load_weights(params.save_weights_path + 'att_unet_weights_val_maxIoU_0.851.h5')
 
-    for _ in range(num_steps):
-        sess.run(update_metrics)
-    
-    metrics_values = {k: v[0] for k, v in eval_metrics.items()}
-    metrics_val = sess.run(metrics_values)
-    metrics_string = " ; ".join("{}: {:05.3f}".format(k, v) for k, v in metrics_val.items())
-    logging.info("- Eval metrics: " + metrics_string)
+    if not os.path.isdir(params.test_results_path):
+        os.mkdir(params.test_results_path)
 
-    if writer is not None:
-        global_step_val = sess.run(global_step)
-        for tag, val in metrics_val.items():
-            summ = tf.Summary(value=[tf.Summary.Value(tag=tag, simple_value=val)])
-            writer.add_summary(summ, global_step_val)
-    
-    return metrics_val
+    for i in range(X_test.shape[0]):
 
-def evaluate(model_spec, model_dir, params):
+        img = X_test[i, :]
+        label = Y_test[i, :]
 
-    saver = tf.train.Saver()
+        img = np.expand_dims(img, axis=0)
+        img_norm = img/255 #np.max(img)
+        img_norm = img_norm.astype('float32')
 
-    with tf.Session() as sess:
-        sess.run(model_spec['variable_init_op'])
-        sess.run(model_spec['local_variable_init_op'])
+        img_norm = tf.convert_to_tensor(img_norm)
+        pred = unet(img_norm)
 
-        num_steps = (params.eval_size + params.batch_size -1) // params.batch_size
-        metrics = evaluate_sess(sess, model_spec, num_steps)
+        # print(pred.shape)
+        # print(img.shape)
+
+        pred = pred.eval(session=sess)
+        
+
+        pred = np.argmax(pred, axis=-1)
+        pred = np.expand_dims(pred, -1)
+        pred = np.squeeze(pred, axis=0)
+
+        IoU = np.sum(pred[label == 1]) / float(np.sum(pred) + np.sum(label) - np.sum(pred[label == 1]))
+        print(IoU)
+        IoUs.append(IoU)
+
+        pred_img = np.squeeze(pred) * 255
+        label_img = np.squeeze(label) * 255
+        img = np.squeeze(img)
+        
+
+
+        # pred_img = Image.fromarray(np.asarray(pred_img.eval(session=sess), dtype=np.uint8), mode='P')
+        pred_img = Image.fromarray(pred_img.astype(np.uint8), mode='P')
+        label_img = Image.fromarray(label_img.astype(np.uint8), mode='P')
+        img = Image.fromarray(img.astype(np.uint8), mode='P')
+
+        I = Image.new('RGB', (pred_img.size[0]*3, pred_img.size[1]))
+        I.paste(img, (0, 0))
+        I.paste(label_img, (pred_img.size[0], 0))
+        I.paste(pred_img, (pred_img.size[0]*2, 0))
+
+        name = str(i) + '.jpg'
+        I.save(os.path.join(params.test_results_path, name))
+
+    IoUs = np.array(IoUs, dtype=np.float64)
+    mIoU = np.mean(IoUs, axis=0)
+
+    print("mIoU: ", mIoU)

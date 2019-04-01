@@ -36,8 +36,10 @@ def train_and_evaluate(train_model_specs, val_model_specs, model_dir, params):
     optimizerC = tf.train.AdamOptimizer(learning_rate=lr, beta1=params.beta1)
 
     maxIoU = 0
+    mIoU = 0
 
-    for epoch in range(params.num_epochs):
+    epoch = 1
+    for epoch in range(1, params.num_epochs):
         epoch_critic_loss_avg = tfe.metrics.Mean()
         epoch_seg_loss_avg = tfe.metrics.Mean()
 
@@ -55,8 +57,7 @@ def train_and_evaluate(train_model_specs, val_model_specs, model_dir, params):
             with tf.GradientTape() as tape:
                 # Run image through segmentor net and get result
                 seg_result = segmentor_net(img)
-                print("img shape: ", img.shape)
-                print("segmentor result shape: ", seg_result.shape)
+                
                 seg_result = tf.sigmoid(seg_result)
                 seg_result_masked = img * seg_result
                 target_masked = img * label
@@ -84,8 +85,8 @@ def train_and_evaluate(train_model_specs, val_model_specs, model_dir, params):
 
             with tf.GradientTape() as tape:
                 seg_result = segmentor_net(img)
-                seg_result = tf.sigmoid(seg_result)
-                seg_result_masked = img * seg_result
+                seg_result_sigm = tf.sigmoid(seg_result)
+                seg_result_masked = img * seg_result_sigm
                 target_masked = img * label
 
                 critic_result_on_seg = critic_net(seg_result_masked)
@@ -114,13 +115,12 @@ def train_and_evaluate(train_model_specs, val_model_specs, model_dir, params):
 
                 tf.contrib.summary.image("train_img", img)
                 tf.contrib.summary.image("ground_tr", label * 255)
-                tf.contrib.summary.image(
-                    "seg_result", tf.round(seg_result) * 255)
+                tf.contrib.summary.image("seg_result", tf.round(seg_result_sigm) * 255)
 
                 tf.contrib.summary.scalar("critic_loss",
-                                          epoch_critic_loss_avg.result())
+                                            epoch_critic_loss_avg.result())
                 tf.contrib.summary.scalar("seg_loss",
-                                          epoch_seg_loss_avg.result())
+                                            epoch_seg_loss_avg.result())
 
                 tf.contrib.summary.scalar(
                     "total_loss", epoch_critic_loss_avg.result() + epoch_seg_loss_avg.result())
@@ -145,16 +145,19 @@ def train_and_evaluate(train_model_specs, val_model_specs, model_dir, params):
 
         IoUs = np.array(IoUs, dtype=np.float64)
         mIoU = np.mean(IoUs, axis=0)
-        print('mIoU on validation set: {:.4f}'.format(mIoU))
+        print('mIoU on validation set: {:.4f}'.format(mIoU))        
 
         if maxIoU < mIoU:
             maxIoU = mIoU
-            # segmentor_net.save_weights(params.save_weights_path + 'segan_weights' + maxIoU + '.h5')
-            tf.keras.models.save_model(segmentor_net, params.save_weight + 'segan_model_maxIoU_'+ maxIoU + '.h5', overwrite=True, include_optimizer=False)
+
+            # segmentor_net._set_inputs(img)
+            segmentor_net.save_weights(params.save_weights_path + 'segan_weights_val_maxIoU_{:.3f}.h5'.format(maxIoU))            
+            # tf.keras.models.save_model(segmentor_net, params.save_weights_path + 'segan_model_maxIoU_{:4f}.h5'.format(maxIoU), overwrite=True, include_optimizer=False)
+            # tf.contrib.saved_model.save_keras_model(segmentor_net, params.save_weights_path, serving_only=True)
 
         # Learning rate decay
         if epoch % 25 == 0:
-            lr = lr * params.decay
+            lr = lr * params.lr_decay
             if lr <= 0.00000001:
                 lr = 0.00000001
             print("Learning rate: {:.6f}", format(lr))
