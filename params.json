@@ -1,4 +1,4 @@
 {
-  "train_val_datasets_path": "C:\\Users\\odgiiv\\tmp\\code\\u-net\\data\\juliana_wo_symImages\\train",
-  "test_datasets_path": "C:\\Users\\odgiiv\\tmp\\code\\u-net\\data\\juliana_wo_symImages\\test"
+  "train_val_datasets_path": "/media/dataraid/tensorflow/segm/juliana_wo_symImages/train",
+  "test_datasets_path": "/media/dataraid/tensorflow/segm/juliana_wo_symImages/test"
 }
