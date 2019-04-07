@@ -20,20 +20,22 @@ class DataLoader():
             print("params.json file doesn't exist for DataLoader.")
             exit()
 
-    def _load_XY_from(self, path):
+    def _load_XY_from(self, path, is_training):
         list_us_array = []
         list_gt_array = []
 
         for f in sorted(os.listdir(path)):
             # If f is directory, not a file
             f_full_path = os.path.join(path, f)
-            if os.path.isdir(f_full_path) and f != self.test_datasets_path:                
+            if os.path.isdir(f_full_path) and is_training:                
+                if f_full_path != self.test_datasets_path:
+                    print("entering directory: ", f_full_path)
 
-                print("entering directory: ", f_full_path)
-                h5f = h5py.File(os.path.join(f_full_path, 'us_gt_vol.h5'), 'r')
+                    h5f = h5py.File(os.path.join(f_full_path, 'us_gt_vol.h5'), 'r')
             else:
                 print("using a file: ", f_full_path)
                 h5f = h5py.File(f_full_path, 'r')
+                
             us_vol = h5f['us_vol'][:]
             gt_vol = h5f['gt_vol'][:]
             gt_vol = np.transpose(gt_vol, (1, 0, 2))
@@ -88,11 +90,11 @@ class DataLoader():
         return X, Y
 
     def loadTestDatasets(self):
-        X, Y = self._load_XY_from(self.test_datasets_path)
+        X, Y = self._load_XY_from(self.test_datasets_path, False)
         return X, Y
 
     def loadTrainValDatasets(self, val_ratio=0.95):
-        X, Y = self._load_XY_from(self.train_val_datasets_path)
+        X, Y = self._load_XY_from(self.train_val_datasets_path, True)
 
         X_train, Y_train = np.array([]), np.array([])
         X_valid, Y_valid = np.array([]), np.array([])
