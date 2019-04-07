@@ -10,13 +10,12 @@ NUM_ROWS_CUT_BOTTOM = 33
 
 class DataLoader():
 
-    def __init__(self, test_dataset_dir_name):
+    def __init__(self):
         try:
             with open("./params.json") as f:
                 params = json.load(f)
                 self.train_val_datasets_path = params["train_val_datasets_path"]
-                #self.test_datasets_path = params["test_datasets_path"]
-                self.test_datasets_path = os.path.join(self.train_val_datasets_path, test_dataset_dir_name)
+                self.test_datasets_path = os.path.join(self.train_val_datasets_path, params["test_datasets_folder"])
         except FileNotFoundError:
             print("params.json file doesn't exist for DataLoader.")
             exit()
