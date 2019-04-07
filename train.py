@@ -4,6 +4,7 @@ import os
 import random
 import sys
 import shutil
+import re
 import numpy as np
 from utils import Params, set_logger
 from data_loader import DataLoader
@@ -15,13 +16,15 @@ python train.py --model_name unet
 """
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--model_name", help="Name of directory of specific model in ./models parent directory, such as unet, attention-unet or segan")
+parser.add_argument("-m", "--model_name", help="Name of directory of specific model in ./models parent directory, such as unet, attention-unet or segan")
+parser.add_argument("-t", "--test_imgs_dir_name",  help="Name of directory of specific model in ./models parent directory, such as unet, attention-unet or segan")
 
 if __name__ == "__main__":
 
     args = parser.parse_args()
     assert(args.model_name in ['unet', 'segan',
                                'nested-unet', 'attention-unet'])
+    assert(re.fullmatch(r"\d{2}-\d{2}-\d{2}", args.test_imgs_dir_name))
     is_eager = True
 
     if args.model_name == 'segan':

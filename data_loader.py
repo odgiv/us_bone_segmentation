@@ -10,12 +10,13 @@ NUM_ROWS_CUT_BOTTOM = 33
 
 class DataLoader():
 
-    def __init__(self):
+    def __init__(self, test_dataset_dir_name):
         try:
             with open("./params.json") as f:
                 params = json.load(f)
                 self.train_val_datasets_path = params["train_val_datasets_path"]
-                self.test_datasets_path = params["test_datasets_path"]
+                #self.test_datasets_path = params["test_datasets_path"]
+                self.test_datasets_path = os.path.join(self.train_val_datasets_path, test_dataset_dir_name)
         except FileNotFoundError:
             print("params.json file doesn't exist for DataLoader.")
             exit()
@@ -26,11 +27,14 @@ class DataLoader():
 
         for f in sorted(os.listdir(path)):
             # If f is directory, not a file
-            files_directory = os.path.join(path, f)
-            if not os.path.isdir(files_directory):
-                continue
-            print("entering directory: ", files_directory)
-            h5f = h5py.File(os.path.join(files_directory, 'us_gt_vol.h5'), 'r')
+            f_full_path = os.path.join(path, f)
+            if os.path.isdir(f_full_path) and f != self.test_datasets_path:                
+
+                print("entering directory: ", f_full_path)
+                h5f = h5py.File(os.path.join(f_full_path, 'us_gt_vol.h5'), 'r')
+            else:
+                print("using a file: ", f_full_path)
+                h5f = h5py.File(f_full_path, 'r')
             us_vol = h5f['us_vol'][:]
             gt_vol = h5f['gt_vol'][:]
             gt_vol = np.transpose(gt_vol, (1, 0, 2))
