@@ -22,7 +22,7 @@ def evaluate(test_model_specs, params):
 
     segmentor_net.compile(optimizer='adam', loss='sparse_categorical_crossentropy')
     segmentor_net.fit(x=np.zeros((1,1,1,1)), y=np.zeros((1,1,1,1)), epochs=0, steps_per_epoch=0)
-    segmentor_net.load_weights(params.save_weights_path + 'segan_weights_val_maxIoU_0.881.h5')
+    segmentor_net.load_weights(params.save_weights_path + 'segan_best_weights.h5')
 
     for i in range(X_test.shape[0]):
 

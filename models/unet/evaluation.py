@@ -22,7 +22,7 @@ def evaluate(test_model_specs, params):
 
     unet.compile(optimizer='adam', loss='sparse_categorical_crossentropy')
     unet.fit(x=np.zeros((1,params.img_h,params.img_w,1)), y=np.zeros((1,params.img_h,params.img_w,1)), epochs=0, steps_per_epoch=0)
-    unet.load_weights(params.save_weights_path + 'att_unet_weights_val_maxIoU_0.851.h5')
+    unet.load_weights(params.save_weights_path + 'unet_weights_val_maxIoU_0.948.h5')
 
     if not os.path.isdir(params.test_results_path):
         os.mkdir(params.test_results_path)

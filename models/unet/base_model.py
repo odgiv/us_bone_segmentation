@@ -15,6 +15,28 @@ def unet_conv2d(nb_filters, kernel=(3, 3), activation="relu", padding="same"):
     conv2d_2 = Conv2D(nb_filters, kernel, activation=activation, padding=padding)
     return Sequential([conv2d_1, conv2d_2])
 
+def get_crop_shape(target, refer):
+    """
+    https://www.tensorflow.org/api_docs/python/tf/keras/layers/Cropping2D
+    https://stackoverflow.com/questions/41925765/keras-cropping2d-changes-color-channel
+    """
+    # width, the 3rd dimension
+    cw = (target.get_shape()[2] - refer.get_shape()[2]).value
+    assert (cw >= 0)
+    if cw % 2 != 0:
+        cw1, cw2 = int(cw/2), int(cw/2) + 1
+    else:
+        cw1, cw2 = int(cw/2), int(cw/2)
+    # height, the 2nd dimension
+    ch = (target.get_shape()[1] - refer.get_shape()[1]).value
+    assert (ch >= 0)
+    if ch % 2 != 0:
+        ch1, ch2 = int(ch/2), int(ch/2) + 1
+    else:
+        ch1, ch2 = int(ch/2), int(ch/2)
+
+    return (ch1, ch2), (cw1, cw2)
+
 
 class Unet(Model):
 
@@ -70,30 +92,30 @@ class Unet(Model):
         seg_center = self.center(seg_pool4)
 
         seg_up_conv5 = self.up_conv5(seg_center)
-        ch, cw = self.get_crop_shape(seg_conv4, seg_up_conv5)
+        ch, cw = get_crop_shape(seg_conv4, seg_up_conv5)
         seg_crop_conv4 = Cropping2D(cropping=(ch, cw))(seg_conv4)
         seg_up6 = concatenate([seg_up_conv5, seg_crop_conv4], axis=concat_axis)
         seg_conv6 = self.conv6(seg_up6)
 
         seg_up_conv6 = self.up_conv6(seg_conv6)
-        ch, cw = self.get_crop_shape(seg_conv3, seg_up_conv6)
+        ch, cw = get_crop_shape(seg_conv3, seg_up_conv6)
         seg_crop_conv3 = Cropping2D(cropping=(ch, cw))(seg_conv3)
         seg_up7 = concatenate([seg_up_conv6, seg_crop_conv3], axis=concat_axis)
         seg_conv7 = self.conv7(seg_up7)
 
         seg_up_conv7 = self.up_conv7(seg_conv7)
-        ch, cw = self.get_crop_shape(seg_conv2, seg_up_conv7)
+        ch, cw = get_crop_shape(seg_conv2, seg_up_conv7)
         seg_crop_conv2 = Cropping2D(cropping=(ch, cw))(seg_conv2)
         seg_up8 = concatenate([seg_up_conv7, seg_crop_conv2], axis=concat_axis)
         seg_conv8 = self.conv8(seg_up8)
 
         seg_up_conv8 = self.up_conv8(seg_conv8)
-        ch, cw = self.get_crop_shape(seg_conv1, seg_up_conv8)
+        ch, cw = get_crop_shape(seg_conv1, seg_up_conv8)
         seg_crop_conv1 = Cropping2D(cropping=(ch, cw))(seg_conv1)
         seg_up9 = concatenate([seg_up_conv8, seg_crop_conv1], axis=concat_axis)
         seg_conv9 = self.conv9(seg_up9)
 
-        ch, cw = self.get_crop_shape(inputs, seg_conv9)
+        ch, cw = get_crop_shape(inputs, seg_conv9)
         seg_conv9 = ZeroPadding2D(padding=((ch[0], ch[1]), (cw[0], cw[1])))(seg_conv9)
         seg_conv10 = self.conv10(seg_conv9)
         
