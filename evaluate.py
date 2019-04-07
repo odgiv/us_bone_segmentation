@@ -14,8 +14,7 @@ from input_fn import input_fn
 from utils import Params
 
 parser = argparse.ArgumentParser()
-parser.add_argument(
-    "--model_name", help="Name of directory of specific model in ./models parent directory, such as unet, attention-unet or segan.")
+parser.add_argument("--model_name", help="Name of directory of specific model in ./models parent directory, such as unet, attention-unet or segan.")
 
 if __name__ == "__main__":
 
