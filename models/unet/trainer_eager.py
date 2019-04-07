@@ -2,8 +2,11 @@ import tensorflow as tf
 import numpy as np
 import os
 print("tf version: ",  tf.__version__)
-tf.enable_eager_execution()
 
+config = tf.ConfigProto(allow_soft_placement=True)
+config.per_process_gpu_memory_fraction = 0.4
+
+tf.enable_eager_execution(config)
 
 tfe = tf.contrib.eager
 
