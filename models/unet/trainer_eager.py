@@ -3,8 +3,9 @@ import numpy as np
 import os
 print("tf version: ",  tf.__version__)
 
-config = tf.ConfigProto(allow_soft_placement=True)
-config.per_process_gpu_memory_fraction = 0.4
+opts = tf.GPUOptions(per_process_gpu_memory_fraction = 0.4)
+config = tf.ConfigProto(gpu_options=opts)
+
 
 tf.enable_eager_execution(config)
 
