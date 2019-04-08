@@ -9,6 +9,5 @@
     "num_classes": 2,
     "num_parallel_calls": 4,
     "save_summary_steps": 100,
-    "save_weights_path": "C:\\Users\\odgiiv\\tmp\\code\\ultrasound_bone_segmentation_frmwrk\\models\\unet\\model_weights\\",
     "test_results_path": "C:\\Users\\odgiiv\\tmp\\code\\ultrasound_bone_segmentation_frmwrk\\models\\unet\\test_results\\"
 }

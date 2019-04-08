@@ -3,7 +3,7 @@ import numpy as np
 import os
 print("tf version: ",  tf.__version__)
 
-opts = tf.GPUOptions(per_process_gpu_memory_fraction = 0.4)
+opts = tf.GPUOptions(per_process_gpu_memory_fraction = 0.5)
 config = tf.ConfigProto(gpu_options=opts)
 
 
@@ -13,9 +13,6 @@ tfe = tf.contrib.eager
 
 
 def train_and_evaluate(train_model_specs, val_model_specs, model_dir, params):
-
-    if not os.path.isdir(params.save_weights_path):
-        os.mkdir(params.save_weights_path)
 
     train_dataset = train_model_specs["dataset"]
     validation_dataset = val_model_specs["dataset"]

@@ -2,7 +2,7 @@ import tensorflow as tf
 from PIL import Image
 import numpy as np
 import os
-import shutil
+import utils
 from scipy.special import expit
 
 
@@ -10,11 +10,7 @@ def evaluate(test_model_specs, params):
     (X_test, Y_test) = test_model_specs["dataset"]
     unet = test_model_specs["unet"]
 
-    for root, dirs, files in os.walk(params.test_results_path):
-        for f in files:
-            os.unlink(os.path.join(root, f))
-        for d in dirs:
-            shutil.rmtree(os.path.join(root, d))
+    utils.delete_dir_contents(params.test_results_path)
 
     IoUs = []
     sess = tf.keras.backend.get_session()   

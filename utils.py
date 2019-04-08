@@ -2,6 +2,8 @@ import tensorflow as tf
 from tensorflow.python.keras import backend
 import json
 import logging
+import shutil
+import os
 import numpy as np
 
 
@@ -88,3 +90,11 @@ def set_logger(log_path):
         stream_handler = logging.StreamHandler()
         stream_handler.setFormatter(logging.Formatter('%(message)s'))
         logger.addHandler(stream_handler)
+
+
+def delete_dir_contents(dir_path):
+    for root, dirs, files in os.walk(dir_path):
+        for f in files:
+            os.unlink(os.path.join(root, f))
+        for d in dirs:
+            shutil.rmtree(os.path.join(root, d))

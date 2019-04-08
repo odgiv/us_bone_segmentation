@@ -18,13 +18,13 @@ def make_trainable(net, val):
 
 
 def train_and_evaluate(train_model_specs, val_model_specs, model_dir, params):
+
     train_dataset = train_model_specs["dataset"]
     segmentor_net = train_model_specs["segmentor_net"]
     critic_net = train_model_specs["critic_net"]
     validation_dataset = val_model_specs["dataset"]
 
-    summary_writer = tf.contrib.summary.create_file_writer(
-        './train_summaries', flush_millis=10000)
+    summary_writer = tf.contrib.summary.create_file_writer('./train_summaries', flush_millis=10000)
     summary_writer.set_as_default()
     global_step = tf.train.get_or_create_global_step()
 

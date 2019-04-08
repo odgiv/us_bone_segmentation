@@ -10,15 +10,11 @@ NUM_ROWS_CUT_BOTTOM = 33
 
 class DataLoader():
 
-    def __init__(self):
-        try:
-            with open("./params.json") as f:
-                params = json.load(f)
-                self.train_val_datasets_path = params["train_val_datasets_path"]
-                self.test_datasets_path = os.path.join(self.train_val_datasets_path, params["test_datasets_folder"])
-        except FileNotFoundError:
-            print("params.json file doesn't exist for DataLoader.")
-            exit()
+    def __init__(self, params):
+        self.train_val_datasets_path = params["train_val_datasets_path"]
+        self.test_datasets_path = os.path.join(self.train_val_datasets_path, params["test_datasets_folder"])
+
+        print("train valid datasets path: {}, test dataset path: {}".format(self.train_val_datasets_path, self.test_datasets_path))
 
     def _load_XY_from(self, path, is_training):
         list_us_array = []
@@ -35,7 +31,7 @@ class DataLoader():
             else:
                 print("using a file: ", f_full_path)
                 h5f = h5py.File(f_full_path, 'r')
-                
+
             us_vol = h5f['us_vol'][:]
             gt_vol = h5f['gt_vol'][:]
             gt_vol = np.transpose(gt_vol, (1, 0, 2))
