@@ -3,7 +3,7 @@ import numpy as np
 import os
 print("tf version: ",  tf.__version__)
 
-opts = tf.GPUOptions(per_process_gpu_memory_fraction = 0.4)
+opts = tf.GPUOptions(per_process_gpu_memory_fraction = 0.5)
 config = tf.ConfigProto(gpu_options=opts)
 
 
