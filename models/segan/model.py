@@ -127,7 +127,7 @@ class SegAN(Model):
     def __init__(self):
         super(SegAN, self).__init__()
 
-    def model_fn(self, mode, inputs={}, params={}):
+    def model_fn(self, mode, inputs={}):
 
         is_training = (mode == "train")
 

@@ -4,6 +4,7 @@ import json
 import logging
 import shutil
 import os
+from scipy.spatial.distance import directed_hausdorff
 import numpy as np
 
 
@@ -92,9 +93,12 @@ def set_logger(log_path):
         logger.addHandler(stream_handler)
 
 
-def delete_dir_contents(dir_path):
+def delete_dir_content(dir_path):
     for root, dirs, files in os.walk(dir_path):
         for f in files:
             os.unlink(os.path.join(root, f))
         for d in dirs:
             shutil.rmtree(os.path.join(root, d))
+
+def hausdorf_distance(a, b):
+    return max(directed_hausdorff(a, b)[0], directed_hausdorff(b, a)[0])

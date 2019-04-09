@@ -337,7 +337,7 @@ class AttentionalUnet(Model):
 
         return output
 
-    def model_fn(self, mode, inputs, params, reuse=False):
+    def model_fn(self, mode, inputs):
         is_training = (mode == 'train')
 
         uNet = AttentionalUnet()

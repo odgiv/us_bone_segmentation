@@ -10,18 +10,21 @@ def evaluate(test_model_specs, params):
     (X_test, Y_test) = test_model_specs["dataset"]
     unet = test_model_specs["unet"]
 
-    utils.delete_dir_contents(params.test_results_path)
-
     IoUs = []
+    hds = []
     sess = tf.keras.backend.get_session()   
     sess.run(tf.global_variables_initializer())
-
+    
+    weight_file_path = os.path.join(os.path.abspath(os.path.join(os.path.realpath(__file__), '..')), params.weight_file_subpath)
+    print("FULL_WEIGHT_PATH", weight_file_path)
     unet.compile(optimizer='adam', loss='sparse_categorical_crossentropy')
     unet.fit(x=np.zeros((1,params.img_h,params.img_w,1)), y=np.zeros((1,params.img_h,params.img_w,1)), epochs=0, steps_per_epoch=0)
-    unet.load_weights(params.save_weights_path + 'unet_weights_val_maxIoU_0.948.h5')
+    unet.load_weights(weight_file_path)
 
     if not os.path.isdir(params.test_results_path):
         os.mkdir(params.test_results_path)
+    else:
+        utils.delete_dir_content(params.test_results_path)
 
     for i in range(X_test.shape[0]):
 
@@ -46,15 +49,20 @@ def evaluate(test_model_specs, params):
         pred = np.squeeze(pred, axis=0)
 
         IoU = np.sum(pred[label == 1]) / float(np.sum(pred) + np.sum(label) - np.sum(pred[label == 1]))
-        print(IoU)
+        print("Iou: ", IoU)
         IoUs.append(IoU)
 
-        pred_img = np.squeeze(pred) * 255
-        label_img = np.squeeze(label) * 255
+        pred_img = np.squeeze(pred)
+        label_img = np.squeeze(label) 
         img = np.squeeze(img)
-        
 
+        hd = utils.hausdorf_distance(pred_img, label_img)
+        hds.append(hd)
 
+        print("Hausdorf: ", hd)
+        pred_img = pred_img * 255
+        label_img = label_img * 255
+    
         # pred_img = Image.fromarray(np.asarray(pred_img.eval(session=sess), dtype=np.uint8), mode='P')
         pred_img = Image.fromarray(pred_img.astype(np.uint8), mode='P')
         label_img = Image.fromarray(label_img.astype(np.uint8), mode='P')
@@ -65,10 +73,10 @@ def evaluate(test_model_specs, params):
         I.paste(label_img, (pred_img.size[0], 0))
         I.paste(pred_img, (pred_img.size[0]*2, 0))
 
-        name = str(i) + '.jpg'
+        name = 'img_{}_iou_{:.4f}_hausdorf_{:.4f}.jpg'.format(i, IoU, hd)
         I.save(os.path.join(params.test_results_path, name))
 
     IoUs = np.array(IoUs, dtype=np.float64)
     mIoU = np.mean(IoUs, axis=0)
-
-    print("mIoU: ", mIoU)
+    mhd = np.mean(hds, axis=0)
+    print("mIoU: ", mIoU, "mHausdorf:", mhd)
