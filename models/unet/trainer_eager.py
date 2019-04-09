@@ -14,9 +14,6 @@ tfe = tf.contrib.eager
 
 def train_and_evaluate(train_model_specs, val_model_specs, model_dir, params):
 
-    if not os.path.isdir(params.save_weights_path):
-        os.mkdir(params.save_weights_path)
-
     train_dataset = train_model_specs["dataset"]
     validation_dataset = val_model_specs["dataset"]
     u_net = train_model_specs["unet"]

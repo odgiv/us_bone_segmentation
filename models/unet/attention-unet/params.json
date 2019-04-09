@@ -9,5 +9,5 @@
     "num_classes": 2,
     "num_parallel_calls": 4,
     "save_summary_steps": 100,
-    "save_weights_path": "/home/tensorflow/git/odgiiv/code/seg-frmwrk/models/unet/attention-unet/model_weights/"
+    "test_results_path": "/home/tensorflow/git/odgiiv/code/segm/us_bone_segmentation/models/unet/attention-unet/test_results/"
 }
