@@ -7,7 +7,7 @@ import shutil
 import re
 import json
 import numpy as np
-from utils import Params, set_logger
+from utils import Params, set_logger, delete_dir_content
 from data_loader import DataLoader
 from input_fn import input_fn
 # from evaluate import evaluate
@@ -67,7 +67,7 @@ if __name__ == "__main__":
     if not os.path.isdir(save_model_weights_dir):
         os.mkdir(save_model_weights_dir)
     else: 
-        utils.remove_dir_content(save_model_weights_dir)
+        delete_dir_content(save_model_weights_dir)
 
     set_logger(os.path.join(model_dir, 'train.log'))
 

@@ -122,7 +122,7 @@ class Unet(Model):
         return seg_conv10
 
 
-    def model_fn(self, mode, inputs, params, reuse=False):
+    def model_fn(self, mode, inputs):
         is_training = (mode == 'train')
 
         uNet = Unet()

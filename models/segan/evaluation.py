@@ -16,9 +16,16 @@ def evaluate(test_model_specs, params):
     sess = tf.keras.backend.get_session()   
     sess.run(tf.global_variables_initializer())
 
+    weight_file_path = os.path.join(os.path.abspath(os.path.join(os.path.realpath(__file__), '..')), params.weight_file_subpath)
+
     segmentor_net.compile(optimizer='adam', loss='sparse_categorical_crossentropy')
     segmentor_net.fit(x=np.zeros((1,1,1,1)), y=np.zeros((1,1,1,1)), epochs=0, steps_per_epoch=0)
-    segmentor_net.load_weights(params.save_weights_path + 'segan_best_weights.h5')
+    segmentor_net.load_weights(weight_file_path)
+
+    if not os.path.isdir(params.test_results_path):
+        os.mkdir(params.test_results_path)
+    else:
+        utils.delete_dir_content(params.test_results_path)
 
     for i in range(X_test.shape[0]):
 
