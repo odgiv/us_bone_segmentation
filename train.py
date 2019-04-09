@@ -7,7 +7,7 @@ import shutil
 import re
 import json
 import numpy as np
-from utils import Params, set_logger
+from utils import Params, set_logger, remove_dir_content
 from data_loader import DataLoader
 from input_fn import input_fn
 # from evaluate import evaluate
@@ -67,7 +67,7 @@ if __name__ == "__main__":
     if not os.path.isdir(save_model_weights_dir):
         os.mkdir(save_model_weights_dir)
     else: 
-        utils.remove_dir_content(save_model_weights_dir)
+        remove_dir_content(save_model_weights_dir)
 
     set_logger(os.path.join(model_dir, 'train.log'))
 
@@ -85,6 +85,7 @@ if __name__ == "__main__":
     assert os.path.isfile(json_path), "No json configuration file found at {}".format(json_path)
     model_params = Params(json_path)
     model_params.save_weights_path = save_model_weights_dir
+    model_params.model_name = args.model_name
 
 
     X_train, Y_train, X_val, Y_val = data_loader.loadTrainValDatasets()
@@ -97,7 +98,7 @@ if __name__ == "__main__":
     train_inputs = input_fn(True, is_eager, X_train, Y_train, model_params)
     val_inputs = input_fn(True, is_eager, X_val, Y_val, model_params)
 
-    train_model_specs = model.model_fn("train", train_inputs, model_params)
+    train_model_specs = model.model_fn("train", train_inputs)
 
     # sharing model weights for train and valid
     #eval_inputs["prediction"] = train_model_specs["prediction"]
