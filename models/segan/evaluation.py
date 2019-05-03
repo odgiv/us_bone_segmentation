@@ -13,6 +13,7 @@ def evaluate(test_model_specs, params):
     utils.delete_dir_content(params.test_results_path)
 
     IoUs = []
+    hds = []
     sess = tf.keras.backend.get_session()   
     sess.run(tf.global_variables_initializer())
 
@@ -64,29 +65,42 @@ def evaluate(test_model_specs, params):
         # # iou = sess.run(IoU)
         # print(iou)
         IoU = np.sum(pred[label == 1]) / float(np.sum(pred) + np.sum(label) - np.sum(pred[label == 1]))
-        print(IoU)
+        print("Iou: ", IoU)
         IoUs.append(IoU)
 
-        pred_img = np.squeeze(pred) * 255
-        label_img = np.squeeze(label) * 255
+        pred_img = np.squeeze(pred)
+        pred_img = np.uint8(pred_img)
+        
+        pred_coordinates = np.argwhere(pred_img == 1)
+
+        label_img = np.squeeze(label)
+        label_img = np.uint8(label_img)
+
+        label_coordinates = np.argwhere(label_img == 1)
+
+        hd = utils.hausdorf_distance(pred_coordinates, label_coordinates)
+        hds.append(hd)
+        print("Hausdorf: ", hd)
+
+        pred_img = pred_img * 255
+        label_img = label_img * 255
         img = np.squeeze(img)
         
+        # pred_img = Image.fromarray(pred_img.astype(np.uint8), mode='P')
+        # label_img = Image.fromarray(label_img.astype(np.uint8), mode='P')
+        # img = Image.fromarray(img.astype(np.uint8), mode='P')
 
+        # I = Image.new('RGB', (pred_img.size[0]*3, pred_img.size[1]))
+        # I.paste(img, (0, 0))
+        # I.paste(label_img, (pred_img.size[0], 0))
+        # I.paste(pred_img, (pred_img.size[0]*2, 0))
 
-        # pred_img = Image.fromarray(np.asarray(pred_img.eval(session=sess), dtype=np.uint8), mode='P')
-        pred_img = Image.fromarray(pred_img.astype(np.uint8), mode='P')
-        label_img = Image.fromarray(label_img.astype(np.uint8), mode='P')
-        img = Image.fromarray(img.astype(np.uint8), mode='P')
+        # name = 'img_{}_iou_{:.4f}_hausdorf_{:.4f}.jpg'.format(i, IoU, hd)
+        # I.save(os.path.join(params.test_results_path, name))
 
-        I = Image.new('RGB', (pred_img.size[0]*3, pred_img.size[1]))
-        I.paste(img, (0, 0))
-        I.paste(label_img, (pred_img.size[0], 0))
-        I.paste(pred_img, (pred_img.size[0]*2, 0))
-
-        name = str(i) + '.jpg'
-        I.save(os.path.join(params.test_results_path, name))
+        print(str(i) + '/' + str(X_test.shape[0]))
 
     IoUs = np.array(IoUs, dtype=np.float64)
     mIoU = np.mean(IoUs, axis=0)
-
-    print("mIoU: ", mIoU)
+    mhd = np.mean(hds, axis=0)
+    print("mIoU: ", mIoU, "mHausdorf: ", mhd)
