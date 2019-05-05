@@ -3,7 +3,7 @@ import numpy as np
 import os
 print("tf version: ",  tf.__version__)
 
-opts = tf.GPUOptions(per_process_gpu_memory_fraction = 0.5)
+opts = tf.GPUOptions(per_process_gpu_memory_fraction = 1.0)
 config = tf.ConfigProto(gpu_options=opts)
 
 
@@ -109,7 +109,7 @@ def train_and_evaluate(train_model_specs, val_model_specs, model_dir, params):
 
             # segmentor_net._set_inputs(img)
             print("Saving weights to ", params.save_weights_path)
-            u_net.save_weights(params.save_weights_path + 'unet_val_maxIoU_{:.3f}.h5'.format(maxIoU))            
+            u_net.save_weights(params.save_weights_path + params.model_name + '_val_maxIoU_{:.3f}.h5'.format(maxIoU))            
             # tf.keras.models.save_model(segmentor_net, params.save_weights_path + 'segan_model_maxIoU_{:4f}.h5'.format(maxIoU), overwrite=True, include_optimizer=False)
             # tf.contrib.saved_model.save_keras_model(segmentor_net, params.save_weights_path, serving_only=True)
 

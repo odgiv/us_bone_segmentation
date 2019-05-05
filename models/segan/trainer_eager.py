@@ -152,7 +152,7 @@ def train_and_evaluate(train_model_specs, val_model_specs, model_dir, params):
 
             # segmentor_net._set_inputs(img)
             print("Saving weights to ", params.save_weights_path)
-            segmentor_net.save_weights(params.save_weights_path + 'segan_weights_val_maxIoU_{:.3f}.h5'.format(maxIoU))            
+            segmentor_net.save_weights(params.save_weights_path + parans.model_name + '_val_maxIoU_{:.3f}.h5'.format(maxIoU))            
             # tf.keras.models.save_model(segmentor_net, params.save_weights_path + 'segan_model_maxIoU_{:4f}.h5'.format(maxIoU), overwrite=True, include_optimizer=False)
             # tf.contrib.saved_model.save_keras_model(segmentor_net, params.save_weights_path, serving_only=True)
 
