@@ -71,20 +71,21 @@ def evaluate(test_model_specs, params):
         hds.append(hd)
         print("Hausdorf: ", hd)
 
-        # pred_img = pred_img * 255
-        # label_img = label_img * 255
+        # generate each image
+        pred_img = pred_img * 255
+        label_img = label_img * 255
     
-        # pred_img = Image.fromarray(pred_img.astype(np.uint8), mode='P')
-        # label_img = Image.fromarray(label_img.astype(np.uint8), mode='P')
-        # img = Image.fromarray(img.astype(np.uint8), mode='P')
+        pred_img = Image.fromarray(pred_img.astype(np.uint8), mode='P')
+        label_img = Image.fromarray(label_img.astype(np.uint8), mode='P')
+        img = Image.fromarray(img.astype(np.uint8), mode='P')
 
-        # I = Image.new('RGB', (pred_img.size[0]*3, pred_img.size[1]))
-        # I.paste(img, (0, 0))
-        # I.paste(label_img, (pred_img.size[0], 0))
-        # I.paste(pred_img, (pred_img.size[0]*2, 0))
+        I = Image.new('RGB', (pred_img.size[0]*3, pred_img.size[1]))
+        I.paste(img, (0, 0))
+        I.paste(label_img, (pred_img.size[0], 0))
+        I.paste(pred_img, (pred_img.size[0]*2, 0))
 
-        # name = 'img_{}_iou_{:.4f}_hausdorf_{:.4f}.jpg'.format(i, IoU, hd)
-        # I.save(os.path.join(params.test_results_path, name))
+        name = 'img_{}_iou_{:.4f}_hausdorf_{:.4f}.jpg'.format(i, IoU, hd)
+        I.save(os.path.join(params.test_results_path, name))
         
         print(str(i) + '/' + str(X_test.shape[0]))
     IoUs = np.array(IoUs, dtype=np.float64)

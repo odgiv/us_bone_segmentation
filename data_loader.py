@@ -28,13 +28,18 @@ class DataLoader():
                     print("entering directory: ", f_full_path)
 
                     h5f = h5py.File(os.path.join(f_full_path, 'us_gt_vol.h5'), 'r')
+                else:
+                    continue
             else:
                 print("using a file: ", f_full_path)
                 h5f = h5py.File(f_full_path, 'r')
 
             us_vol = h5f['us_vol'][:]
             gt_vol = h5f['gt_vol'][:]
-            gt_vol = np.transpose(gt_vol, (1, 0, 2))
+            print("Shape of us_vol: ", us_vol.shape)
+            print("Shape of gt_vol: ", gt_vol.shape)
+            
+            #gt_vol = np.transpose(gt_vol, (1, 0, 2))
 
             cut_at_ax0 = 0
             cut_at_ax1 = 0
