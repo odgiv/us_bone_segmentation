@@ -20,6 +20,8 @@ def train_and_evaluate(train_model_specs, val_model_specs, model_dir, params):
     
     summary_writer = tf.contrib.summary.create_file_writer('./train_summaries')
     summary_writer.set_as_default()
+    tf.contrib.summary.always_record_summaries()
+
 
     global_step = tf.train.get_or_create_global_step()
 
@@ -101,6 +103,7 @@ def train_and_evaluate(train_model_specs, val_model_specs, model_dir, params):
         IoUs = np.array(IoUs, dtype=np.float64)
         mIoU = np.mean(IoUs, axis=0)
 
+        # with tf.contrib.summary.record_summaries_every_n_global_steps(params.save_summary_steps):
         tf.contrib.summary.scalar("val_avg_loss", valid_loss_avg.result())
         tf.contrib.summary.scalar("val_avg_IoU", mIoU)
 
