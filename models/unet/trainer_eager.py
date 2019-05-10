@@ -30,8 +30,7 @@ def train_and_evaluate(train_model_specs, val_model_specs, model_dir, params):
 
     maxIoU = 0
     mIoU = 0
-
-    epoch = 1
+    
     for epoch in range(1, params.num_epochs):
         epoch_loss_avg = tfe.metrics.Mean()
         
@@ -62,8 +61,19 @@ def train_and_evaluate(train_model_specs, val_model_specs, model_dir, params):
 
             tf.assign_add(global_step, 1)
 
-            print("step:{0} global step: {1}".format(i, global_step))
+            # Summaries for tensorboard
+            with tf.contrib.summary.record_summaries_every_n_global_steps(params.save_summary_steps):
+                # if i % params.save_summary_steps == 0:
+                            
+                seg_result = tf.argmax(seg_result, axis=-1, output_type=tf.int32)
+                seg_result = tf.expand_dims(seg_result, -1)
 
+                tf.contrib.summary.image("train_img", img)
+                tf.contrib.summary.image("ground_tr", tf.cast(label * 255, tf.uint8))
+                tf.contrib.summary.image("seg_result", tf.cast(seg_result * 255, tf.uint8))
+
+                tf.contrib.summary.scalar("train_avg_loss", epoch_loss_avg.result())
+                
 
         """
         At the end of every epoch, validate on validation dataset.
@@ -91,23 +101,11 @@ def train_and_evaluate(train_model_specs, val_model_specs, model_dir, params):
         IoUs = np.array(IoUs, dtype=np.float64)
         mIoU = np.mean(IoUs, axis=0)
 
+        tf.contrib.summary.scalar("val_avg_loss", valid_loss_avg.result())
+        tf.contrib.summary.scalar("val_avg_IoU", mIoU)
+
         print("Epoch {0}, loss epoch avg {1:.4f}, loss valid avg {2:.4f}, mIoU on validation set: {3:.4f}".format(epoch, epoch_loss_avg.result(), valid_loss_avg.result(), mIoU))
-        # print(global_step)
-        # Summaries for tensorboard
-        with tf.contrib.summary.record_summaries_every_n_global_steps(params.save_summary_steps):
-            # if i % params.save_summary_steps == 0:
-                        
-            seg_result = tf.argmax(seg_result, axis=-1, output_type=tf.int32)
-            seg_result = tf.expand_dims(seg_result, -1)
-
-            tf.contrib.summary.image("train_img", img)
-            tf.contrib.summary.image("ground_tr", tf.cast(label * 255, tf.uint8))
-            tf.contrib.summary.image("seg_result", tf.cast(seg_result * 255, tf.uint8))
-
-            tf.contrib.summary.scalar("train_avg_loss", epoch_loss_avg.result())
-            tf.contrib.summary.scalar("val_avg_loss", valid_loss_avg.result())
-            tf.contrib.summary.scalar("avg_IoU", mIoU)
-            
+                    
 
         if maxIoU < mIoU:
             maxIoU = mIoU
