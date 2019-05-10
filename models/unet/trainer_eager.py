@@ -62,6 +62,8 @@ def train_and_evaluate(train_model_specs, val_model_specs, model_dir, params):
 
             tf.assign_add(global_step, 1)
 
+            print("step:{0} global step: {1}".format(i, global_step))
+
 
         """
         At the end of every epoch, validate on validation dataset.
@@ -104,6 +106,8 @@ def train_and_evaluate(train_model_specs, val_model_specs, model_dir, params):
 
             tf.contrib.summary.scalar("train_avg_loss", epoch_loss_avg.result())
             tf.contrib.summary.scalar("val_avg_loss", valid_loss_avg.result())
+            tf.contrib.summary.scalar("avg_IoU", mIoU)
+            
 
         if maxIoU < mIoU:
             maxIoU = mIoU

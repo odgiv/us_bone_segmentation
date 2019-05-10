@@ -4,7 +4,7 @@ from misc.preprocessGt import preprocess_gt
 
 
 def _parse_function(image, label):
-    #label = preprocess_gt(image, label, is_threshold=False, is_clear_below_bps=True)
+    
     image = tf.image.convert_image_dtype(image, tf.float32)
     return image, tf.cast(label, tf.float32)
 
