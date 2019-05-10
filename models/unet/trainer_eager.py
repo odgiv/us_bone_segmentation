@@ -18,8 +18,9 @@ def train_and_evaluate(train_model_specs, val_model_specs, model_dir, params):
     validation_dataset = val_model_specs["dataset"]
     u_net = train_model_specs["unet"]
     
-    summary_writer = tf.contrib.summary.create_file_writer('./train_summaries', flush_millis=10000)
+    summary_writer = tf.contrib.summary.create_file_writer('./train_summaries')
     summary_writer.set_as_default()
+
     global_step = tf.train.get_or_create_global_step()
 
     lr = params.learning_rate
@@ -91,18 +92,18 @@ def train_and_evaluate(train_model_specs, val_model_specs, model_dir, params):
         print("Epoch {0}, loss epoch avg {1:.4f}, loss valid avg {2:.4f}, mIoU on validation set: {3:.4f}".format(epoch, epoch_loss_avg.result(), valid_loss_avg.result(), mIoU))
         # print(global_step)
         # Summaries for tensorboard
-        #with tf.contrib.summary.record_summaries_every_n_global_steps(params.save_summary_steps, global_step=global_step):
+        with tf.contrib.summary.record_summaries_every_n_global_steps(params.save_summary_steps):
             # if i % params.save_summary_steps == 0:
                         
-            # seg_result = tf.argmax(seg_result, axis=-1, output_type=tf.int32)
-            # seg_result = tf.expand_dims(seg_result, -1)
+            seg_result = tf.argmax(seg_result, axis=-1, output_type=tf.int32)
+            seg_result = tf.expand_dims(seg_result, -1)
 
-            # tf.contrib.summary.image("train_img", img)
-            # tf.contrib.summary.image("ground_tr", tf.cast(label * 255, tf.uint8))
-            # tf.contrib.summary.image("seg_result", tf.cast(seg_result * 255, tf.uint8))
+            tf.contrib.summary.image("train_img", img)
+            tf.contrib.summary.image("ground_tr", tf.cast(label * 255, tf.uint8))
+            tf.contrib.summary.image("seg_result", tf.cast(seg_result * 255, tf.uint8))
 
-        tf.contrib.summary.scalar("train_avg_loss", epoch_loss_avg.result())
-        tf.contrib.summary.scalar("val_avg_loss", valid_loss_avg.result())
+            tf.contrib.summary.scalar("train_avg_loss", epoch_loss_avg.result())
+            tf.contrib.summary.scalar("val_avg_loss", valid_loss_avg.result())
 
         if maxIoU < mIoU:
             maxIoU = mIoU

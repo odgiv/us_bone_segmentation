@@ -3,6 +3,8 @@ import random
 import json
 import h5py
 import numpy as np
+from scipy.ndimage import binary_closing, binary_opening
+from skimage.draw import line
 
 MIN_IMG_SIZE = (465, 381)#(266, 369)
 NUM_ROWS_CUT_BOTTOM = 0#33
@@ -106,6 +108,7 @@ class DataLoader():
         Y_valid = Y[int(Y.shape[0]*val_ratio):, :, :]
 
         return X_train, Y_train, X_valid, Y_valid
+
 
 if __name__ == "__main__":
     loader = DataLoader()
