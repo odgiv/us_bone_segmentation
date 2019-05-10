@@ -6,6 +6,7 @@ import numpy as np
 from scipy.ndimage import binary_closing, binary_opening
 from skimage.draw import line
 
+#TODO: move these arguments to params.json
 MIN_IMG_SIZE = (465, 381)#(266, 369)
 NUM_ROWS_CUT_BOTTOM = 0 #33
 

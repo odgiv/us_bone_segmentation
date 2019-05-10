@@ -91,10 +91,11 @@ def evaluate(test_model_specs, params):
         label_img = Image.fromarray(label_img.astype(np.uint8), mode='P')
         img = Image.fromarray(img.astype(np.uint8), mode='P')
 
-        I = Image.new('RGB', (pred_img.size[0]*3, pred_img.size[1]))
+        I = Image.new('RGB', (img.size[0]*4, img.size[1]))
         I.paste(img, (0, 0))
-        I.paste(label_img, (pred_img.size[0], 0))
-        I.paste(pred_img, (pred_img.size[0]*2, 0))
+        I.paste(label_img, (img.size[0], 0))
+        I.paste(pred_img, (img.size[0]*2, 0))
+        I.paste(Image.blend(img.convert("L"), pred_img.convert("L"), 0.2), (img.size[0]*3, 0))
 
         name = 'img_{}_iou_{:.4f}_hausdorf_{:.4f}.jpg'.format(i, IoU, hd)
         I.save(os.path.join(params.test_results_path, name))

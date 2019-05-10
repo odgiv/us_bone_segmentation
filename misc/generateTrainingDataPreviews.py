@@ -1,7 +1,7 @@
 """
 This script is used to generate images that show raw input image, ground truth image and overlapped image side by side.
 Example usage: 
-python generateTrainingDataPreviews.py -o H:\\14_02_2019_Ben_in_vivo\\preview_all\\13-02-41 -f H:\\14_02_2019_Ben_in_vivo\\13-02-41\\us_gt_vol.h5 -s 100 -e 350 -p -t
+python generateTrainingDataPreviews.py -o H:\\14_02_2019_Ben_in_vivo\\preview\\13-02-41 -f H:\\14_02_2019_Ben_in_vivo\\13-02-41\\us_gt_vol.h5 -s 100 -e 350 -p -t
 """
 import argparse
 import os
