@@ -65,7 +65,7 @@ if __name__ == "__main__":
 
     save_model_weights_dir = model_dir + '/model_weights_' + dataset_params["test_datasets_folder"] + '/'
     if not os.path.isdir(save_model_weights_dir):
-        os.mkdir(save_model_weights_dir)
+        os.makedirs(save_model_weights_dir)
     else: 
         delete_dir_content(save_model_weights_dir)
 

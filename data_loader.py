@@ -4,8 +4,8 @@ import json
 import h5py
 import numpy as np
 
-MIN_IMG_SIZE = (266, 369)
-NUM_ROWS_CUT_BOTTOM = 33
+MIN_IMG_SIZE = (465, 381)#(266, 369)
+NUM_ROWS_CUT_BOTTOM = 0#33
 
 
 class DataLoader():
@@ -28,13 +28,18 @@ class DataLoader():
                     print("entering directory: ", f_full_path)
 
                     h5f = h5py.File(os.path.join(f_full_path, 'us_gt_vol.h5'), 'r')
+                else:
+                    continue
             else:
                 print("using a file: ", f_full_path)
                 h5f = h5py.File(f_full_path, 'r')
 
             us_vol = h5f['us_vol'][:]
             gt_vol = h5f['gt_vol'][:]
-            gt_vol = np.transpose(gt_vol, (1, 0, 2))
+            print("Shape of us_vol: ", us_vol.shape)
+            print("Shape of gt_vol: ", gt_vol.shape)
+            
+            #gt_vol = np.transpose(gt_vol, (1, 0, 2))
 
             cut_at_ax0 = 0
             cut_at_ax1 = 0
@@ -89,7 +94,7 @@ class DataLoader():
         X, Y = self._load_XY_from(self.test_datasets_path, False)
         return X, Y
 
-    def loadTrainValDatasets(self, val_ratio=0.95):
+    def loadTrainValDatasets(self, val_ratio=0.8):
         X, Y = self._load_XY_from(self.train_val_datasets_path, True)
 
         X_train, Y_train = np.array([]), np.array([])
