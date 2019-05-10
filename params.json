@@ -1,4 +1,5 @@
 {
-  "train_val_datasets_path": "H:\\14_02_2019_Ben_in_vivo",
+  "train_datasets_path": "H:\\14_02_2019_Ben_in_vivo",
+  "valid_datasets_folder": "12-59-16",
   "test_datasets_folder": "12-59-16"
 }
