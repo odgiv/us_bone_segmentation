@@ -19,9 +19,7 @@ def train_and_evaluate(train_model_specs, val_model_specs, model_dir, params):
     u_net = train_model_specs["unet"]
     
     summary_writer = tf.contrib.summary.create_file_writer('./train_summaries')
-    summary_writer.set_as_default()
-    tf.contrib.summary.always_record_summaries()
-
+    summary_writer.set_as_default()   
 
     global_step = tf.train.get_or_create_global_step()
 
@@ -104,8 +102,9 @@ def train_and_evaluate(train_model_specs, val_model_specs, model_dir, params):
         mIoU = np.mean(IoUs, axis=0)
 
         # with tf.contrib.summary.record_summaries_every_n_global_steps(params.save_summary_steps):
-        tf.contrib.summary.scalar("val_avg_loss", valid_loss_avg.result())
-        tf.contrib.summary.scalar("val_avg_IoU", mIoU)
+        with tf.contrib.summary.always_record_summaries():
+            tf.contrib.summary.scalar("val_avg_loss", valid_loss_avg.result())
+            tf.contrib.summary.scalar("val_avg_IoU", mIoU)
 
         print("Epoch {0}, loss epoch avg {1:.4f}, loss valid avg {2:.4f}, mIoU on validation set: {3:.4f}".format(epoch, epoch_loss_avg.result(), valid_loss_avg.result(), mIoU))
                     
