@@ -62,6 +62,8 @@ def train_and_evaluate(train_model_specs, val_model_specs, model_dir, params):
 
             tf.assign_add(global_step, 1)
 
+            print("step:{0} global step: {1}".format(i, global_step))
+
 
         """
         At the end of every epoch, validate on validation dataset.
