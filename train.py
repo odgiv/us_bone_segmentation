@@ -88,7 +88,8 @@ if __name__ == "__main__":
     model_params.model_name = args.model_name
 
 
-    X_train, Y_train, X_val, Y_val = data_loader.loadTrainValDatasets()
+    X_train, Y_train = data_loader.loadTrainDatasets()
+    X_val, Y_val = data_loader.loadValidDatasets()
 
     print("X_train shape {}".format(X_train.shape))
     print("Y_train shape {}".format(Y_train.shape))

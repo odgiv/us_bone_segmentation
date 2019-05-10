@@ -13,20 +13,21 @@ NUM_ROWS_CUT_BOTTOM = 0#33
 class DataLoader():
 
     def __init__(self, params):
-        self.train_val_datasets_path = params["train_val_datasets_path"]
-        self.test_datasets_path = os.path.join(self.train_val_datasets_path, params["test_datasets_folder"])
+        self.train_datasets_path = params["train_datasets_path"]
+        self.valid_datasets_path = os.path.join(self.train_datasets_path, params["valid_datasets_folder"]) 
+        self.test_datasets_path = os.path.join(self.train_datasets_path, params["test_datasets_folder"])
 
         print("train valid datasets path: {}, test dataset path: {}".format(self.train_val_datasets_path, self.test_datasets_path))
 
-    def _load_XY_from(self, path, is_training):
+    def _load_XY_from(self, path):
         list_us_array = []
         list_gt_array = []
 
         for f in sorted(os.listdir(path)):
             # If f is directory, not a file
             f_full_path = os.path.join(path, f)
-            if os.path.isdir(f_full_path) and is_training:                
-                if f_full_path != self.test_datasets_path:
+            if os.path.isdir(f_full_path):                
+                if f_full_path != self.test_datasets_path and f_full_path != self.valid_datasets_path:
                     print("entering directory: ", f_full_path)
 
                     h5f = h5py.File(os.path.join(f_full_path, 'us_gt_vol.h5'), 'r')
@@ -93,28 +94,13 @@ class DataLoader():
         return X, Y
 
     def loadTestDatasets(self):
-        X, Y = self._load_XY_from(self.test_datasets_path, False)
+        X, Y = self._load_XY_from(self.test_datasets_path)
         return X, Y
 
-    def loadTrainValDatasets(self, val_ratio=0.8):
-        X, Y = self._load_XY_from(self.train_val_datasets_path, True)
+    def loadValidDatasets(self):
+        X, Y = self._load_XY_from(self.valid_datasets_path)
+        return X, Y
 
-        X_train, Y_train = np.array([]), np.array([])
-        X_valid, Y_valid = np.array([]), np.array([])
-
-        X_train = X[0:int(X.shape[0]*val_ratio), :, :]
-        Y_train = Y[0:int(Y.shape[0]*val_ratio), :, :]
-        X_valid = X[int(X.shape[0]*val_ratio):, :, :]
-        Y_valid = Y[int(Y.shape[0]*val_ratio):, :, :]
-
-        return X_train, Y_train, X_valid, Y_valid
-
-
-if __name__ == "__main__":
-    loader = DataLoader()
-    X_train, Y_train, X_val, Y_val = loader.loadTrainValDatasets()
-    assert(X_train.shape == Y_train.shape)
-    assert(X_val.shape == Y_val.shape)
-
-    X_test, Y_test = loader.loadTestDatasets()
-    assert(X_test.shape == Y_test.shape)
+    def loadTrainDatasets(self):
+        X, Y = self._load_XY_from(self.train_datasets_path)
+        return X, Y
