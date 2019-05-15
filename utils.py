@@ -4,8 +4,14 @@ import json
 import logging
 import shutil
 import os
+import random
 from scipy.spatial.distance import directed_hausdorff
+from scipy.ndimage.interpolation import rotate
 import numpy as np
+import cv2 as cv
+from PIL import Image, ImageEnhance
+import Augmentor
+
 
 
 def focal_loss_softmax(labels, logits, gamma=2):
@@ -100,5 +106,105 @@ def delete_dir_content(dir_path):
         for d in dirs:
             shutil.rmtree(os.path.join(root, d))
 
+
 def hausdorf_distance(a, b):
     return max(directed_hausdorff(a, b)[0], directed_hausdorff(b, a)[0])
+
+
+def batch_img_generator(imgs, gts, batch_size=1, is_preprocess=True):
+    i = 0
+    while True:
+        if i == 0:
+            np.random.seed(42)
+            np.random.shuffle(imgs)
+            np.random.seed(42)
+            np.random.shuffle(gts)
+        batch_imgs = imgs[i:batch_size]
+        batch_gts = gts[i:batch_size]
+
+        i += batch_size
+
+        if i >= imgs.shape[0]:
+            i = 0
+
+        yield(batch_imgs, batch_gts)
+
+def rotate_img(image, angle):
+    # # image: np.ndarray
+    # # angle: float
+    # #
+    # # grab the dim of the image and then determine the center
+    # (h, w) = image.shape[:2]
+    # (cX, cY) = (w//2, h//2)
+    # # grab the rotation matrix
+    # M = cv.getRotationMatrix2D((cX, cY), angle, 1.0)
+    # # cos = np.abs(M[0, 0])
+    # # sin = np.abs(M[0, 1])
+
+    # # # compute the new bounding dim of the image
+    # # nW = int((h*sin) + (w*cos))
+    # # nH = int((h*cos) + (w*sin))
+
+    # # M[0, 2] += (nW/2)-cX
+    # # M[1, 2] += (nH/2)-cY
+
+    # image = cv.warpAffine(image, M, (w, h)) # nW, nH
+    image = rotate(image, angle)
+    return image
+
+def vert_flip(img):
+    return cv.flip(img, 1)
+
+def random_sharpness(pil_image, range_of_factors=(0.0, 2.0)):
+    sharpness_factor = random.uniform(*range_of_factors)
+    sharpness_enhancer = ImageEnhance.Sharpness(pil_image)
+    pil_image = sharpness_enhancer.enhance(sharpness_factor)
+    return pil_image
+
+
+def random_color(pil_image, range_of_factors=(0.0, 1.0)):
+    color_factor = random.uniform(*range_of_factors)
+    color_enhancer = ImageEnhance.Color(pil_image)
+    pil_image = color_enhancer.enhance(color_factor)
+    return pil_image
+
+
+def random_contrast(pil_image, range_of_factors=(0.5, 1.5)):
+    contrast_factor = random.uniform(*range_of_factors)
+    contrast_enhancer = ImageEnhance.Contrast(pil_image)
+    pil_image = contrast_enhancer.enhance(contrast_factor)
+    return pil_image
+
+
+def random_brightness(pil_image, range_of_factors=(0.5, 1.5)):
+    brightness_factor = random.uniform(*range_of_factors)
+    brightness_enhancer = ImageEnhance.Brightness(pil_image)
+    pil_image = brightness_enhancer.enhance(brightness_factor)
+    return pil_image
+
+
+def chain_random_image_enhancements(image):
+    # image: np array
+    pil_image = Image.fromarray(image)
+    pil_image = random_sharpness(pil_image)
+    pil_image = random_color(pil_image)
+    pil_image = random_contrast(pil_image)
+    pil_image = random_brightness(pil_image)
+    return np.array(pil_image)
+
+
+def preprocessData(img, gt, rotation_angle_range=(-10, 10)):
+    b = random.choice([True, False])
+    if b:
+        img = vert_flip(img)
+        gt = vert_flip(gt)
+    rotation_angle = np.random.choice(list(range(*rotation_angle_range)), 1)
+    img = rotate_img(img, rotation_angle[0])
+    gt = rotate_img(gt, rotation_angle[0])
+
+    return img, gt
+    # p = Augmentor.Pipeline()
+    # p.rotate(0.5, max_left_rotation=10, max_right_rotation=10)
+    # p.flip_left_right(0.5)
+    # p.zoom_random(0.5, percentage_area=0.9)
+    # return p.keras_generator_from_array(images, labels, scaled=False, batch_size=batch_size)    

@@ -1,5 +1,6 @@
 from scipy.ndimage import binary_closing, binary_opening
 from skimage.draw import line
+from utils import vert_flip, rotate_img
 import numpy as np
 import cv2 as cv
 import argparse
@@ -199,7 +200,7 @@ def preprocess_gt(img, gt_img, is_threshold, is_clear_below_bps):
         gt_img = clear_gt_below_breaking_point_from_top(img, gt_img)
 
     gt_img = remove_non_consequetive_white_pixels(gt_img)
-
+    
     return gt_img
 
 if __name__ == "__main__":
