@@ -10,7 +10,7 @@ from scipy.ndimage.interpolation import rotate
 import numpy as np
 import cv2 as cv
 from PIL import Image, ImageEnhance
-import Augmentor
+#import Augmentor
 
 
 

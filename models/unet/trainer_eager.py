@@ -42,8 +42,9 @@ def train_and_evaluate(train_model_specs, val_model_specs, model_dir, params):
             # make_trainable(segmentor_net, True)
             # print(len(segmentor_net.trainable_variables))
             # print(len(critic_net.trainable_variables))
-
-            img, label = preprocessData(img, label)
+            #img = np.asarray(img)
+            #label = np.asarray(label)
+            #img, label = preprocessData(img, label)
 
             label = tf.cast(label, tf.int32)
 
@@ -128,9 +129,4 @@ def train_and_evaluate(train_model_specs, val_model_specs, model_dir, params):
         #     if lr <= 0.00000001:
         #         lr = 0.00000001
         #     print("Learning rate: {:.6f}", format(lr))
-
-<<<<<<< HEAD
-            optimizer = tf.train.AdamOptimizer(learning_rate=lr)
-=======
         #     optimizer = tf.train.AdamOptimizer(learning_rate=lr)
->>>>>>> d908db0c8f855c445667fb46c201ddebfc0b8424
