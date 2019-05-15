@@ -9,8 +9,8 @@ import random
 
 def preprocess(image, label):
     seed = random.randint(1, 101)
-    random_rot_angle = random.randint(-15, 16)
-    random_rot_angle = random_rot_angle * math.pi / 180
+    random_rot_angle = random.choice([*range(0, 16), *range(345, 360)])
+    random_rot_angle = math.radians(random_rot_angle)
     image = rotate(image, random_rot_angle)
     label = rotate(label, random_rot_angle)
     
