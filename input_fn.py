@@ -1,7 +1,6 @@
 import tensorflow as tf
 from data_loader import DataLoader
-from misc.preprocessGt import 
-from utils import preprocessData
+from misc.preprocessGt import preprocess_gt
 import numpy as np
 import math
 import random

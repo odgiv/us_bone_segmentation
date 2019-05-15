@@ -38,8 +38,8 @@ def train_and_evaluate(train_model_specs, val_model_specs, model_dir, params):
     # validation_dataset = val_model_specs["dataset"]
     x_train = train_model_specs["x_train"]
     y_train = train_model_specs["y_train"]
-    x_valid = train_model_specs["x_valid"]
-    y_valid = train_model_specs["y_valid"]
+    x_valid = val_model_specs["x_valid"]
+    y_valid = val_model_specs["y_valid"]
 
 
     u_net = train_model_specs["unet"]
@@ -64,7 +64,7 @@ def train_and_evaluate(train_model_specs, val_model_specs, model_dir, params):
     current_epoch = 1
     epoch_loss_avg = tfe.metrics.Mean()
 
-    for imgs, labels, epoch in train_gen():        
+    for imgs, labels, epoch in train_gen:        
 
         imgs, labels = preprocess(imgs, labels)
 
@@ -73,7 +73,7 @@ def train_and_evaluate(train_model_specs, val_model_specs, model_dir, params):
 
         with tf.GradientTape() as tape:
             # Run image through segmentor net and get result
-            seg_results = u_net(s)
+            seg_results = u_net(imgs)
 
             # seg_result = tf.argmax(seg_result, axis=-1, output_type=tf.float32)
             # seg_result = tf.expand_dims(seg_result, -1)
