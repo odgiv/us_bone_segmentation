@@ -194,13 +194,16 @@ def chain_random_image_enhancements(image):
 
 
 def preprocessData(img, gt, rotation_angle_range=(-10, 10)):
-    b = random.choice([True, False])
-    if b:
-        img = vert_flip(img)
-        gt = vert_flip(gt)
+    # b = random.choice([True, False])
+    # if b:
+    #     img = vert_flip(img)
+    #     gt = vert_flip(gt)
     rotation_angle = np.random.choice(list(range(*rotation_angle_range)), 1)
-    img = rotate_img(img, rotation_angle[0])
-    gt = rotate_img(gt, rotation_angle[0])
+    # img = rotate_img(img, rotation_angle[0])
+    # gt = rotate_img(gt, rotation_angle[0])
+
+    img = img.rotate(rotation_angle)
+    gt = gt.rotate(rotation_angle)
 
     return img, gt
     # p = Augmentor.Pipeline()
