@@ -96,8 +96,11 @@ if __name__ == "__main__":
     print("X_valid shape {}".format(X_val.shape))
     print("Y_valid shape {}".format(Y_val.shape))
 
-    train_inputs = input_fn(True, is_eager, X_train, Y_train, model_params)
-    val_inputs = input_fn(True, is_eager, X_val, Y_val, model_params)
+    #train_inputs = input_fn(True, is_eager, X_train, Y_train, model_params)
+    #val_inputs = input_fn(True, is_eager, X_val, Y_val, model_params)
+
+    val_inputs = {"x_valid": X_val, "y_valid": Y_val}
+    train_inputs = {"x_train": X_train, "y_train": Y_train}
 
     train_model_specs = model.model_fn("train", train_inputs)
 

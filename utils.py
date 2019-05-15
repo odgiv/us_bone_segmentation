@@ -111,21 +111,31 @@ def hausdorf_distance(a, b):
     return max(directed_hausdorff(a, b)[0], directed_hausdorff(b, a)[0])
 
 
-def batch_img_generator(imgs, gts, batch_size=1, is_preprocess=True):
+def shuffle(imgs, gts):
+    np.random.seed(42)
+    np.random.shuffle(imgs)
+    np.random.seed(42)
+    np.random.shuffle(gts)
+
+    return imgs, gts
+
+def batch_img_generator(imgs, gts, num_epochs=1, batch_size=1, is_preprocess=True):
     i = 0
-    while True:
-        if i == 0:
-            np.random.seed(42)
-            np.random.shuffle(imgs)
-            np.random.seed(42)
-            np.random.shuffle(gts)
-        batch_imgs = imgs[i:batch_size]
-        batch_gts = gts[i:batch_size]
-
-        i += batch_size
-
+    epoch = 1
+    imgs, gts = shuffle(imgs, gts)
+    
+    while epoch <= num_epochs:
         if i >= imgs.shape[0]:
-            i = 0
 
-        yield(batch_imgs, batch_gts)
+            epoch += 1
+            i = 0
+            imgs, gts = shuffle(imgs, gts)
+        
+        start = i
+        end = imgs.shape[0] if i + batch_size >= imgs.shape[0] else i + batch_size
+        
+        batch_imgs = imgs[start:end]
+        batch_gts = gts[start:end]
+
+        yield batch_imgs, batch_gts, epoch
    
