@@ -9,11 +9,18 @@ import random
 
 def preprocess(image, label):
     seed = random.randint(1, 101)
-    random_rot_angle = random.choice([*range(0, 16), *range(345, 360)])
+    random_rot_angle1 = random.randint(0, 16)
+    random_rot_angle2 = random.randint(345, 360)    
+    if seed > 50:
+        random_rot_angle = random_rot_angle1
+    else:
+        random_rot_angle = random_rot_angle2
+	
+    print(random_rot_angle)
     random_rot_angle = random_rot_angle * math.pi / 180
     image = rotate(image, random_rot_angle)
     label = rotate(label, random_rot_angle)
-    
+    print(seed)
     if seed > 50:
         image = tf.image.flip_left_right(image)
         label = tf.image.flip_left_right(label)
