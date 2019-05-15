@@ -2,9 +2,6 @@ import tensorflow as tf
 import numpy as np
 import os
 from utils import batch_img_generator
-import random 
-import math
-from scipy.ndimage import rotate
 
 print("tf version: ",  tf.__version__)
 
@@ -15,21 +12,6 @@ config = tf.ConfigProto(gpu_options=opts)
 tf.enable_eager_execution(config)
 
 tfe = tf.contrib.eager
-
-def preprocess(images, labels):
-    seed = random.randint(1, 101)
-    random_rot_angle = random.choice([*range(0, 16), *range(345,360)])
-
-    # random_rot_angle = random_rot_angle * math.pi / 180
-    
-    images = rotate(images, math.radians(random_rot_angle))
-    labels = rotate(labels, math.radians(random_rot_angle))
-    
-    # if seed > 50:
-    #     image = tf.image.flip_left_right(image)
-    #     label = tf.image.flip_left_right(label)
-
-    return images, labels
 
 
 def train_and_evaluate(train_model_specs, val_model_specs, model_dir, params):
@@ -114,7 +96,7 @@ def train_and_evaluate(train_model_specs, val_model_specs, model_dir, params):
 
                 # segmentor_net._set_inputs(img)
                 print("Saving weights to ", params.save_weights_path)
-                u_net.save_weights(params.save_weights_path + parans.model_name + '_val_maxIoU_{:.3f}.h5'.format(maxIoU))            
+                u_net.save_weights(params.save_weights_path + params.model_name + '_val_maxIoU_{:.3f}.h5'.format(maxIoU))            
                 # tf.keras.models.save_model(segmentor_net, params.save_weights_path + 'segan_model_maxIoU_{:4f}.h5'.format(maxIoU), overwrite=True, include_optimizer=False)
                 # tf.contrib.saved_model.save_keras_model(segmentor_net, params.save_weights_path, serving_only=True)
 
@@ -139,7 +121,7 @@ def train_and_evaluate(train_model_specs, val_model_specs, model_dir, params):
             # seg_result = tf.argmax(seg_result, axis=-1, output_type=tf.float32)
             # seg_result = tf.expand_dims(seg_result, -1)
 
-            loss = tf.losses.sparse_softmax_cross_entropy(labels=label, logits=seg_results)
+            loss = tf.losses.sparse_softmax_cross_entropy(labels=labels, logits=seg_results)
 
 
         grads = tape.gradient(loss, u_net.trainable_variables)
