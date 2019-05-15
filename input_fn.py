@@ -2,12 +2,17 @@ import tensorflow as tf
 from data_loader import DataLoader
 from misc.preprocessGt import 
 from utils import preprocessData
+from tf.contrib.image import rotate
+import numpy as np
 
 
 def _parse_function(image, label):
-    image = np.asarray(image)
-    label = np.asarray(label)
-    image, label = preprocessData(image, label)
+    rotation_angle = np.random.choice(list(range(-15, 16)), 1)
+
+    image = rotate(image, rotation_angle)
+    label = rotate(label, rotation_angle)
+    # image, label = preprocessData(image, label)
+
     image = tf.image.convert_image_dtype(image, tf.float32)
     return image, tf.cast(label, tf.float32)
 
