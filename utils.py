@@ -125,11 +125,7 @@ def batch_img_generator(imgs, gts, num_epochs=1, batch_size=1, is_preprocess=Tru
     imgs, gts = shuffle(imgs, gts)
     
     while epoch <= num_epochs:
-        if i >= imgs.shape[0]:
-
-            epoch += 1
-            i = 0
-            imgs, gts = shuffle(imgs, gts)
+        
         
         start = i
         end = imgs.shape[0] if i + batch_size >= imgs.shape[0] else i + batch_size
@@ -138,6 +134,14 @@ def batch_img_generator(imgs, gts, num_epochs=1, batch_size=1, is_preprocess=Tru
         batch_gts = gts[start:end]
 
         i += batch_size      
+        
+        
+        if i >= imgs.shape[0]:
+            epoch += 1
+            i = 0
+            imgs, gts = shuffle(imgs, gts)
+            
         print("epoch: {}, step: {}, total: {}".format(epoch, i, imgs.shape[0]))
+
         yield batch_imgs, batch_gts, epoch
    

@@ -66,43 +66,6 @@ def train_and_evaluate(train_model_specs, val_model_specs, model_dir, params):
 
     for imgs, labels, epoch in train_gen:        
 
-        imgs, labels = preprocess(imgs, labels)
-
-        imgs = tf.image.convert_image_dtype(imgs, tf.float32)
-        labels = tf.cast(labels, tf.int32)
-
-        with tf.GradientTape() as tape:
-            # Run image through segmentor net and get result
-            seg_results = u_net(imgs)
-
-            # seg_result = tf.argmax(seg_result, axis=-1, output_type=tf.float32)
-            # seg_result = tf.expand_dims(seg_result, -1)
-
-            loss = tf.losses.sparse_softmax_cross_entropy(labels=label, logits=seg_results)
-
-
-        grads = tape.gradient(loss, u_net.trainable_variables)
-
-        optimizer.apply_gradients(zip(grads, u_net.trainable_variables), global_step=global_step)
-        
-        epoch_loss_avg(loss)
-
-        tf.assign_add(global_step, 1)
-
-        # Summaries for tensorboard
-        with tf.contrib.summary.record_summaries_every_n_global_steps(params.save_summary_steps):
-            # if i % params.save_summary_steps == 0:
-                        
-            seg_results = tf.argmax(seg_results, axis=-1, output_type=tf.int32)
-            seg_results = tf.expand_dims(seg_results, -1)
-
-            tf.contrib.summary.image("train_img", imgs)
-            tf.contrib.summary.image("ground_tr", tf.cast(labels * 255, tf.uint8))
-            tf.contrib.summary.image("seg_result", tf.cast(seg_results * 255, tf.uint8))
-
-            tf.contrib.summary.scalar("train_avg_loss", epoch_loss_avg.result())
-                
-
         """
         At the end of every epoch, validate on validation dataset.
         And compute mean IoU.
@@ -110,15 +73,19 @@ def train_and_evaluate(train_model_specs, val_model_specs, model_dir, params):
         if current_epoch < epoch:
             current_epoch = epoch
             epoch_loss_avg = tfe.metrics.Mean()
-
+            
             IoUs = []
             valid_loss_avg = tfe.metrics.Mean()
+            
             print("Validation starts.")
 
-            for imgs, labels, _ in valid_gen():                
+            for imgs, labels, _ in valid_gen:        
+                imgs = tf.image.convert_image_dtype(imgs, tf.float32)
+                #labels = tf.cast(labels, tf.int32)
+
                 pred = u_net(imgs)
                 
-                gt = labels.numpy()
+                gt = labels
                 pred_np = pred.numpy()
                 
                 pred_np = np.argmax(pred_np, axis=-1)
@@ -159,3 +126,39 @@ def train_and_evaluate(train_model_specs, val_model_specs, model_dir, params):
             #     print("Learning rate: {:.6f}", format(lr))
 
             #     optimizer = tf.train.AdamOptimizer(learning_rate=lr)
+
+        imgs, labels = preprocess(imgs, labels)
+
+        imgs = tf.image.convert_image_dtype(imgs, tf.float32)
+        labels = tf.cast(labels, tf.int32)
+
+        with tf.GradientTape() as tape:
+            # Run image through segmentor net and get result
+            seg_results = u_net(imgs)
+
+            # seg_result = tf.argmax(seg_result, axis=-1, output_type=tf.float32)
+            # seg_result = tf.expand_dims(seg_result, -1)
+
+            loss = tf.losses.sparse_softmax_cross_entropy(labels=label, logits=seg_results)
+
+
+        grads = tape.gradient(loss, u_net.trainable_variables)
+
+        optimizer.apply_gradients(zip(grads, u_net.trainable_variables), global_step=global_step)
+        
+        epoch_loss_avg(loss)
+
+        tf.assign_add(global_step, 1)
+
+        # Summaries for tensorboard
+        with tf.contrib.summary.record_summaries_every_n_global_steps(params.save_summary_steps):
+            # if i % params.save_summary_steps == 0:
+                        
+            seg_results = tf.argmax(seg_results, axis=-1, output_type=tf.int32)
+            seg_results = tf.expand_dims(seg_results, -1)
+
+            tf.contrib.summary.image("train_img", imgs)
+            tf.contrib.summary.image("ground_tr", tf.cast(labels * 255, tf.uint8))
+            tf.contrib.summary.image("seg_result", tf.cast(seg_results * 255, tf.uint8))
+
+            tf.contrib.summary.scalar("train_avg_loss", epoch_loss_avg.result())
