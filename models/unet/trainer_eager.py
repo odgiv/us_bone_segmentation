@@ -42,9 +42,8 @@ def train_and_evaluate(train_model_specs, val_model_specs, model_dir, params):
             # make_trainable(segmentor_net, True)
             # print(len(segmentor_net.trainable_variables))
             # print(len(critic_net.trainable_variables))
-            #img = np.asarray(img)
-            #label = np.asarray(label)
-            #img, label = preprocessData(img, label)
+
+            # img, label = preprocessData(img, label)
 
             label = tf.cast(label, tf.int32)
 
