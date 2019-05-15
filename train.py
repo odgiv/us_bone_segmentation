@@ -10,12 +10,12 @@ import numpy as np
 from utils import Params, set_logger, delete_dir_content
 from data_loader import DataLoader
 from input_fn import input_fn
+import tensorflow as tf
 # from evaluate import evaluate
 
 """
 python train.py --model_name unet
 """
-
 parser = argparse.ArgumentParser()
 parser.add_argument("-m", "--model_name", help="Name of directory of specific model in ./models parent directory, such as unet, attention-unet or segan")
 
@@ -86,7 +86,7 @@ if __name__ == "__main__":
     model_params = Params(json_path)
     model_params.save_weights_path = save_model_weights_dir
     model_params.model_name = args.model_name
-
+    
 
     X_train, Y_train = data_loader.loadTrainDatasets()
     X_val, Y_val = data_loader.loadValidDatasets()
