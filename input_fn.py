@@ -2,10 +2,22 @@ import tensorflow as tf
 from data_loader import DataLoader
 from misc.preprocessGt import preprocess_gt
 from utils import preprocessData
+from tensorflow.contrib.image import rotate
+import numpy as np
+import math
+import random
 
 def _parse_function(image, label):
+    seed = random.randint(1,101)	
+    rotation_angle = random.randint(-20, 21)
+    rotation_angle = rotation_angle * math.pi / 180
+    image = rotate(image, rotation_angle)
+    label = rotate(label, rotation_angle)
+    image = tf.image.random_flip_left_right(image, seed)
+    label = tf.image.random_flip_left_right(label, seed)
 
-    image, label = preprocessData(image, label)
+    # image, label = preprocessData(image, label)
+
     image = tf.image.convert_image_dtype(image, tf.float32)
     return image, tf.cast(label, tf.float32)
 
