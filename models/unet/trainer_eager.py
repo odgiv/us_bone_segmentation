@@ -22,8 +22,8 @@ def preprocess(images, labels):
 
     # random_rot_angle = random_rot_angle * math.pi / 180
     
-    images = rotate(images, math.radians(random_rot_angle))
-    labels = rotate(labels, math.radians(random_rot_angle))
+    #images = rotate(images, math.radians(random_rot_angle))
+    #labels = rotate(labels, math.radians(random_rot_angle))
     
     # if seed > 50:
     #     image = tf.image.flip_left_right(image)
@@ -58,7 +58,7 @@ def train_and_evaluate(train_model_specs, val_model_specs, model_dir, params):
     mIoU = 0
     
     train_gen = batch_img_generator(x_train, y_train, params.num_epochs, params.batch_size)
-    valid_gen = batch_img_generator(x_valid, y_valid, batch_size=params.batch_size)
+    #valid_gen = batch_img_generator(x_valid, y_valid, batch_size=params.batch_size)
 
     
     current_epoch = 1
@@ -66,7 +66,68 @@ def train_and_evaluate(train_model_specs, val_model_specs, model_dir, params):
 
     for imgs, labels, epoch in train_gen:        
 
-        #imgs, labels = preprocess(imgs, labels)
+        """
+        At the end of every epoch, validate on validation dataset.
+        And compute mean IoU.
+        """
+        if current_epoch < epoch:
+            current_epoch = epoch
+            
+            IoUs = []
+            valid_loss_avg = tfe.metrics.Mean()
+            valid_gen = batch_img_generator(x_valid, y_valid, batch_size=params.batch_size)
+            print("Validation starts.")
+
+            for imgs, labels, _ in valid_gen:        
+                imgs = tf.image.convert_image_dtype(imgs, tf.float32)
+                #labels = tf.cast(labels, tf.int32)
+
+                pred = u_net(imgs)
+                
+                gt = labels
+                pred_np = pred.numpy()
+                
+                pred_np = np.argmax(pred_np, axis=-1)
+                pred_np = np.expand_dims(pred_np, -1)
+
+                loss = tf.losses.sparse_softmax_cross_entropy(labels=tf.cast(labels, tf.int32), logits=pred)
+                valid_loss_avg(loss)
+
+                for x in range(imgs.shape[0]):
+                    IoU = np.sum(pred_np[x][gt[x] == 1]) / float(np.sum(pred_np[x]) + np.sum(gt[x]) - np.sum(pred_np[x][gt[x] == 1]))
+                    IoUs.append(IoU)
+
+            IoUs = np.array(IoUs, dtype=np.float64)
+            mIoU = np.mean(IoUs, axis=0)
+
+            # with tf.contrib.summary.record_summaries_every_n_global_steps(params.save_summary_steps):
+            with tf.contrib.summary.always_record_summaries():
+                tf.contrib.summary.scalar("val_avg_loss", valid_loss_avg.result())
+                tf.contrib.summary.scalar("val_avg_IoU", mIoU)
+
+            print("Epoch {0}, loss epoch avg {1:.4f}, loss valid avg {2:.4f}, mIoU on validation set: {3:.4f}".format(epoch, epoch_loss_avg.result(), valid_loss_avg.result(), mIoU))
+            
+            epoch_loss_avg = tfe.metrics.Mean()
+
+            if maxIoU < mIoU:
+                maxIoU = mIoU
+
+                # segmentor_net._set_inputs(img)
+                print("Saving weights to ", params.save_weights_path)
+                u_net.save_weights(params.save_weights_path + params.model_name + '_val_maxIoU_{:.3f}.h5'.format(maxIoU))            
+                # tf.keras.models.save_model(segmentor_net, params.save_weights_path + 'segan_model_maxIoU_{:4f}.h5'.format(maxIoU), overwrite=True, include_optimizer=False)
+                # tf.contrib.saved_model.save_keras_model(segmentor_net, params.save_weights_path, serving_only=True)
+
+            # Learning rate decay
+            # if epoch % 25 == 0:
+            #     lr = lr * params.lr_decay
+            #     if lr <= 0.00000001:
+            #         lr = 0.00000001
+            #     print("Learning rate: {:.6f}", format(lr))
+
+            #     optimizer = tf.train.AdamOptimizer(learning_rate=lr)
+
+        imgs, labels = preprocess(imgs, labels)
 
         imgs = tf.image.convert_image_dtype(imgs, tf.float32)
         labels = tf.cast(labels, tf.int32)
@@ -101,62 +162,3 @@ def train_and_evaluate(train_model_specs, val_model_specs, model_dir, params):
             tf.contrib.summary.image("seg_result", tf.cast(seg_results * 255, tf.uint8))
 
             tf.contrib.summary.scalar("train_avg_loss", epoch_loss_avg.result())
-                
-
-        """
-        At the end of every epoch, validate on validation dataset.
-        And compute mean IoU.
-        """
-        if current_epoch < epoch:
-            current_epoch = epoch
-            #epoch_loss_avg = tfe.metrics.Mean()
-
-            IoUs = []
-            valid_loss_avg = tfe.metrics.Mean()
-            print("Validation starts.")
-
-            for imgs, labels, _ in valid_gen:               
-                imgs = tf.image.convert_image_dtype(imgs, tf.float32) 
-                pred = u_net(imgs)
-                
-                gt = labels
-                pred_np = pred.numpy()
-                
-                pred_np = np.argmax(pred_np, axis=-1)
-                pred_np = np.expand_dims(pred_np, -1)
-
-                loss = tf.losses.sparse_softmax_cross_entropy(labels=tf.cast(labels, tf.int32), logits=pred)
-                valid_loss_avg(loss)
-
-                for x in range(imgs.shape[0]):
-                    IoU = np.sum(pred_np[x][gt[x] == 1]) / float(np.sum(pred_np[x]) + np.sum(gt[x]) - np.sum(pred_np[x][gt[x] == 1]))
-                    IoUs.append(IoU)
-
-            IoUs = np.array(IoUs, dtype=np.float64)
-            mIoU = np.mean(IoUs, axis=0)
-
-            # with tf.contrib.summary.record_summaries_every_n_global_steps(params.save_summary_steps):
-            with tf.contrib.summary.always_record_summaries():
-                tf.contrib.summary.scalar("val_avg_loss", valid_loss_avg.result())
-                tf.contrib.summary.scalar("val_avg_IoU", mIoU)
-
-            print("Epoch {0}, loss epoch avg {1:.4f}, loss valid avg {2:.4f}, mIoU on validation set: {3:.4f}".format(epoch, epoch_loss_avg.result(), valid_loss_avg.result(), mIoU))
-                        
-
-            if maxIoU < mIoU:
-                maxIoU = mIoU
-
-                # segmentor_net._set_inputs(img)
-                print("Saving weights to ", params.save_weights_path)
-                u_net.save_weights(params.save_weights_path + parans.model_name + '_val_maxIoU_{:.3f}.h5'.format(maxIoU))            
-                # tf.keras.models.save_model(segmentor_net, params.save_weights_path + 'segan_model_maxIoU_{:4f}.h5'.format(maxIoU), overwrite=True, include_optimizer=False)
-                # tf.contrib.saved_model.save_keras_model(segmentor_net, params.save_weights_path, serving_only=True)
-
-            # Learning rate decay
-            # if epoch % 25 == 0:
-            #     lr = lr * params.lr_decay
-            #     if lr <= 0.00000001:
-            #         lr = 0.00000001
-            #     print("Learning rate: {:.6f}", format(lr))
-
-            #     optimizer = tf.train.AdamOptimizer(learning_rate=lr)
