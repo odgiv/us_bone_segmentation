@@ -2,6 +2,9 @@ import tensorflow as tf
 import numpy as np
 import os
 from utils import preprocessData
+import random 
+import math
+from tf.contrib.image import rotate
 
 print("tf version: ",  tf.__version__)
 
@@ -12,6 +15,25 @@ config = tf.ConfigProto(gpu_options=opts)
 tf.enable_eager_execution(config)
 
 tfe = tf.contrib.eager
+
+def preprocess(image, label):
+    seed = random.randint(1, 101)
+    random_rot_angle1 = random.randint(0, 16)
+    random_rot_angle2 = random.randint(345, 360)
+    if seed > 50:
+        random_rot_angle = random_rot_angle1
+    else:
+        random_rot_angle = random_rot_angle2
+
+    random_rot_angle = random_rot_angle * math.pi / 180
+    image = rotate(image, random_rot_angle)
+    label = rotate(label, random_rot_angle)
+    
+    if seed > 50:
+        image = tf.image.flip_left_right(image)
+        label = tf.image.flip_left_right(label)
+
+    return image, label
 
 
 def train_and_evaluate(train_model_specs, val_model_specs, model_dir, params):
@@ -43,7 +65,7 @@ def train_and_evaluate(train_model_specs, val_model_specs, model_dir, params):
             # print(len(segmentor_net.trainable_variables))
             # print(len(critic_net.trainable_variables))
 
-            # img, label = preprocessData(img, label)
+            img, label = preprocess(img, label)
 
             label = tf.cast(label, tf.int32)
 

@@ -2,32 +2,13 @@ import tensorflow as tf
 from data_loader import DataLoader
 from misc.preprocessGt import 
 from utils import preprocessData
-from tf.contrib.image import rotate
 import numpy as np
 import math
 import random
 
-def preprocess(image, label):
-    seed = random.randint(1, 101)
-    random_rot_angle1 = tf.random.uniform(shape=image.shape[0], minval=0, maxval=16, dtype=tf.dtypes.int16)
-    random_rot_angle2 = tf.random.uniform(shape=image.shape[0], minval=345, maxval=360, dtype=tf.dtypes.int16)
-    if seed > 50:
-        random_rot_angle = random_rot_angle
-    else:
-        random_rot_angle = random_rot_angle2
-
-    random_rot_angle = random_rot_angle * math.pi / 180
-    image = rotate(image, random_rot_angle)
-    label = rotate(label, random_rot_angle)
-    
-    if seed > 50:
-        image = tf.image.flip_left_right(image)
-        label = tf.image.flip_left_right(label)
-
-    return image, label
 
 def _parse_function(image, label):
-    image, label = preprocess(image, label)
+    #image, label = preprocess(image, label)
     image = tf.image.convert_image_dtype(image, tf.float32)
     return image, tf.cast(label, tf.float32)
 
