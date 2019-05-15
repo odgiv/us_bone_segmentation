@@ -9,6 +9,8 @@ import h5py
 import numpy as np
 import cv2 as cv
 from preprocessGt import preprocess_gt
+from utils import preprocessData
+
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--output_dir", "-o", type=str, required=True)
@@ -23,17 +25,29 @@ args = parser.parse_args()
 
 def generate_original_and_overlayed_imgs(gt_volume, us_img_volume, start_index=0, end_index=-1, is_threshold=True, is_clear_below_break_points_gt=True):
     step = 1
+    # us_img_volume = np.transpose(us_img_volume, [2, 0, 1])
+    # us_img_volume = np.expand_dims(us_img_volume, -1)
+    # gt_volume = np.transpose(gt_volume, [2, 0, 1])
+    # gt_volume = np.expand_dims(gt_volume, -1)
+    
     for index in range(0, gt_volume.shape[-1], step):
-        # bone_img = us_img_volume[:, :, start_index: end_index][:, :, index]
-        # gt_img = np.uint8(np.transpose(gt_volume, (1, 0, 2))[:, :, index])
+    
+    # while step < 100: 
+        # bone_img, gt_img = next(gen)
         bone_img = us_img_volume[:, :, index]
         gt_img = np.uint8(gt_volume[:, :, index])
 
-        gt_img = preprocess_gt(bone_img, gt_img, is_threshold, is_clear_below_break_points_gt)
+        # bone_img = np.squeeze(bone_img)
+        # gt_img = np.squeeze(gt_img)
+
+        # gt_img = preprocess_gt(bone_img, gt_img, is_threshold, is_clear_below_break_points_gt)
         gt_img = gt_img * 255        
+
+        bone_img, gt_img = preprocessData(bone_img, gt_img)
 
         overlapped_img = cv.addWeighted(bone_img, 1, gt_img, 0.2, 0)
 
+        step+=1
         yield bone_img, gt_img, overlapped_img
 
 

@@ -1,13 +1,13 @@
 {
     "batch_size": 10,
-    "learning_rate": 0.001,
+    "learning_rate": 0.0003,
     "lr_decay": 0.9,
     "img_h": 266,
     "img_w": 369,
     "img_c": 1,
-    "num_epochs": 50,
+    "num_epochs": 300,
     "num_classes": 2,
     "num_parallel_calls": 4,
-    "save_summary_steps": 50,
+    "save_summary_steps": 100,
     "test_results_path": "C:\\Users\\odgiiv\\tmp\\code\\ultrasound_bone_segmentation_frmwrk\\models\\unet\\test_results\\"
 }

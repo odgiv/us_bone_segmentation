@@ -1,6 +1,8 @@
 import tensorflow as tf
 import numpy as np
 import os
+from utils import preprocessData
+
 print("tf version: ",  tf.__version__)
 
 opts = tf.GPUOptions(per_process_gpu_memory_fraction = 0.5)
@@ -40,6 +42,8 @@ def train_and_evaluate(train_model_specs, val_model_specs, model_dir, params):
             # make_trainable(segmentor_net, True)
             # print(len(segmentor_net.trainable_variables))
             # print(len(critic_net.trainable_variables))
+
+            img, label = preprocessData(img, label)
 
             label = tf.cast(label, tf.int32)
 
@@ -119,10 +123,10 @@ def train_and_evaluate(train_model_specs, val_model_specs, model_dir, params):
             # tf.contrib.saved_model.save_keras_model(segmentor_net, params.save_weights_path, serving_only=True)
 
         # Learning rate decay
-        if epoch % 25 == 0:
-            lr = lr * params.lr_decay
-            if lr <= 0.00000001:
-                lr = 0.00000001
-            print("Learning rate: {:.6f}", format(lr))
+        # if epoch % 25 == 0:
+        #     lr = lr * params.lr_decay
+        #     if lr <= 0.00000001:
+        #         lr = 0.00000001
+        #     print("Learning rate: {:.6f}", format(lr))
 
-            optimizer = tf.train.AdamOptimizer(learning_rate=lr)
+        #     optimizer = tf.train.AdamOptimizer(learning_rate=lr)

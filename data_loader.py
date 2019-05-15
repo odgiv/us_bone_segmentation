@@ -18,7 +18,7 @@ class DataLoader():
         self.valid_datasets_path = os.path.join(self.train_datasets_path, params["valid_datasets_folder"]) 
         self.test_datasets_path = os.path.join(self.train_datasets_path, params["test_datasets_folder"])
 
-        print("train valid datasets path: {}\n, valid dataset path: {}\n, test dataset path: {}\n".format(self.train_datasets_path, self.valid_datasets_path, self.test_datasets_path))
+        print("train valid datasets path: {},\nvalid dataset path: {},\ntest dataset path: {}\n".format(self.train_datasets_path, self.valid_datasets_path, self.test_datasets_path))
 
     def _load_XY_from(self, path):
         list_us_array = []
