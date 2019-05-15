@@ -109,16 +109,17 @@ def train_and_evaluate(train_model_specs, val_model_specs, model_dir, params):
         """
         if current_epoch < epoch:
             current_epoch = epoch
-            epoch_loss_avg = tfe.metrics.Mean()
+            #epoch_loss_avg = tfe.metrics.Mean()
 
             IoUs = []
             valid_loss_avg = tfe.metrics.Mean()
             print("Validation starts.")
 
-            for imgs, labels, _ in valid_gen():                
+            for imgs, labels, _ in valid_gen:               
+                imgs = tf.image.convert_image_dtype(imgs, tf.float32) 
                 pred = u_net(imgs)
                 
-                gt = labels.numpy()
+                gt = labels
                 pred_np = pred.numpy()
                 
                 pred_np = np.argmax(pred_np, axis=-1)

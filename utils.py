@@ -137,5 +137,7 @@ def batch_img_generator(imgs, gts, num_epochs=1, batch_size=1, is_preprocess=Tru
         batch_imgs = imgs[start:end]
         batch_gts = gts[start:end]
 
+        i += batch_size      
+        print("epoch: {}, step: {}, total: {}".format(epoch, i, imgs.shape[0]))
         yield batch_imgs, batch_gts, epoch
    
