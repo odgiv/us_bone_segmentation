@@ -1,7 +1,6 @@
 import tensorflow as tf
 import numpy as np
 import os
-from utils import preprocessData
 
 print("tf version: ",  tf.__version__)
 

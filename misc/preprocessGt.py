@@ -1,6 +1,5 @@
 from scipy.ndimage import binary_closing, binary_opening
 from skimage.draw import line
-from utils import vert_flip, rotate_img
 import numpy as np
 import cv2 as cv
 import argparse
