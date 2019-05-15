@@ -4,15 +4,24 @@ from misc.preprocessGt import
 from utils import preprocessData
 from tf.contrib.image import rotate
 import numpy as np
+import math
+import random
 
+def preprocess(image, label):
+    seed = random.randint(1, 101)
+    random_rot_angle = random.randint(-15, 16)
+    random_rot_angle = random_rot_angle * math.pi / 180
+    image = rotate(image, random_rot_angle)
+    label = rotate(label, random_rot_angle)
+    
+    if seed > 50:
+        image = tf.image.flip_left_right(image)
+        label = tf.image.flip_left_right(image)
+
+    return image, label
 
 def _parse_function(image, label):
-    rotation_angle = np.random.choice(list(range(-15, 16)), 1)
-
-    image = rotate(image, rotation_angle)
-    label = rotate(label, rotation_angle)
-    # image, label = preprocessData(image, label)
-
+    image, label = preprocess(image, label)
     image = tf.image.convert_image_dtype(image, tf.float32)
     return image, tf.cast(label, tf.float32)
 
