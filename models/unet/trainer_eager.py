@@ -139,7 +139,7 @@ def train_and_evaluate(train_model_specs, val_model_specs, model_dir, params):
             seg_results = tf.argmax(seg_results, axis=-1, output_type=tf.int32)
             seg_results = tf.expand_dims(seg_results, -1)
 
-            tf.contrib.summary.image("train_img", imgs)
+            tf.contrib.summary.image("train_img", tf.cast(imgs * 255, tf.uint8))
             tf.contrib.summary.image("ground_tr", tf.cast(labels * 255, tf.uint8))
             tf.contrib.summary.image("seg_result", tf.cast(seg_results * 255, tf.uint8))
 

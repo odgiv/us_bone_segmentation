@@ -122,24 +122,25 @@ def shuffle(imgs, gts):
 
 
 def preprocess(images, labels):
+    
     seed = random.randint(1, 101)
     random_rot_angle = random.choice([*range(0, 16), *range(345,360)])
-
+    print(random_rot_angle)
     # random_rot_angle = random_rot_angle * math.pi / 180
-    for i in images.shape[0]:
+    for i in range(images.shape[0]):
         images[i] = rotate(images[i], random_rot_angle)
         labels[i] = rotate(labels[i], random_rot_angle)
-    
+
     # if seed > 50:
     #     image = tf.image.flip_left_right(image)
     #     label = tf.image.flip_left_right(label)
 
     return images, labels
 
-def batch_img_generator(imgs, gts, num_epochs=1, batch_size=1, is_preprocess=True):
+def batch_img_generator(imgs, gts, num_epochs=1, batch_size=1):
     i = 0
     epoch = 1
-    imgs, gts = shuffle(imgs, gts)
+    #imgs, gts = shuffle(imgs, gts)
     
     while epoch <= num_epochs:
         
@@ -158,7 +159,7 @@ def batch_img_generator(imgs, gts, num_epochs=1, batch_size=1, is_preprocess=Tru
             i = 0
             imgs, gts = shuffle(imgs, gts)
 
-        print("epoch: {}, step: {}, total: {}".format(epoch, i, imgs.shape[0]))
+        # print("epoch: {}, step: {}, total: {}".format(epoch, i, imgs.shape[0]))
 
         yield batch_imgs, batch_gts, epoch
    
