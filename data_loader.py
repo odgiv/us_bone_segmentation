@@ -26,6 +26,7 @@ class DataLoader():
         for f in sorted(os.listdir(path)):
             # If f is directory, not a file
             f_full_path = os.path.join(path, f)
+            print(f_full_path)
             if os.path.isdir(f_full_path):                
                 if f_full_path != self.test_datasets_path and f_full_path != self.valid_datasets_path:
                     print("entering directory: ", f_full_path)

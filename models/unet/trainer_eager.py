@@ -109,7 +109,7 @@ def train_and_evaluate(train_model_specs, val_model_specs, model_dir, params):
 
             #     optimizer = tf.train.AdamOptimizer(learning_rate=lr)
 
-        #imgs, labels = preprocess(imgs, labels)
+        # imgs, labels = preprocess(imgs, labels)
 
         imgs = tf.image.convert_image_dtype(imgs, tf.float32)
         labels = tf.cast(labels, tf.int32)

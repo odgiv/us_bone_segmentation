@@ -9,7 +9,7 @@ import h5py
 import numpy as np
 import cv2 as cv
 from preprocessGt import preprocess_gt
-from utils import preprocessData
+from utils import preprocess
 
 
 parser = argparse.ArgumentParser()
@@ -43,7 +43,7 @@ def generate_original_and_overlayed_imgs(gt_volume, us_img_volume, start_index=0
         # gt_img = preprocess_gt(bone_img, gt_img, is_threshold, is_clear_below_break_points_gt)
         gt_img = gt_img * 255        
 
-        bone_img, gt_img = preprocessData(bone_img, gt_img)
+        bone_img, gt_img = preprocess(bone_img, gt_img)
 
         overlapped_img = cv.addWeighted(bone_img, 1, gt_img, 0.2, 0)
 

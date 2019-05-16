@@ -6,7 +6,8 @@ import shutil
 import os
 import random
 from scipy.spatial.distance import directed_hausdorff
-from scipy.ndimage import rotate
+# from scipy.ndimage import rotate
+from skimage.transform import rotate
 import numpy as np
 import cv2 as cv
 from PIL import Image, ImageEnhance
@@ -125,9 +126,9 @@ def preprocess(images, labels):
     random_rot_angle = random.choice([*range(0, 16), *range(345,360)])
 
     # random_rot_angle = random_rot_angle * math.pi / 180
-    
-    images = rotate(images, math.radians(random_rot_angle))
-    labels = rotate(labels, math.radians(random_rot_angle))
+    for i in range(images.shape[0]):
+        images[i] = rotate(images[i], random_rot_angle, preserve_range=True)
+        labels[i] = rotate(labels[i], random_rot_angle, preserve_range=True)
     
     # if seed > 50:
     #     image = tf.image.flip_left_right(image)
@@ -148,7 +149,7 @@ def batch_img_generator(imgs, gts, num_epochs=1, batch_size=1, is_preprocess=Tru
         
         batch_imgs = imgs[start:end]
         batch_gts = gts[start:end]
-        batch_imgs, batch_gts = preprocess(batch_imgs, batch_gts)
+        #batch_imgs, batch_gts = preprocess(batch_imgs, batch_gts)
         i += batch_size      
         
         
