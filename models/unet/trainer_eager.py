@@ -2,9 +2,6 @@ import tensorflow as tf
 import numpy as np
 import os
 from utils import batch_img_generator
-import random 
-import math
-from scipy.ndimage import rotate
 
 print("tf version: ",  tf.__version__)
 
@@ -15,21 +12,6 @@ print("tf version: ",  tf.__version__)
 tf.enable_eager_execution()
 
 tfe = tf.contrib.eager
-
-def preprocess(images, labels):
-    seed = random.randint(1, 101)
-    random_rot_angle = random.choice([*range(0, 16), *range(345,360)])
-
-    # random_rot_angle = random_rot_angle * math.pi / 180
-    
-    #images = rotate(images, math.radians(random_rot_angle))
-    #labels = rotate(labels, math.radians(random_rot_angle))
-    
-    # if seed > 50:
-    #     image = tf.image.flip_left_right(image)
-    #     label = tf.image.flip_left_right(label)
-
-    return images, labels
 
 
 def train_and_evaluate(train_model_specs, val_model_specs, model_dir, params):
@@ -127,7 +109,7 @@ def train_and_evaluate(train_model_specs, val_model_specs, model_dir, params):
 
             #     optimizer = tf.train.AdamOptimizer(learning_rate=lr)
 
-        imgs, labels = preprocess(imgs, labels)
+        #imgs, labels = preprocess(imgs, labels)
 
         imgs = tf.image.convert_image_dtype(imgs, tf.float32)
         labels = tf.cast(labels, tf.int32)
