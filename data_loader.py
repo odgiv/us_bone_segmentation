@@ -28,7 +28,7 @@ class DataLoader():
             f_full_path = os.path.join(path, f)
             print(f_full_path)
             if os.path.isdir(f_full_path):                
-                if f_full_path != self.test_datasets_path and f_full_path != self.valid_datasets_path:
+                if f_full_path != self.test_datasets_path and f_full_path != self.valid_datasets_path and f_full_path != self.test_datasets_path:
                     print("entering directory: ", f_full_path)
 
                     h5f = h5py.File(os.path.join(f_full_path, 'us_gt_vol.h5'), 'r')
@@ -97,13 +97,16 @@ class DataLoader():
         return X, Y
 
     def loadTestDatasets(self):
+        print("Loading test dataset ...")
         X, Y = self._load_XY_from(self.test_datasets_path)
         return X, Y
 
     def loadValidDatasets(self):
+        print("Loading validation dataset ...")
         X, Y = self._load_XY_from(self.valid_datasets_path)
         return X, Y
 
     def loadTrainDatasets(self):
+        print("Loading train dataset ...")
         X, Y = self._load_XY_from(self.train_datasets_path)
         return X, Y

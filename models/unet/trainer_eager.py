@@ -53,7 +53,8 @@ def train_and_evaluate(train_model_specs, val_model_specs, model_dir, params):
         And compute mean IoU.
         """
         if current_epoch < epoch:
-            current_epoch = epoch
+            
+            epoch_loss_avg = tfe.metrics.Mean()
             
             IoUs = []
             valid_loss_avg = tfe.metrics.Mean()
@@ -87,9 +88,8 @@ def train_and_evaluate(train_model_specs, val_model_specs, model_dir, params):
                 tf.contrib.summary.scalar("val_avg_loss", valid_loss_avg.result())
                 tf.contrib.summary.scalar("val_avg_IoU", mIoU)
 
-            print("Epoch {0}, loss epoch avg {1:.4f}, loss valid avg {2:.4f}, mIoU on validation set: {3:.4f}".format(epoch, epoch_loss_avg.result(), valid_loss_avg.result(), mIoU))
-            
-            epoch_loss_avg = tfe.metrics.Mean()
+            print("Epoch {0}, loss epoch avg {1:.4f}, loss valid avg {2:.4f}, mIoU on validation set: {3:.4f}".format(current_epoch, epoch_loss_avg.result(), valid_loss_avg.result(), mIoU))
+            current_epoch = epoch
 
             if maxIoU < mIoU:
                 maxIoU = mIoU
@@ -139,7 +139,7 @@ def train_and_evaluate(train_model_specs, val_model_specs, model_dir, params):
             seg_results = tf.argmax(seg_results, axis=-1, output_type=tf.int32)
             seg_results = tf.expand_dims(seg_results, -1)
 
-            tf.contrib.summary.image("train_img", imgs)
+            tf.contrib.summary.image("train_img", tf.cast(imgs * 255, tf.uint8))
             tf.contrib.summary.image("ground_tr", tf.cast(labels * 255, tf.uint8))
             tf.contrib.summary.image("seg_result", tf.cast(seg_results * 255, tf.uint8))
 
