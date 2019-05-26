@@ -58,14 +58,15 @@ def train_and_evaluate(model, x_train, y_train, x_val, y_val, params):
             print("Validation starts.")
             current_val_step = 0
             for imgs, labels in valid_gen:        
-                # imgs = tf.image.convert_image_dtype(imgs, tf.float32)
-                #labels = tf.cast(labels, tf.int32)
                 
-                imgs = imgs.astype('float32')
+                # imgs = imgs.astype('float32')
                 labels = (label / 255.)
                 labels[labels>0] = 1
                 labels[labels==0] = 0
-                labels = labels.astype('uint8')
+                # labels = labels.astype('uint8')
+
+                imgs = tf.image.convert_image_dtype(imgs, tf.float32)
+                labels = tf.cast(labels, tf.int32)
 
                 pred = u_net(imgs)
                 
@@ -114,16 +115,15 @@ def train_and_evaluate(model, x_train, y_train, x_val, y_val, params):
 
         if current_epoch == params.num_epochs + 1:
             break
-            
 
-        # imgs = tf.image.convert_image_dtype(imgs, tf.float32)
-        # labels = tf.cast(labels, tf.int32)
-
-        imgs = imgs.astype('float32')
+        # imgs = imgs.astype('float32')
         labels = (labels / 255.)
         labels[labels>0] = 1
         labels[labels==0] = 0
-        labels = labels.astype('uint8')
+        # labels = labels.astype('uint8')
+
+        imgs = tf.image.convert_image_dtype(imgs, tf.float32)
+        labels = tf.cast(labels, tf.int32)
 
         with tf.GradientTape() as tape:
             # Run image through segmentor net and get result
