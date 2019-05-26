@@ -106,7 +106,7 @@ model_params.train_size = X_train.shape[0]
 model_params.eval_size = X_val.shape[0]
 model_params.model_dir = model_dir
 
-model = train_model_specs["model"]
+# model = train_model_specs["model"]
 
-train_and_evaluate(model, X_train, Y_train, X_valid, Y_valid, model_params)
+train_and_evaluate(model, X_train, Y_train, X_val, Y_val, model_params)
 # train_and_evaluate(train_model_specs, val_model_specs, model_dir, model_params)
