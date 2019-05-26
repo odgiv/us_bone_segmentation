@@ -5,14 +5,35 @@ import logging
 import shutil
 import os
 import random
-from scipy.spatial.distance import directed_hausdorff
-# from scipy.ndimage import rotate
-from skimage.transform import rotate
 import numpy as np
 import cv2 as cv
 from PIL import Image, ImageEnhance
 import math
+from scipy.spatial.distance import directed_hausdorff
+from tensorflow.python.keras.preprocessing.image import ImageDataGenerator
+from skimage.transform import rotate
 
+def get_crop_shape(target, refer):
+    """
+    https://www.tensorflow.org/api_docs/python/tf/keras/layers/Cropping2D
+    https://stackoverflow.com/questions/41925765/keras-cropping2d-changes-color-channel
+    """
+    # width, the 3rd dimension
+    cw = (target.get_shape()[2] - refer.get_shape()[2]).value
+    assert (cw >= 0)
+    if cw % 2 != 0:
+        cw1, cw2 = int(cw/2), int(cw/2) + 1
+    else:
+        cw1, cw2 = int(cw/2), int(cw/2)
+    # height, the 2nd dimension
+    ch = (target.get_shape()[1] - refer.get_shape()[1]).value
+    assert (ch >= 0)
+    if ch % 2 != 0:
+        ch1, ch2 = int(ch/2), int(ch/2) + 1
+    else:
+        ch1, ch2 = int(ch/2), int(ch/2)
+
+    return (ch1, ch2), (cw1, cw2)
 
 
 def focal_loss_softmax(labels, logits, gamma=2):
@@ -121,45 +142,46 @@ def shuffle(imgs, gts):
     return imgs, gts
 
 
-def preprocess(images, labels):
-    
-    seed = random.randint(1, 101)
-    random_rot_angle = random.choice([*range(0, 16), *range(345,360)])
-    print(random_rot_angle)
-    # random_rot_angle = random_rot_angle * math.pi / 180
-    for i in range(images.shape[0]):
-        images[i] = rotate(images[i], random_rot_angle)
-        labels[i] = rotate(labels[i], random_rot_angle)
-
-    # if seed > 50:
-    #     image = tf.image.flip_left_right(image)
-    #     label = tf.image.flip_left_right(label)
-
-    return images, labels
-
-def batch_img_generator(imgs, gts, num_epochs=1, batch_size=1):
-    i = 0
-    epoch = 1
-    #imgs, gts = shuffle(imgs, gts)
-    
-    while epoch <= num_epochs:
+def img_and_mask_generator(x, y, batch_size=1):
+    data_gen_args = dict(
+        rescale=1./255
+    )
         
-        
-        start = i
-        end = imgs.shape[0] if i + batch_size >= imgs.shape[0] else i + batch_size
-        
-        batch_imgs = imgs[start:end]
-        batch_gts = gts[start:end]
-        #batch_imgs, batch_gts = preprocess(batch_imgs, batch_gts)
-        i += batch_size      
-        
-        
-        if i >= imgs.shape[0]:
-            epoch += 1
-            i = 0
-            imgs, gts = shuffle(imgs, gts)
+    image_data_generator = ImageDataGenerator(**data_gen_args)
+    mask_data_generator = ImageDataGenerator()
 
-        # print("epoch: {}, step: {}, total: {}".format(epoch, i, imgs.shape[0]))
+    seed = 1
 
-        yield batch_imgs, batch_gts, epoch
+    image_gen = image_data_generator.flow(x, batch_size=batch_size, seed=seed)
+    mask_gen = image_data_generator.flow(y, batch_size=batch_size, seed=seed)
+
+    return zip(image_gen, mask_gen)
+
    
+def augmented_img_and_mask_generator(x, y, batch_size):
+
+    data_gen_args = dict(
+        horizontal_flip=True,
+        zoom_range=0.2,
+        rotation_range=15,
+        width_shift_range=0.1, 
+        height_shift_range=0.1,
+        shear_range=0.1,
+        fill_mode="constant",
+        cval=0
+    )
+
+    img_gen_args = dict(data_gen_args)
+    img_gen_args["brightness_range"]=(0.5, 1.5)
+    img_gen_args["rescale"]=1./255
+        
+    mask_gen_args = dict(data_gen_args)
+        
+    image_data_generator = ImageDataGenerator(**img_gen_args)
+    mask_data_generator = ImageDataGenerator(**mask_gen_args)
+
+    seed = 1
+
+    image_gen = image_data_generator.flow(x, batch_size=batch_size, seed=seed)
+    mask_gen = image_data_generator.flow(y, batch_size=batch_size, seed=seed)
+    return zip(image_gen, mask_gen)

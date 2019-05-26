@@ -4,13 +4,14 @@
 @created date: 2019-01-25
 '''
 
+import numpy as np
 import tensorflow as tf
 from tensorflow.python.keras.models import Model, Sequential
 from tensorflow.python.keras.layers import Lambda, Input, Conv2D, UpSampling2D, MaxPooling2D, Cropping2D, Concatenate, ZeroPadding2D, BatchNormalization, Activation, add, multiply, LeakyReLU, Flatten
 from tensorflow.python.keras.activations import sigmoid
 from tensorflow.python.keras import Model
 from tensorflow.python.keras.losses import mean_absolute_error as mea
-import numpy as np
+from utils import get_crop_shape
 
 
 def conv_lrelu(nb_filters, kernel=(4, 4), stride=(2, 2)):
@@ -41,28 +42,6 @@ def up_conv_bn_relu(nb_filters, kernel=(3, 3), stride=(1, 1)):
 
 
 class SegmentorNet(Model):
-
-    def get_crop_shape(self, target, refer):
-        """
-        https://www.tensorflow.org/api_docs/python/tf/keras/layers/Cropping2D
-        https://stackoverflow.com/questions/41925765/keras-cropping2d-changes-color-channel
-        """
-        # width, the 3rd dimension
-        cw = (target.get_shape()[2] - refer.get_shape()[2]).value
-        assert (cw >= 0)
-        if cw % 2 != 0:
-            cw1, cw2 = int(cw/2), int(cw/2) + 1
-        else:
-            cw1, cw2 = int(cw/2), int(cw/2)
-        # height, the 2nd dimension
-        ch = (target.get_shape()[1] - refer.get_shape()[1]).value
-        assert (ch >= 0)
-        if ch % 2 != 0:
-            ch1, ch2 = int(ch/2), int(ch/2) + 1
-        else:
-            ch1, ch2 = int(ch/2), int(ch/2)
-
-        return ((ch1, ch2), (cw1, cw2))
 
     def __init__(self):
         super(SegmentorNet, self).__init__()
@@ -126,21 +105,5 @@ class SegAN(Model):
 
     def __init__(self):
         super(SegAN, self).__init__()
-
-    def model_fn(self, mode, inputs={}):
-
-        is_training = (mode == "train")
-
-        segNet = SegmentorNet()
-        criNet = CriticNet()
-
-        # if not is_training:
-        #     segNet.compile(optimizer='adam', loss='sparse_categorical_crossentropy')
-        #     segNet.fit(x=np.zeros((1,1,1,1)), y=np.zeros((1,1,1,1)), epochs=0, steps_per_epoch=0)
-        #     segNet.load_weights(params.save_weights_path + 'segan_best_weights.h5')
-
-        model_spec = inputs
-        model_spec["segmentor_net"] = segNet
-        model_spec["critic_net"] = criNet
-
-        return model_spec
+        self.setNet = SegmentorNet()
+        self.criNet = CriticNet()

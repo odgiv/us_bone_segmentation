@@ -41,14 +41,14 @@ def generate_original_and_overlayed_imgs(gt_volume, us_img_volume, start_index=0
 
         # gt_img = preprocess_gt(bone_img, gt_img, is_threshold, is_clear_below_break_points_gt)
 
-        bone_img, gt_img = preprocess(bone_img, gt_img)
+        # bone_img, gt_img = preprocess(bone_img, gt_img)
         bone_img = np.uint8(bone_img)
         gt_img = np.uint8(gt_img)
+
         bone_img = np.squeeze(bone_img)
         gt_img = np.squeeze(gt_img)
-        gt_img = gt_img * 255        
 
-        
+        gt_img = gt_img * 255        
 
         overlapped_img = cv.addWeighted(bone_img, 1, gt_img, 0.2, 0)
 
@@ -65,6 +65,7 @@ if not os.path.exists(output_dir):
 f = h5py.File(args.file_path, 'r')
 us = f["us_vol"]
 gt = f["gt_vol"]
+
 
 i = 0
 for bone_img, gt_img, overlapped_img in generate_original_and_overlayed_imgs(gt, us, start_index=args.start_index, end_index=args.end_index, is_threshold=args.threshold_gt, is_clear_below_break_points_gt=args.preprocess_gt):

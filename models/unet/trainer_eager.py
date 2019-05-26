@@ -1,30 +1,20 @@
 import tensorflow as tf
 import numpy as np
 import os
-from utils import batch_img_generator
+from utils import augmented_img_and_mask_generator, img_and_mask_generator
 
 print("tf version: ",  tf.__version__)
 
-#opts = tf.GPUOptions(per_process_gpu_memory_fraction = 1.0)
-#config = tf.ConfigProto(gpu_options=opts)
+opts = tf.GPUOptions(per_process_gpu_memory_fraction = 1.0)
+config = tf.ConfigProto(gpu_options=opts)
 
-
-tf.enable_eager_execution()
-
+tf.enable_eager_execution(config)
 tfe = tf.contrib.eager
 
 
-def train_and_evaluate(train_model_specs, val_model_specs, model_dir, params):
+def train_and_evaluate(model, x_train, y_train, x_val, y_val, params):
 
-    # train_dataset = train_model_specs["dataset"]
-    # validation_dataset = val_model_specs["dataset"]
-    x_train = train_model_specs["x_train"]
-    y_train = train_model_specs["y_train"]
-    x_valid = val_model_specs["x_valid"]
-    y_valid = val_model_specs["y_valid"]
-
-
-    u_net = train_model_specs["unet"]
+    u_net = model
     
     summary_writer = tf.contrib.summary.create_file_writer('./train_summaries')
     summary_writer.set_as_default()   
@@ -39,31 +29,43 @@ def train_and_evaluate(train_model_specs, val_model_specs, model_dir, params):
     maxIoU = 0
     mIoU = 0
     
-    train_gen = batch_img_generator(x_train, y_train, params.num_epochs, params.batch_size)
-    #valid_gen = batch_img_generator(x_valid, y_valid, batch_size=params.batch_size)
+    # train_gen = batch_img_generator(x_train, y_train, params.num_epochs, params.batch_size)
+    valid_gen = img_and_mask_generator(x_val, y_val, batch_size=params.batch_size)
 
-    
-    current_epoch = 1
+    train_gen = augmented_img_and_mask_generator(x_train, y_train, params.batch_size)
+    #valid_gen = batch_img_and_mask_generatox_valid, y_valid, params.batch_size)
+
+    steps_per_train_epoch = int(params.train_size / params.batch_size)
+    steps_per_valid_epoch = int(params.eval_size / params.batch_size)
+
+    current_epoch = 1    
+    current_step = 0
     epoch_loss_avg = tfe.metrics.Mean()
 
-    for imgs, labels, epoch in train_gen:        
+    for imgs, labels in train_gen:        
 
         """
         At the end of every epoch, validate on validation dataset.
         And compute mean IoU.
         """
-        if current_epoch < epoch:
+        if current_step == steps_per_train_epoch:
             
             epoch_loss_avg = tfe.metrics.Mean()
             
             IoUs = []
             valid_loss_avg = tfe.metrics.Mean()
-            valid_gen = batch_img_generator(x_valid, y_valid, batch_size=params.batch_size)
+            valid_gen = batch_img_generator(x_val, y_val, batch_size=params.batch_size)
             print("Validation starts.")
-
-            for imgs, labels, _ in valid_gen:        
-                imgs = tf.image.convert_image_dtype(imgs, tf.float32)
+            current_val_step = 0
+            for imgs, labels in valid_gen:        
+                # imgs = tf.image.convert_image_dtype(imgs, tf.float32)
                 #labels = tf.cast(labels, tf.int32)
+                
+                imgs = imgs.astype('float32')
+                labels = (label / 255.)
+                labels[labels>0] = 1
+                labels[labels==0] = 0
+                labels = labels.astype('uint8')
 
                 pred = u_net(imgs)
                 
@@ -89,7 +91,8 @@ def train_and_evaluate(train_model_specs, val_model_specs, model_dir, params):
                 tf.contrib.summary.scalar("val_avg_IoU", mIoU)
 
             print("Epoch {0}, loss epoch avg {1:.4f}, loss valid avg {2:.4f}, mIoU on validation set: {3:.4f}".format(current_epoch, epoch_loss_avg.result(), valid_loss_avg.result(), mIoU))
-            current_epoch = epoch
+            current_epoch += 1
+            current_step = 0
 
             if maxIoU < mIoU:
                 maxIoU = mIoU
@@ -109,10 +112,18 @@ def train_and_evaluate(train_model_specs, val_model_specs, model_dir, params):
 
             #     optimizer = tf.train.AdamOptimizer(learning_rate=lr)
 
-        # imgs, labels = preprocess(imgs, labels)
+        if current_epoch == params.num_epochs + 1:
+            break
+            
 
-        imgs = tf.image.convert_image_dtype(imgs, tf.float32)
-        labels = tf.cast(labels, tf.int32)
+        # imgs = tf.image.convert_image_dtype(imgs, tf.float32)
+        # labels = tf.cast(labels, tf.int32)
+
+        imgs = imgs.astype('float32')
+        labels = (labels / 255.)
+        labels[labels>0] = 1
+        labels[labels==0] = 0
+        labels = labels.astype('uint8')
 
         with tf.GradientTape() as tape:
             # Run image through segmentor net and get result
@@ -131,8 +142,9 @@ def train_and_evaluate(train_model_specs, val_model_specs, model_dir, params):
         epoch_loss_avg(loss)
 
         tf.assign_add(global_step, 1)
+        current_step += 1
 
-        # Summaries for tensorboard
+        # Summaries to tensorboard
         with tf.contrib.summary.record_summaries_every_n_global_steps(params.save_summary_steps):
             # if i % params.save_summary_steps == 0:
                         
@@ -142,5 +154,4 @@ def train_and_evaluate(train_model_specs, val_model_specs, model_dir, params):
             tf.contrib.summary.image("train_img", tf.cast(imgs * 255, tf.uint8))
             tf.contrib.summary.image("ground_tr", tf.cast(labels * 255, tf.uint8))
             tf.contrib.summary.image("seg_result", tf.cast(seg_results * 255, tf.uint8))
-
             tf.contrib.summary.scalar("train_avg_loss", epoch_loss_avg.result())
