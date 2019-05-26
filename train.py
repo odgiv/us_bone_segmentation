@@ -11,6 +11,7 @@ from utils import Params, set_logger, delete_dir_content
 from data_loader import DataLoader
 from input_fn import input_fn
 import tensorflow as tf
+from datetime import datetime
 # from evaluate import evaluate
 
 """
@@ -63,7 +64,7 @@ if __name__ == "__main__":
         print("No model named " + args.model_name + " exists.")
         exit(0)
 
-    save_model_weights_dir = model_dir + '/model_weights_' + dataset_params["test_datasets_folder"] + '/'
+    save_model_weights_dir = model_dir + '/model_weights/valid_img_vol_' + dataset_params["test_datasets_folder"] + '_' + datetime.now().strftime('%m-%d_%H-%M-%S') + '/'
     if not os.path.isdir(save_model_weights_dir):
         os.makedirs(save_model_weights_dir)
     else: 
