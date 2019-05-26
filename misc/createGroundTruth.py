@@ -27,7 +27,7 @@ import argparse
 import h5py
 from processUsData import read_us_data
 
-DISTANCE_UPPPER_BOUND = 7.0
+DISTANCE_UPPPER_BOUND = 5.0
 
 
 def transform_ground_truth_model_to_image_space(ground_truth_mesh, model_to_bone_transformation, img_to_thigh_transformation):

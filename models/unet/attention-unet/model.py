@@ -8,28 +8,7 @@ from tensorflow.python.keras.models import Model, Sequential
 from tensorflow.python.keras.layers import Lambda, Input, Conv2D, UpSampling2D, MaxPooling2D, Cropping2D, concatenate, ZeroPadding2D, BatchNormalization, Activation, Add, Multiply
 import sys
 from base_model import unet_conv2d
-
-def get_crop_shape(target, refer):
-    """
-    https://www.tensorflow.org/api_docs/python/tf/keras/layers/Cropping2D
-    https://stackoverflow.com/questions/41925765/keras-cropping2d-changes-color-channel
-    """
-    # width, the 3rd dimension
-    cw = (target.get_shape()[2] - refer.get_shape()[2]).value
-    assert (cw >= 0)
-    if cw % 2 != 0:
-        cw1, cw2 = int(cw/2), int(cw/2) + 1
-    else:
-        cw1, cw2 = int(cw/2), int(cw/2)
-    # height, the 2nd dimension
-    ch = (target.get_shape()[1] - refer.get_shape()[1]).value
-    assert (ch >= 0)
-    if ch % 2 != 0:
-        ch1, ch2 = int(ch/2), int(ch/2) + 1
-    else:
-        ch1, ch2 = int(ch/2), int(ch/2)
-
-    return (ch1, ch2), (cw1, cw2)
+from utils import get_crop_shape
 
 
 def gating_signal(num_filters, is_batchnorm=False):
@@ -216,13 +195,3 @@ class AttentionalUnet(Model):
         output = self.up_conv13(up_conv10)
 
         return output
-
-    def model_fn(self, mode, inputs):
-        is_training = (mode == 'train')
-
-        uNet = AttentionalUnet()
-
-        model_spec = inputs
-        model_spec['unet'] = uNet
-        
-        return model_spec

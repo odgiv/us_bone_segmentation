@@ -7,35 +7,13 @@
 import tensorflow as tf
 from tensorflow.python.keras.models import Model, Sequential
 from tensorflow.python.keras.layers import Input, Conv2D, UpSampling2D, MaxPooling2D, Cropping2D, concatenate, ZeroPadding2D
-from utils import focal_loss_softmax
+from utils import get_crop_shape
 
 
 def unet_conv2d(nb_filters, kernel=(3, 3), activation="relu", padding="same"):
     conv2d_1 = Conv2D(nb_filters, kernel, activation=activation, padding=padding)
     conv2d_2 = Conv2D(nb_filters, kernel, activation=activation, padding=padding)
     return Sequential([conv2d_1, conv2d_2])
-
-def get_crop_shape(target, refer):
-    """
-    https://www.tensorflow.org/api_docs/python/tf/keras/layers/Cropping2D
-    https://stackoverflow.com/questions/41925765/keras-cropping2d-changes-color-channel
-    """
-    # width, the 3rd dimension
-    cw = (target.get_shape()[2] - refer.get_shape()[2]).value
-    assert (cw >= 0)
-    if cw % 2 != 0:
-        cw1, cw2 = int(cw/2), int(cw/2) + 1
-    else:
-        cw1, cw2 = int(cw/2), int(cw/2)
-    # height, the 2nd dimension
-    ch = (target.get_shape()[1] - refer.get_shape()[1]).value
-    assert (ch >= 0)
-    if ch % 2 != 0:
-        ch1, ch2 = int(ch/2), int(ch/2) + 1
-    else:
-        ch1, ch2 = int(ch/2), int(ch/2)
-
-    return (ch1, ch2), (cw1, cw2)
 
 
 class Unet(Model):
@@ -45,31 +23,31 @@ class Unet(Model):
 
         print("Creating Unet model.")
 
-        self.conv1 = unet_conv2d(32)
+        self.conv1 = unet_conv2d(64)
         self.pool1 = MaxPooling2D(pool_size=(2, 2))
 
-        self.conv2 = unet_conv2d(64)
+        self.conv2 = unet_conv2d(128)
         self.pool2 = MaxPooling2D(pool_size=(2, 2))
 
-        self.conv3 = unet_conv2d(128)
+        self.conv3 = unet_conv2d(256)
         self.pool3 = MaxPooling2D(pool_size=(2, 2))
 
-        self.conv4 = unet_conv2d(256)
+        self.conv4 = unet_conv2d(512)
         self.pool4 = MaxPooling2D(pool_size=(2, 2))
 
-        self.center = unet_conv2d(512)
+        self.center = unet_conv2d(1024)
 
         self.up_conv5 = UpSampling2D(size=(2, 2))
-        self.conv6 = unet_conv2d(256)
+        self.conv6 = unet_conv2d(512)
 
         self.up_conv6 = UpSampling2D(size=(2, 2))
-        self.conv7 = unet_conv2d(128)
+        self.conv7 = unet_conv2d(256)
 
         self.up_conv7 = UpSampling2D(size=(2, 2))
-        self.conv8 = unet_conv2d(64)
+        self.conv8 = unet_conv2d(128)
 
         self.up_conv8 = UpSampling2D(size=(2, 2))
-        self.conv9 = unet_conv2d(32)
+        self.conv9 = unet_conv2d(64)
 
         self.conv10 = Conv2D(num_classes, (1, 1))
 
@@ -120,14 +98,3 @@ class Unet(Model):
         seg_conv10 = self.conv10(seg_conv9)
         
         return seg_conv10
-
-
-    def model_fn(self, mode, inputs):
-        is_training = (mode == 'train')
-
-        uNet = Unet()
-
-        model_spec = inputs
-        model_spec['unet'] = uNet
-        
-        return model_spec
