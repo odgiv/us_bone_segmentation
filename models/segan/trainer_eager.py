@@ -24,6 +24,13 @@ def evaluate(valid_gen, segmentor_net, steps_per_valid_epoch):
     print("Validation starts.")
     current_val_step = 0
     for imgs, labels in valid_gen:
+
+        labels[labels>0.] = 1.
+        labels[labels==0.] = 0.
+        labels = labels.astype('uint8')
+        
+        imgs = tf.image.convert_image_dtype(imgs, tf.float32)
+
         pred = segmentor_net(imgs)
         gt = labels.numpy()
         pred_np = pred.numpy()
@@ -120,6 +127,8 @@ def train_and_evaluate(model, x_train, y_train, x_val, y_val, params):
 
         with tf.GradientTape() as tape:
             # Run image through segmentor net and get result
+            imgs = tf.image.convert_image_dtype(imgs, tf.float32)
+
             seg_result = segmentor_net(imgs)
             
             seg_result = tf.sigmoid(seg_result)
@@ -166,8 +175,8 @@ def train_and_evaluate(model, x_train, y_train, x_val, y_val, params):
 
         with tf.contrib.summary.record_summaries_every_n_global_steps(params.save_summary_steps):
             
-            tf.contrib.summary.image("train_img", tf.cast(img * 255, tf.uint8))
-            tf.contrib.summary.image("ground_tr", tf.cast(label * 255, tf.uint8))
+            tf.contrib.summary.image("train_img", tf.cast(imgs * 255, tf.uint8))
+            tf.contrib.summary.image("ground_tr", tf.cast(labels * 255, tf.uint8))
             tf.contrib.summary.image("seg_result", tf.round(seg_result_sigm) * 255)
 
             tf.contrib.summary.scalar("critic_loss", epoch_critic_loss_avg.result())
