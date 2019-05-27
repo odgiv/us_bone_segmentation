@@ -11,7 +11,7 @@ config = tf.ConfigProto(gpu_options=opts)
 tf.enable_eager_execution(config)
 tfe = tf.contrib.eager
 
-def evaluate(valid_gen, u_net):
+def evaluate(valid_gen, u_net, steps_per_valid_epoch):
     IoUs = []
     valid_loss_avg = tfe.metrics.Mean()
     
@@ -55,15 +55,10 @@ def evaluate(valid_gen, u_net):
         tf.contrib.summary.scalar("val_avg_loss", valid_loss_avg.result())
         tf.contrib.summary.scalar("val_avg_IoU", mIoU)    
     
-    print("loss valid avg {2:.4f}, mIoU on validation set: {3:.4f}".format(current_epoch, epoch_loss_avg.result(), valid_loss_avg.result(), mIoU))
-
-    if maxIoU < mIoU:
-        maxIoU = mIoU
-
-        # segmentor_net._set_inputs(img)
-        print("Saving weights to ", params.save_weights_path)
-        u_net.save_weights(params.save_weights_path + params.model_name + '_val_maxIoU_{:.3f}.h5'.format(maxIoU))            
-
+    print("loss valid avg {0:.4f}, mIoU on validation set: {1:.4f}".format(valid_loss_avg.result(), mIoU))
+    
+    return mIoU    
+    
 
 def train_and_evaluate(model, x_train, y_train, x_val, y_val, params):
 
@@ -104,10 +99,18 @@ def train_and_evaluate(model, x_train, y_train, x_val, y_val, params):
         if current_step == steps_per_train_epoch:            
             
             print("Epoch {0}, loss epoch avg {1:.4f}".format(current_epoch, epoch_loss_avg.result()))
-            evaluate(valid_gen, u_net)            
+            mIoU = evaluate(valid_gen, u_net, steps_per_valid_epoch)            
             current_epoch += 1
             current_step = 0
             epoch_loss_avg = tfe.metrics.Mean()
+
+            if maxIoU < mIoU:
+                maxIoU = mIoU
+
+                # segmentor_net._set_inputs(img)
+                print("Saving weights to ", params.save_weights_path)
+                u_net.save_weights(params.save_weights_path + params.model_name + '_val_maxIoU_{:.3f}.h5'.format(maxIoU))            
+            
             # Learning rate decay
             # if epoch % 25 == 0:
             #     lr = lr * params.lr_decay
