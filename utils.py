@@ -183,6 +183,6 @@ def augmented_img_and_mask_generator(x, y, batch_size):
     seed = 1
 
     image_gen = image_data_generator.flow(x, batch_size=batch_size, seed=seed)
-    mask_gen = image_data_generator.flow(y, batch_size=batch_size, seed=seed)
+    mask_gen = mask_data_generator.flow(y, batch_size=batch_size, seed=seed)
 
     return zip(image_gen, mask_gen)
