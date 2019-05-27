@@ -48,9 +48,7 @@ def train_and_evaluate(model, x_train, y_train, x_val, y_val, params):
         At the end of every epoch, validate on validation dataset.
         And compute mean IoU.
         """
-        if current_step == steps_per_train_epoch:
-            
-            epoch_loss_avg = tfe.metrics.Mean()
+        if current_step == steps_per_train_epoch:            
             
             IoUs = []
             valid_loss_avg = tfe.metrics.Mean()
@@ -98,7 +96,8 @@ def train_and_evaluate(model, x_train, y_train, x_val, y_val, params):
             print("Epoch {0}, loss epoch avg {1:.4f}, loss valid avg {2:.4f}, mIoU on validation set: {3:.4f}".format(current_epoch, epoch_loss_avg.result(), valid_loss_avg.result(), mIoU))
             current_epoch += 1
             current_step = 0
-
+            epoch_loss_avg = tfe.metrics.Mean()
+            
             if maxIoU < mIoU:
                 maxIoU = mIoU
 
