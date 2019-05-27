@@ -162,11 +162,11 @@ def augmented_img_and_mask_generator(x, y, batch_size):
 
     data_gen_args = dict(
         horizontal_flip=True,
-        zoom_range=0.2,
-        rotation_range=15,
-        width_shift_range=0.1, 
-        height_shift_range=0.1,
-        shear_range=0.1,
+        #zoom_range=0.2,
+        #rotation_range=15,
+        #width_shift_range=0.1, 
+        #height_shift_range=0.1,
+        #shear_range=0.1,
         fill_mode="constant",
         cval=0
     )
@@ -183,5 +183,6 @@ def augmented_img_and_mask_generator(x, y, batch_size):
     seed = 1
 
     image_gen = image_data_generator.flow(x, batch_size=batch_size, seed=seed)
-    mask_gen = image_data_generator.flow(y, batch_size=batch_size, seed=seed)
+    mask_gen = mask_data_generator.flow(y, batch_size=batch_size, seed=seed)
+
     return zip(image_gen, mask_gen)

@@ -1,6 +1,7 @@
 import tensorflow as tf
 import numpy as np
 import os
+from tqdm import tqdm
 from utils import augmented_img_and_mask_generator, img_and_mask_generator
 
 print("tf version: ",  tf.__version__)
@@ -20,13 +21,14 @@ def evaluate(valid_gen, u_net, steps_per_valid_epoch):
     for imgs, labels in valid_gen:        
         
         # imgs = imgs.astype('float32')
-        labels = labels / 255.
+        #labels = labels / 255.
         labels[labels>0.] = 1.
         labels[labels==0.] = 0.
-        # labels = labels.astype('uint8')
-
+        labels = labels.astype('uint8')
+        
         imgs = tf.image.convert_image_dtype(imgs, tf.float32)
-        labels = tf.cast(labels, tf.int32)
+        #imgs = tf.convert_to_tensor(imgs, tf.float32)
+        #labels = tf.cast(labels, tf.int32)
 
         pred = u_net(imgs)
         
@@ -35,12 +37,15 @@ def evaluate(valid_gen, u_net, steps_per_valid_epoch):
         
         pred_np = np.argmax(pred_np, axis=-1)
         pred_np = np.expand_dims(pred_np, -1)
-
-        loss = tf.losses.sparse_softmax_cross_entropy(labels=labels, logits=pred)
+        #print(pred_np.shape, gt.shape)
+        #print(pred_np.dtype, gt.dtype)
+        loss = tf.losses.sparse_softmax_cross_entropy(labels=tf.cast(labels, tf.int32), logits=pred)
         valid_loss_avg(loss)
 
         for x in range(imgs.shape[0]):
             IoU = np.sum(pred_np[x][gt[x] == 1]) / float(np.sum(pred_np[x]) + np.sum(gt[x]) - np.sum(pred_np[x][gt[x] == 1]))
+            ##print(IoU)
+            #print(np.sum(pred_np[x] ==1))
             IoUs.append(IoU)
         
         current_val_step += 1
@@ -89,7 +94,8 @@ def train_and_evaluate(model, x_train, y_train, x_val, y_val, params):
     current_epoch = 1    
     current_step = 0
     epoch_loss_avg = tfe.metrics.Mean()
-
+    
+    pbar = tqdm(total=steps_per_train_epoch) 
     for imgs, labels in train_gen:        
 
         """
@@ -102,6 +108,7 @@ def train_and_evaluate(model, x_train, y_train, x_val, y_val, params):
             mIoU = evaluate(valid_gen, u_net, steps_per_valid_epoch)            
             current_epoch += 1
             current_step = 0
+            pbar.reset()
             epoch_loss_avg = tfe.metrics.Mean()
 
             if maxIoU < mIoU:
@@ -124,19 +131,20 @@ def train_and_evaluate(model, x_train, y_train, x_val, y_val, params):
             break
 
         # imgs = imgs.astype('float32')
-        labels = labels / 255.
+        #labels = labels / 255.
         labels[labels>0.] = 1.
         labels[labels==0.] = 0.
-        # labels = labels.astype('uint8')
+        labels = labels.astype('uint8')
 
         imgs = tf.image.convert_image_dtype(imgs, tf.float32)
-        labels = tf.cast(labels, tf.int32)
+        #imgs = tf.convert_to_tensor(imgs, tf.float32)
+        #labels = tf.cast(labels, tf.int32)
 
         with tf.GradientTape() as tape:
             # Run image through segmentor net and get result
             seg_results = u_net(imgs)        
 
-            loss = tf.losses.sparse_softmax_cross_entropy(labels=labels, logits=seg_results)
+            loss = tf.losses.sparse_softmax_cross_entropy(labels=tf.cast(labels, tf.int32), logits=seg_results)
 
 
         grads = tape.gradient(loss, u_net.trainable_variables)
@@ -147,6 +155,7 @@ def train_and_evaluate(model, x_train, y_train, x_val, y_val, params):
 
         tf.assign_add(global_step, 1)
         current_step += 1
+        pbar.update(1)
 
         # Summaries to tensorboard
         with tf.contrib.summary.record_summaries_every_n_global_steps(params.save_summary_steps):
