@@ -24,6 +24,13 @@ def evaluate(valid_gen, segmentor_net, steps_per_valid_epoch):
     print("Validation starts.")
     current_val_step = 0
     for imgs, labels in valid_gen:
+
+        labels[labels>0.] = 1.
+        labels[labels==0.] = 0.
+        labels = labels.astype('uint8')
+        
+        imgs = tf.image.convert_image_dtype(imgs, tf.float32)
+
         pred = segmentor_net(imgs)
         gt = labels.numpy()
         pred_np = pred.numpy()
@@ -120,7 +127,9 @@ def train_and_evaluate(model, x_train, y_train, x_val, y_val, params):
 
         with tf.GradientTape() as tape:
             # Run image through segmentor net and get result
-            seg_result = segmentor_net(img)
+            imgs = tf.image.convert_image_dtype(imgs, tf.float32)
+
+            seg_result = segmentor_net(imgs)
             
             seg_result = tf.sigmoid(seg_result)
             seg_result_masked = imgs * seg_result
