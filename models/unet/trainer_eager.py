@@ -11,6 +11,59 @@ config = tf.ConfigProto(gpu_options=opts)
 tf.enable_eager_execution(config)
 tfe = tf.contrib.eager
 
+def evaluate(valid_gen, u_net, steps_per_valid_epoch):
+    IoUs = []
+    valid_loss_avg = tfe.metrics.Mean()
+    
+    print("Validation starts.")
+    current_val_step = 0
+    for imgs, labels in valid_gen:        
+        
+        # imgs = imgs.astype('float32')
+        labels = labels / 255.
+        labels[labels>0.] = 1.
+        labels[labels==0.] = 0.
+        # labels = labels.astype('uint8')
+
+        imgs = tf.image.convert_image_dtype(imgs, tf.float32)
+        labels = tf.cast(labels, tf.int32)
+
+        pred = u_net(imgs)
+        
+        gt = labels
+        pred_np = pred.numpy()
+        
+        pred_np = np.argmax(pred_np, axis=-1)
+        pred_np = np.expand_dims(pred_np, -1)
+
+        loss = tf.losses.sparse_softmax_cross_entropy(labels=labels, logits=pred)
+        valid_loss_avg(loss)
+
+        for x in range(imgs.shape[0]):
+            IoU = np.sum(pred_np[x][gt[x] == 1]) / float(np.sum(pred_np[x]) + np.sum(gt[x]) - np.sum(pred_np[x][gt[x] == 1]))
+            IoUs.append(IoU)
+        
+        current_val_step += 1
+        if current_val_step == steps_per_valid_epoch:
+            break
+
+    IoUs = np.array(IoUs, dtype=np.float64)
+    mIoU = np.mean(IoUs, axis=0)
+
+    # with tf.contrib.summary.record_summaries_every_n_global_steps(params.save_summary_steps):
+    with tf.contrib.summary.always_record_summaries():
+        tf.contrib.summary.scalar("val_avg_loss", valid_loss_avg.result())
+        tf.contrib.summary.scalar("val_avg_IoU", mIoU)    
+    
+    print("loss valid avg {0:.4f}, mIoU on validation set: {1:.4f}".format(valid_loss_avg.result(), mIoU))
+
+    if maxIoU < mIoU:
+        maxIoU = mIoU
+
+        # segmentor_net._set_inputs(img)
+        print("Saving weights to ", params.save_weights_path)
+        u_net.save_weights(params.save_weights_path + params.model_name + '_val_maxIoU_{:.3f}.h5'.format(maxIoU))            
+
 
 def train_and_evaluate(model, x_train, y_train, x_val, y_val, params):
 
@@ -50,62 +103,11 @@ def train_and_evaluate(model, x_train, y_train, x_val, y_val, params):
         """
         if current_step == steps_per_train_epoch:            
             
-            IoUs = []
-            valid_loss_avg = tfe.metrics.Mean()
-            
-            print("Validation starts.")
-            current_val_step = 0
-            for imgs, labels in valid_gen:        
-                
-                # imgs = imgs.astype('float32')
-                labels = (labels / 255.)
-                labels = np.where(labels>0., 1., labels)
-                # labels = labels.astype('uint8')
-
-                imgs = tf.image.convert_image_dtype(imgs, tf.float32)
-                labels = tf.cast(labels, tf.int32)
-
-                pred = u_net(imgs)
-                
-                gt = labels
-                pred_np = pred.numpy()
-                
-                pred_np = np.argmax(pred_np, axis=-1)
-                pred_np = np.expand_dims(pred_np, -1)
-
-                loss = tf.losses.sparse_softmax_cross_entropy(labels=tf.cast(labels, tf.int32), logits=pred)
-                valid_loss_avg(loss)
-
-                for x in range(imgs.shape[0]):
-                    IoU = np.sum(pred_np[x][gt[x] == 1]) / float(np.sum(pred_np[x]) + np.sum(gt[x]) - np.sum(pred_np[x][gt[x] == 1]))
-                    IoUs.append(IoU)
-                
-                current_val_step += 1
-                if current_val_step == steps_per_valid_epoch:
-                    break
-
-            IoUs = np.array(IoUs, dtype=np.float64)
-            mIoU = np.mean(IoUs, axis=0)
-
-            # with tf.contrib.summary.record_summaries_every_n_global_steps(params.save_summary_steps):
-            with tf.contrib.summary.always_record_summaries():
-                tf.contrib.summary.scalar("val_avg_loss", valid_loss_avg.result())
-                tf.contrib.summary.scalar("val_avg_IoU", mIoU)
-
-            print("Epoch {0}, loss epoch avg {1:.4f}, loss valid avg {2:.4f}, mIoU on validation set: {3:.4f}".format(current_epoch, epoch_loss_avg.result(), valid_loss_avg.result(), mIoU))
+            print("Epoch {0}, loss epoch avg {1:.4f}".format(current_epoch, epoch_loss_avg.result()))
+            evaluate(valid_gen, u_net, steps_per_valid_epoch)            
             current_epoch += 1
             current_step = 0
             epoch_loss_avg = tfe.metrics.Mean()
-            
-            if maxIoU < mIoU:
-                maxIoU = mIoU
-
-                # segmentor_net._set_inputs(img)
-                print("Saving weights to ", params.save_weights_path)
-                u_net.save_weights(params.save_weights_path + params.model_name + '_val_maxIoU_{:.3f}.h5'.format(maxIoU))            
-                # tf.keras.models.save_model(segmentor_net, params.save_weights_path + 'segan_model_maxIoU_{:4f}.h5'.format(maxIoU), overwrite=True, include_optimizer=False)
-                # tf.contrib.saved_model.save_keras_model(segmentor_net, params.save_weights_path, serving_only=True)
-
             # Learning rate decay
             # if epoch % 25 == 0:
             #     lr = lr * params.lr_decay
@@ -119,8 +121,9 @@ def train_and_evaluate(model, x_train, y_train, x_val, y_val, params):
             break
 
         # imgs = imgs.astype('float32')
-        labels = (labels / 255.)
-        labels = np.where(labels>0., 1., labels)
+        labels = labels / 255.
+        labels[labels>0.] = 1.
+        labels[labels==0.] = 0.
         # labels = labels.astype('uint8')
 
         imgs = tf.image.convert_image_dtype(imgs, tf.float32)
@@ -128,10 +131,7 @@ def train_and_evaluate(model, x_train, y_train, x_val, y_val, params):
 
         with tf.GradientTape() as tape:
             # Run image through segmentor net and get result
-            seg_results = u_net(imgs)
-
-            # seg_result = tf.argmax(seg_result, axis=-1, output_type=tf.float32)
-            # seg_result = tf.expand_dims(seg_result, -1)
+            seg_results = u_net(imgs)        
 
             loss = tf.losses.sparse_softmax_cross_entropy(labels=labels, logits=seg_results)
 
