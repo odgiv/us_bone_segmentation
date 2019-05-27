@@ -105,5 +105,5 @@ class SegAN(Model):
 
     def __init__(self):
         super(SegAN, self).__init__()
-        self.setNet = SegmentorNet()
+        self.segNet = SegmentorNet()
         self.criNet = CriticNet()
