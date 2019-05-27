@@ -28,7 +28,7 @@ def evaluate(valid_gen, segmentor_net, steps_per_valid_epoch):
         labels[labels>0.] = 1.
         labels[labels==0.] = 0.
         labels = labels.astype('uint8')
-        
+
         imgs = tf.image.convert_image_dtype(imgs, tf.float32)
 
         pred = segmentor_net(imgs)
@@ -86,7 +86,6 @@ def train_and_evaluate(model, x_train, y_train, x_val, y_val, params):
 
     current_epoch = 1    
     current_step = 0
-    epoch_loss_avg = tfe.metrics.Mean()
     
     epoch_critic_loss_avg = tfe.metrics.Mean()
     epoch_seg_loss_avg = tfe.metrics.Mean()
@@ -95,12 +94,13 @@ def train_and_evaluate(model, x_train, y_train, x_val, y_val, params):
     for imgs, labels in train_gen:
 
         if current_step == steps_per_train_epoch:
-            print("Epoch {0}, loss epoch avg {1:.4f}".format(current_epoch, epoch_loss_avg.result()))
+            print("Epoch {0}, seg loss epoch avg {1:.4f}, cri loss epoch avg {2:.4f}".format(current_epoch, epoch_seg_loss_avg.result(), epoch_critic_loss_avg.result()))
             mIoU = evaluate(valid_gen, u_net, steps_per_valid_epoch)            
             current_epoch += 1
             current_step = 0
             pbar.reset()
-            epoch_loss_avg = tfe.metrics.Mean()
+            epoch_seg_loss_avg = tf.metrics.Mean()
+            epoch_critic_loss_avg = tfe.metrics.Mean()
 
             if maxIoU < mIoU:
                 maxIoU = mIoU
