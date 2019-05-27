@@ -9,7 +9,7 @@ import h5py
 import numpy as np
 import cv2 as cv
 from preprocessGt import preprocess_gt
-from utils import preprocess, batch_img_generator
+from utils import preprocess, img_and_mask_generator
 
 
 parser = argparse.ArgumentParser()
@@ -30,7 +30,7 @@ def generate_original_and_overlayed_imgs(gt_volume, us_img_volume, start_index=0
     gt_volume = np.transpose(gt_volume, [2, 0, 1])
     # gt_volume = np.expand_dims(gt_volume, -1)
     
-    gen = batch_img_generator(us_img_volume, gt_volume)
+    gen = img_and_mask_generator(us_img_volume, gt_volume)
     
     for bone_img, gt_img, _ in gen:
     
