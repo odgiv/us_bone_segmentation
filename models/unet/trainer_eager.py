@@ -54,13 +54,13 @@ def train_and_evaluate(model, x_train, y_train, x_val, y_val, params):
             
             IoUs = []
             valid_loss_avg = tfe.metrics.Mean()
-            valid_gen = batch_img_generator(x_val, y_val, batch_size=params.batch_size)
+            
             print("Validation starts.")
             current_val_step = 0
             for imgs, labels in valid_gen:        
                 
                 # imgs = imgs.astype('float32')
-                labels = (label / 255.)
+                labels = (labels / 255.)
                 labels[labels>0] = 1
                 labels[labels==0] = 0
                 # labels = labels.astype('uint8')
