@@ -120,7 +120,7 @@ def train_and_evaluate(model, x_train, y_train, x_val, y_val, params):
 
         with tf.GradientTape() as tape:
             # Run image through segmentor net and get result
-            seg_result = segmentor_net(img)
+            seg_result = segmentor_net(imgs)
             
             seg_result = tf.sigmoid(seg_result)
             seg_result_masked = imgs * seg_result

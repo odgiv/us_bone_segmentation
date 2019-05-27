@@ -71,7 +71,7 @@ class SegmentorNet(Model):
         seg_up_con6 = self.up_conv_bn_relu3(seg_up_con5)
         pred = self.up_conv1(seg_up_con6)
         # print(pred.shape)
-        ch, cw = self.get_crop_shape(pred, inputs)
+        ch, cw = get_crop_shape(pred, inputs)
         pred = Cropping2D(cropping=((ch, cw)))(pred)
         
         # pred = self.cropping_2d(pred, input)
