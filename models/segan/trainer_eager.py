@@ -1,10 +1,12 @@
 import tensorflow as tf
 import numpy as np
+from tqdm import tqdm
+from utils import augmented_img_and_mask_generator, img_and_mask_generator
+
 print("tf version: ",  tf.__version__)
+
 tf.enable_eager_execution()
-
 tfe = tf.contrib.eager
-
 
 def make_trainable(net, val):
     """
