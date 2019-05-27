@@ -59,8 +59,7 @@ def train_and_evaluate(model, x_train, y_train, x_val, y_val, params):
                 
                 # imgs = imgs.astype('float32')
                 labels = (labels / 255.)
-                labels[labels>0] = 1
-                labels[labels==0] = 0
+                labels = np.where(labels>0., 1., labels)
                 # labels = labels.astype('uint8')
 
                 imgs = tf.image.convert_image_dtype(imgs, tf.float32)
@@ -121,8 +120,7 @@ def train_and_evaluate(model, x_train, y_train, x_val, y_val, params):
 
         # imgs = imgs.astype('float32')
         labels = (labels / 255.)
-        labels[labels>0] = 1
-        labels[labels==0] = 0
+        labels = np.where(labels>0., 1., labels)
         # labels = labels.astype('uint8')
 
         imgs = tf.image.convert_image_dtype(imgs, tf.float32)
