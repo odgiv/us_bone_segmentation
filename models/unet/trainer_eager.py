@@ -82,6 +82,10 @@ def train_and_evaluate(model, x_train, y_train, x_val, y_val, params):
                 for x in range(imgs.shape[0]):
                     IoU = np.sum(pred_np[x][gt[x] == 1]) / float(np.sum(pred_np[x]) + np.sum(gt[x]) - np.sum(pred_np[x][gt[x] == 1]))
                     IoUs.append(IoU)
+                
+                current_val_step += 1
+                if current_val_step == steps_per_valid_epoch:
+                    break
 
             IoUs = np.array(IoUs, dtype=np.float64)
             mIoU = np.mean(IoUs, axis=0)
