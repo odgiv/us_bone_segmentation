@@ -99,7 +99,7 @@ def train_and_evaluate(model, x_train, y_train, x_val, y_val, params):
             current_epoch += 1
             current_step = 0
             pbar.reset()
-            epoch_seg_loss_avg = tf.metrics.Mean()
+            epoch_seg_loss_avg = tfe.metrics.Mean()
             epoch_critic_loss_avg = tfe.metrics.Mean()
 
             if maxIoU < mIoU:
