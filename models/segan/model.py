@@ -12,6 +12,7 @@ from tensorflow.python.keras.activations import sigmoid
 from tensorflow.python.keras import Model
 from tensorflow.python.keras.losses import mean_absolute_error as mea
 from utils import get_crop_shape
+from models.unet.attentionUnet.model import AttentionalUnet
 
 
 def conv_lrelu(nb_filters, kernel=(4, 4), stride=(2, 2)):

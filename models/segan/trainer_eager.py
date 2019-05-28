@@ -121,14 +121,14 @@ def train_and_evaluate(model, x_train, y_train, x_val, y_val, params):
         # print(len(segmentor_net.trainable_variables))
         # print(len(critic_net.trainable_variables))
         
+        imgs = tf.image.convert_image_dtype(imgs, tf.float32)
+        
         labels[labels>0.] = 1.
         labels[labels==0.] = 0.
         labels = labels.astype('uint8')
 
         with tf.GradientTape() as tape:
             # Run image through segmentor net and get result
-            imgs = tf.image.convert_image_dtype(imgs, tf.float32)
-
             seg_result = segmentor_net(imgs)
             
             seg_result = tf.sigmoid(seg_result)
