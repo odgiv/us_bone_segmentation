@@ -161,7 +161,7 @@ def img_and_mask_generator(x, y, batch_size=1):
 def augmented_img_and_mask_generator(x, y, batch_size):
 
     data_gen_args = dict(
-        #horizontal_flip=True,
+        horizontal_flip=True,
         #zoom_range=0.2,
         #rotation_range=15,
         #width_shift_range=0.1, 
