@@ -32,7 +32,7 @@ def evaluate(valid_gen, segmentor_net, steps_per_valid_epoch):
         imgs = tf.image.convert_image_dtype(imgs, tf.float32)
 
         pred = segmentor_net(imgs)
-        gt = labels.numpy()
+        gt = labels
         pred_np = pred.numpy()
 
         pred_np[pred_np <= 0.5] = 0
@@ -95,7 +95,7 @@ def train_and_evaluate(model, x_train, y_train, x_val, y_val, params):
 
         if current_step == steps_per_train_epoch:
             print("Epoch {0}, seg loss epoch avg {1:.4f}, cri loss epoch avg {2:.4f}".format(current_epoch, epoch_seg_loss_avg.result(), epoch_critic_loss_avg.result()))
-            mIoU = evaluate(valid_gen, u_net, steps_per_valid_epoch)            
+            mIoU = evaluate(valid_gen, segmentor_net, steps_per_valid_epoch)            
             current_epoch += 1
             current_step = 0
             pbar.reset()

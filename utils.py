@@ -161,7 +161,7 @@ def img_and_mask_generator(x, y, batch_size=1):
 def augmented_img_and_mask_generator(x, y, batch_size):
 
     data_gen_args = dict(
-        horizontal_flip=True,
+        #horizontal_flip=True,
         #zoom_range=0.2,
         #rotation_range=15,
         #width_shift_range=0.1, 
@@ -172,7 +172,7 @@ def augmented_img_and_mask_generator(x, y, batch_size):
     )
 
     img_gen_args = dict(data_gen_args)
-    img_gen_args["brightness_range"]=(0.5, 1.5)
+    #img_gen_args["brightness_range"]=(0.5, 1.5)
     img_gen_args["rescale"]=1./255
         
     mask_gen_args = dict(data_gen_args)
