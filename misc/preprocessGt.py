@@ -104,7 +104,7 @@ def find_breaking_points_from_top(img, gt):
     
     if right_most_point_from_top == None:
         for i in range(gt.shape[1] - 1, round(gt.shape[1] / 2), -1):
-            r_rr_top, r_cc_top = line(0, center_in_x, i, gt.shape[1] - 1)
+            r_rr_top, r_cc_top = line(0, center_in_x, gt.shape[0] - 1, i)
             for (rr, rc) in zip(r_rr_top, r_cc_top):
                 if right_most_point_from_top == None and gt[rr, rc] == 1:
                     right_most_point_from_top = (rr, rc)
@@ -176,15 +176,15 @@ def clear_gt_below_breaking_point_from_top(img, gt):
     # r_rr, r_cc = line(0, center_in_x, right_most_point_from_top[0], right_most_point_from_top[1])
     # gt[l_rr, l_cc] = 1
     # gt[r_rr, r_cc] = 1
-    
-    lb_rr, lb_cc = line(left_most_point_from_top[0], left_most_point_from_top[1], gt.shape[0] - 1, center_in_x)
-    rb_rr, rb_cc = line(right_most_point_from_top[0], right_most_point_from_top[1], gt.shape[0] - 1, center_in_x)
-    
-    for (lb_r, lb_c) in zip(lb_rr, lb_cc):
-        gt[lb_r:, :lb_c] = 0
+    if left_most_point_from_top and right_most_point_from_top:
+        lb_rr, lb_cc = line(left_most_point_from_top[0], left_most_point_from_top[1], gt.shape[0] - 1, center_in_x)
+        rb_rr, rb_cc = line(right_most_point_from_top[0], right_most_point_from_top[1], gt.shape[0] - 1, center_in_x)
+        
+        for (lb_r, lb_c) in zip(lb_rr, lb_cc):
+            gt[lb_r:, :lb_c] = 0
 
-    for (rb_r, rb_c) in zip(rb_rr, rb_cc):
-        gt[rb_r:, rb_c:] = 0
+        for (rb_r, rb_c) in zip(rb_rr, rb_cc):
+            gt[rb_r:, rb_c:] = 0
     
     # gt[lb_rr, lb_cc] = 1
     # gt[rb_rr, rb_cc] = 1

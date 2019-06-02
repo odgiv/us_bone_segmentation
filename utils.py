@@ -142,7 +142,7 @@ def shuffle(imgs, gts):
     return imgs, gts
 
 
-def img_and_mask_generator(x, y, batch_size=1):
+def img_and_mask_generator(x, y, batch_size=1, shuffle=True):
     data_gen_args = dict(
         rescale=1./255
     )
@@ -152,8 +152,8 @@ def img_and_mask_generator(x, y, batch_size=1):
 
     seed = 1
 
-    image_gen = image_data_generator.flow(x, batch_size=batch_size, seed=seed)
-    mask_gen = mask_data_generator.flow(y, batch_size=batch_size, seed=seed)
+    image_gen = image_data_generator.flow(x, batch_size=batch_size, seed=seed, shuffle=shuffle)
+    mask_gen = mask_data_generator.flow(y, batch_size=batch_size, seed=seed, shuffle=shuffle)
 
     return zip(image_gen, mask_gen)
 
