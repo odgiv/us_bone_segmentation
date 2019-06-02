@@ -63,18 +63,18 @@ class DataLoader():
             # print(max_num_zero_bottom_rows)
 
             ## Cut from bottom
-            # if us_vol.shape[0] > MIN_IMG_SIZE[0]:
-            #     cut_at_ax0 = random.randrange(
-            #         0, (us_vol.shape[0] - MIN_IMG_SIZE[0]), 1)
+            #if us_vol.shape[0] > MIN_IMG_SIZE[0]:
+            #    cut_at_ax0 = random.randrange(
+            #        0, (us_vol.shape[0] - MIN_IMG_SIZE[0]), 1)
 
-            # if us_vol.shape[1] > MIN_IMG_SIZE[1]:
-            #     cut_at_ax1 = random.randrange(
-            #         0, (us_vol.shape[1] - MIN_IMG_SIZE[1]), 1)
+            #if us_vol.shape[1] > MIN_IMG_SIZE[1]:
+            #    cut_at_ax1 = random.randrange(
+            #        0, (us_vol.shape[1] - MIN_IMG_SIZE[1]), 1)
 
-            # us_vol = us_vol[cut_at_ax0:cut_at_ax0 +
-            #                 MIN_IMG_SIZE[0] - NUM_ROWS_CUT_BOTTOM, cut_at_ax1:cut_at_ax1 + MIN_IMG_SIZE[1], :]
-            # gt_vol = gt_vol[cut_at_ax0:cut_at_ax0 +
-            #                 MIN_IMG_SIZE[0] - NUM_ROWS_CUT_BOTTOM, cut_at_ax1:cut_at_ax1 + MIN_IMG_SIZE[1], :]
+            #us_vol = us_vol[cut_at_ax0:cut_at_ax0 +
+            #                MIN_IMG_SIZE[0] - NUM_ROWS_CUT_BOTTOM, cut_at_ax1:cut_at_ax1 + MIN_IMG_SIZE[1], :]
+            #gt_vol = gt_vol[cut_at_ax0:cut_at_ax0 +
+            #                MIN_IMG_SIZE[0] - NUM_ROWS_CUT_BOTTOM, cut_at_ax1:cut_at_ax1 + MIN_IMG_SIZE[1], :]
 
             list_us_array.append(us_vol)
             list_gt_array.append(gt_vol)

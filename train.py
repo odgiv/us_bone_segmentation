@@ -20,7 +20,7 @@ python train.py --model_name unet
 parser = argparse.ArgumentParser()
 parser.add_argument("-m", "--model_name", required=True, help="Name of directory of specific model in ./models parent directory, such as unet, attention-unet or segan")
 args = parser.parse_args()
-assert(args.model_name in ['unet', 'segan', 'nested-unet', 'attention-unet'])
+assert(args.model_name in ['unet', 'segan', 'nested-unet', 'attentionUnet'])
 
 try:
     with open("./params.json") as f:
@@ -45,7 +45,7 @@ elif args.model_name == 'unet':
     from base_model import Unet
     model = Unet()
 
-elif args.model_name == 'attention-unet':
+elif args.model_name == 'attentionUnet':
     sys.path.append('./models/unet')
     model_dir = os.path.join('./models/unet/', args.model_name)
     sys.path.append(model_dir)
