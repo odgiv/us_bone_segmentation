@@ -14,7 +14,6 @@ from tensorflow.python.keras.losses import mean_absolute_error as mea
 from utils import get_crop_shape
 from models.unet.attentionUnet.model import AttentionalUnet
 
-
 def conv_lrelu(nb_filters, kernel=(4, 4), stride=(2, 2)):
     conv2d = Conv2D(nb_filters, kernel, stride, padding="same")
     lrelu = LeakyReLU()
@@ -106,5 +105,5 @@ class SegAN(Model):
 
     def __init__(self):
         super(SegAN, self).__init__()
-        self.segNet = SegmentorNet()
+        self.segNet = AttentionalUnet()#SegmentorNet()
         self.criNet = CriticNet()

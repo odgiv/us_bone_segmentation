@@ -79,34 +79,20 @@ model_params.save_weights_path = save_model_weights_dir
 model_params.model_name = args.model_name
 
 
-X_train, Y_train = data_loader.loadTrainDatasets()
-X_val, Y_val = data_loader.loadValidDatasets()
+# X_train, Y_train = data_loader.loadTrainDatasets()
+# X_val, Y_val = data_loader.loadValidDatasets()
+X_train = dataset_params.datasets_path + '/imgs'
+Y_train = dataset_params.datasets_path + '/gts'
+X_val = dataset_params.datasets_path + '/val_imgs'
+Y_val = dataset_params.datasets_path + '/val_gts'
+# print("X_train shape {}".format(X_train.shape))
+# print("Y_train shape {}".format(Y_train.shape))
+# print("X_valid shape {}".format(X_val.shape))
+# print("Y_valid shape {}".format(Y_val.shape))
 
-print("X_train shape {}".format(X_train.shape))
-print("Y_train shape {}".format(Y_train.shape))
-print("X_valid shape {}".format(X_val.shape))
-print("Y_valid shape {}".format(Y_val.shape))
-
-#train_inputs = input_fn(True, is_eager, X_train, Y_train, model_params)
-#val_inputs = input_fn(True, is_eager, X_val, Y_val, model_params)
-
-# val_inputs = {"x_valid": X_val, "y_valid": Y_val}
-# train_inputs = {"x_train": X_train, "y_train": Y_train}
-
-# train_model_specs = model.model_fn()
-
-# sharing model weights for train and valid
-#eval_inputs["prediction"] = train_model_specs["prediction"]
-# eval_inputs["model"] = train_model_specs["model"]
-
-# val_model_specs = model.model_fn("eval", val_inputs, params, reuse=True)
-# val_model_specs = val_inputs
-
-model_params.train_size = X_train.shape[0]
-model_params.eval_size = X_val.shape[0]
+model_params.train_size = 3045 #X_train.shape[0]
+model_params.eval_size = 79 #X_val.shape[0]
 model_params.model_dir = model_dir
-
-# model = train_model_specs["model"]
 
 train_and_evaluate(model, X_train, Y_train, X_val, Y_val, model_params)
 # train_and_evaluate(train_model_specs, val_model_specs, model_dir, model_params)

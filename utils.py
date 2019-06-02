@@ -148,12 +148,12 @@ def img_and_mask_generator(x, y, batch_size=1, shuffle=True):
     )
         
     image_data_generator = ImageDataGenerator(**data_gen_args)
-    mask_data_generator = ImageDataGenerator()
+    mask_data_generator = ImageDataGenerator(**data_gen_args)
 
     seed = 1
 
-    image_gen = image_data_generator.flow(x, batch_size=batch_size, seed=seed, shuffle=shuffle)
-    mask_gen = mask_data_generator.flow(y, batch_size=batch_size, seed=seed, shuffle=shuffle)
+    image_gen = image_data_generator.flow_from_directory(x, batch_size=batch_size, seed=seed, shuffle=shuffle, class_mode=None)
+    mask_gen = mask_data_generator.flow_from_directory(y, batch_size=batch_size, seed=seed, shuffle=shuffle, class_mode=None)
 
     return zip(image_gen, mask_gen)
 
@@ -161,19 +161,20 @@ def img_and_mask_generator(x, y, batch_size=1, shuffle=True):
 def augmented_img_and_mask_generator(x, y, batch_size):
 
     data_gen_args = dict(
-        #horizontal_flip=True,
+        horizontal_flip=True,
         #zoom_range=0.2,
         #rotation_range=15,
         #width_shift_range=0.1, 
         #height_shift_range=0.1,
         #shear_range=0.1,
+        rescale=1./255,
         fill_mode="constant",
         cval=0
     )
 
     img_gen_args = dict(data_gen_args)
     #img_gen_args["brightness_range"]=(0.5, 1.5)
-    img_gen_args["rescale"]=1./255
+    # img_gen_args["rescale"]=1./255
         
     mask_gen_args = dict(data_gen_args)
         
@@ -182,7 +183,7 @@ def augmented_img_and_mask_generator(x, y, batch_size):
 
     seed = 1
 
-    image_gen = image_data_generator.flow(x, batch_size=batch_size, seed=seed)
-    mask_gen = mask_data_generator.flow(y, batch_size=batch_size, seed=seed)
+    image_gen = image_data_generator.flow_from_directory(x, batch_size=batch_size, seed=seed, class_mode=None)
+    mask_gen = mask_data_generator.flow_from_directory(y, batch_size=batch_size, seed=seed, class_mode=None)
 
     return zip(image_gen, mask_gen)
