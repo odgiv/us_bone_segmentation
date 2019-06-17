@@ -151,9 +151,12 @@ def img_and_mask_generator(x, y, batch_size=1, shuffle=True):
     mask_data_generator = ImageDataGenerator(**data_gen_args)
 
     seed = 1
-
-    image_gen = image_data_generator.flow_from_directory(x, batch_size=batch_size, seed=seed, shuffle=shuffle, class_mode=None)
-    mask_gen = mask_data_generator.flow_from_directory(y, batch_size=batch_size, seed=seed, shuffle=shuffle, class_mode=None)
+    if isinstance(x, np.ndarray):
+        image_gen = image_data_generator.flow(x, batch_size=batch_size, seed=seed, shuffle=shuffle)
+        mask_gen = mask_data_generator.flow(y, batch_size=batch_size, seed=seed, shuffle=shuffle)
+    else:
+        image_gen = image_data_generator.flow_from_directory(x, batch_size=batch_size, seed=seed, shuffle=shuffle, class_mode=None, color_mode="grayscale")
+        mask_gen = mask_data_generator.flow_from_directory(y, batch_size=batch_size, seed=seed, shuffle=shuffle, class_mode=None, color_mode="grayscale")
 
     return zip(image_gen, mask_gen)
 
@@ -162,9 +165,9 @@ def augmented_img_and_mask_generator(x, y, batch_size):
 
     data_gen_args = dict(
         horizontal_flip=True,
-        #zoom_range=0.2,
-        #rotation_range=15,
-        #width_shift_range=0.1, 
+        # zoom_range=0.2,
+        rotation_range=15,
+        # width_shift_range=0.1, 
         #height_shift_range=0.1,
         #shear_range=0.1,
         rescale=1./255,
@@ -182,8 +185,8 @@ def augmented_img_and_mask_generator(x, y, batch_size):
     mask_data_generator = ImageDataGenerator(**mask_gen_args)
 
     seed = 1
-
-    image_gen = image_data_generator.flow_from_directory(x, batch_size=batch_size, seed=seed, class_mode=None)
-    mask_gen = mask_data_generator.flow_from_directory(y, batch_size=batch_size, seed=seed, class_mode=None)
+    print(x, y)
+    image_gen = image_data_generator.flow_from_directory(x, batch_size=batch_size, seed=seed, class_mode=None, color_mode="grayscale")
+    mask_gen = mask_data_generator.flow_from_directory(y, batch_size=batch_size, seed=seed, class_mode=None, color_mode="grayscale")
 
     return zip(image_gen, mask_gen)

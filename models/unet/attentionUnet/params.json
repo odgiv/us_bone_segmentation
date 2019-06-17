@@ -9,5 +9,5 @@
     "num_classes": 2,
     "num_parallel_calls": 1,
     "save_summary_steps": 100,
-    "test_results_path": "/home/tensorflow/git/odgiiv/code/segm/us_bone_segmentation/models/unet/attention-unet/test_results/"
+    "test_results_path": "C:\\Users\\odgiiv\\tmp\\code\\ultrasound_bone_segmentation_frmwrk\\models\\unet\\attentionUnet\\test_results\\new_results\\"
 }

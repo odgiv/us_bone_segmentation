@@ -32,7 +32,7 @@ class DataLoader():
                     h5f = h5py.File(os.path.join(f_full_path, 'us_gt_vol.h5'), 'r')
                 else:
                     continue
-            elif f_full_path.endswith(".h5"):
+            elif f_full_path.endswith("fixed.h5"):
                 print("using a file: ", f_full_path)
                 h5f = h5py.File(f_full_path, 'r')
             else:

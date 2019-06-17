@@ -97,4 +97,48 @@ class Unet(Model):
         seg_conv9 = ZeroPadding2D(padding=((ch[0], ch[1]), (cw[0], cw[1])))(seg_conv9)
         seg_conv10 = self.conv10(seg_conv9)
         
-        return seg_conv10
+        return seg_conv10    
+
+    
+    def evaluate(valid_gen, segmentor_net, steps_per_valid_epoch, model_name):
+        IoUs = []
+        valid_loss_avg = tf.contrib.eager.metrics.Mean()
+        logging.info("Starting validation...")
+        current_val_step = 0
+        for imgs, labels in valid_gen:
+
+            labels[labels >= 0.5] = 1
+            labels[labels < 0.5] = 0
+            labels = labels.astype("uint8")
+
+            imgs = tf.image.convert_image_dtype(imgs, tf.float32)
+
+            pred = segmentor_net(imgs)
+            pred_np = pred.numpy()
+
+            pred_np = np.argmax(pred_np, axis=-1)
+            pred_np = np.expand_dims(pred_np, -1)
+
+            loss = tf.losses.sparse_softmax_cross_entropy(labels=tf.cast(labels, tf.int32), logits=pred)
+            valid_loss_avg(loss)
+
+            for x in range(imgs.shape[0]):
+                IoU = np.sum(pred_np[x][gt[x] == 1]) / float(np.sum(pred_np[x]) + np.sum(gt[x]) - np.sum(pred_np[x][gt[x] == 1]))
+                ##print(IoU)
+                #print(np.sum(pred_np[x] ==1))
+                IoUs.append(IoU)
+            
+            current_val_step += 1
+            if current_val_step == steps_per_valid_epoch:
+                break
+
+        IoUs = np.array(IoUs, dtype=np.float64)
+        mIoU = np.mean(IoUs, axis=0)
+
+        with tf.contrib.summary.always_record_summaries():
+            tf.contrib.summary.scalar("val_avg_loss", valid_loss_avg.result())
+            tf.contrib.summary.scalar("val_avg_IoU", mIoU)    
+        
+        print("loss valid avg {0:.4f}, mIoU on validation set: {1:.4f}".format(valid_loss_avg.result(), mIoU))
+
+        return mIoU, valid_loss_avg.result()    

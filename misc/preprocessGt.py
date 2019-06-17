@@ -57,10 +57,19 @@ def threshold_gt(img, gt, threshold_val=0):
 
     assert(img.shape == gt.shape)
 
-    img_thresholded = img > threshold_val
+    # img_thresholded = img > threshold_val
     
-    gt[~img_thresholded] = 0
-    gt = binary_closing(gt, structure=np.ones((8, 8))).astype(np.uint8)
+    all_zero_rows = np.where(~img.any(axis=1))[0]
+    all_zero_cols = np.where(~img.any(axis=0))[0]
+
+    for r in all_zero_rows:
+        gt[r,:] = 0
+
+    for c in all_zero_cols:
+        gt[:,c] = 0
+
+    # gt[~img_thresholded] = 0
+    # gt = binary_closing(gt, structure=np.ones((10, 10))).astype(np.uint8)
     # gt = binary_opening(gt, structure=np.ones((4, 4))).astype(np.uint8)
     
     return gt

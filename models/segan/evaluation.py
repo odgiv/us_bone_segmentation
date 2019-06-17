@@ -17,7 +17,7 @@ def evaluate(test_model_specs, params):
     sess = tf.keras.backend.get_session()   
     sess.run(tf.global_variables_initializer())
 
-    weight_file_path = os.path.join(os.path.abspath(os.path.join(os.path.realpath(__file__), '..')), params.weight_file_subpath)
+    weight_file_path = params.weight_file_path
 
     segmentor_net.compile(optimizer='adam', loss='sparse_categorical_crossentropy')
     segmentor_net.fit(x=np.zeros((1,1,1,1)), y=np.zeros((1,1,1,1)), epochs=0, steps_per_epoch=0)

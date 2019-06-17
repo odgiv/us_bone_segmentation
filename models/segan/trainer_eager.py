@@ -2,11 +2,8 @@ import tensorflow as tf
 import numpy as np
 from tqdm import tqdm
 from utils import augmented_img_and_mask_generator, img_and_mask_generator
+from datetime import datetime
 
-print("tf version: ",  tf.__version__)
-
-tf.enable_eager_execution()
-tfe = tf.contrib.eager
 
 def make_trainable(net, val):
     """
@@ -57,10 +54,63 @@ def evaluate(valid_gen, segmentor_net, steps_per_valid_epoch):
     return mIoU
 
 
-def train_and_evaluate(model, x_train, y_train, x_val, y_val, params):
+def train_step(segmentor_net, critic_net, imgs, labels, optimizerC, optimizerS):
+        make_trainable(critic_net, True)
+        make_trainable(segmentor_net, False)
+
+        imgs = tf.image.convert_image_dtype(imgs, tf.float32)
+            
+        labels[labels>0.] = 1.
+        labels[labels==0.] = 0.
+        labels = labels.astype('uint8')
+
+        with tf.GradientTape() as tape:
+            # Run image through segmentor net and get result
+            seg_result = segmentor_net(imgs)
+            
+            seg_result = tf.sigmoid(seg_result)
+            seg_result_masked = imgs * seg_result
+            target_masked = imgs * labels
+
+            critic_result_on_seg = critic_net(seg_result_masked)
+            critic_result_on_target = critic_net(target_masked)
+
+            critic_loss = - tf.reduce_mean(tf.abs(critic_result_on_seg - critic_result_on_target))
+
+        grads = tape.gradient(critic_loss, critic_net.trainable_variables)
+
+        optimizerC.apply_gradients(zip(grads, critic_net.trainable_variables), global_step=global_step)
+
+        for critic_weight in critic_net.trainable_weights:
+            tf.clip_by_value(critic_weight, -0.05, 0.05)
+
+        # epoch_critic_loss_avg(critic_loss)
+
+        make_trainable(segmentor_net, True)
+        make_trainable(critic_net, False)
+
+        with tf.GradientTape() as tape:
+            seg_result = segmentor_net(imgs)
+            seg_result_sigm = tf.sigmoid(seg_result)
+            seg_result_masked = imgs * seg_result_sigm
+            target_masked = imgs * labels
+
+            critic_result_on_seg = critic_net(seg_result_masked)
+            critic_result_on_target = critic_net(target_masked)
+
+            seg_loss = tf.reduce_mean(tf.abs(critic_result_on_seg - critic_result_on_target))
+
+        grads = tape.gradient(seg_loss, segmentor_net.trainable_variables)
+
+        optimizerS.apply_gradients(zip(grads, segmentor_net.trainable_variables), global_step=global_step)
+
+        # epoch_seg_loss_avg(seg_loss)
+        return seg_loss, critic_loss
+
+def train_and_evaluate(net, params):
     
-    segmentor_net = model.segNet
-    critic_net = model.criNet
+    segmentor_net = net.segNet
+    critic_net = net.criNet
     
     summary_writer = tf.contrib.summary.create_file_writer('./train_summaries')
     summary_writer.set_as_default()
@@ -69,13 +119,13 @@ def train_and_evaluate(model, x_train, y_train, x_val, y_val, params):
 
     lr = params.learning_rate
 
+    maxIoU = 0
+    mIoU = 0
+    
     # Optimizer for segmentor
     optimizerS = tf.train.AdamOptimizer(learning_rate=lr, beta1=params.beta1)
     # Optimizer for critic
     optimizerC = tf.train.AdamOptimizer(learning_rate=lr, beta1=params.beta1)
-
-    maxIoU = 0
-    mIoU = 0
     
     valid_gen = img_and_mask_generator(x_val, y_val, batch_size=params.batch_size)
 
@@ -105,9 +155,15 @@ def train_and_evaluate(model, x_train, y_train, x_val, y_val, params):
             if maxIoU < mIoU:
                 maxIoU = mIoU
 
+                save_model_weights_dir = model_dir + '/model_weights/valid_img_vol_' + dataset_params["test_datasets_folder"] + '_' + datetime.now().strftime('%m-%d_%H-%M-%S') + '/'
+                if not os.path.isdir(save_model_weights_dir):
+                    os.makedirs(save_model_weights_dir)
+                else: 
+                    delete_dir_content(save_model_weights_dir)
+
                 # segmentor_net._set_inputs(img)
-                print("Saving weights to ", params.save_weights_path)
-                segmentor_net.save_weights(params.save_weights_path + parans.model_name + '_val_maxIoU_{:.3f}.h5'.format(maxIoU))            
+                print("Saving weights to ", save_weights_path)
+                segmentor_net.save_weights(save_weights_path + params.model_name + '_val_maxIoU_{:.3f}.h5'.format(maxIoU))            
             
         if current_epoch == params.num_epochs + 1:
             break

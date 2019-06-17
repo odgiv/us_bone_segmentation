@@ -15,14 +15,15 @@ def evaluate(test_model_specs, params):
     sess = tf.keras.backend.get_session()   
     sess.run(tf.global_variables_initializer())
     
-    weight_file_path = os.path.join(os.path.abspath(os.path.join(os.path.realpath(__file__), '..')), params.weight_file_subpath)
+    weight_file_path = params.weight_file_path
     print("FULL_WEIGHT_PATH", weight_file_path)
+
     unet.compile(optimizer='adam', loss='sparse_categorical_crossentropy')
     unet.fit(x=np.zeros((1,params.img_h,params.img_w,1)), y=np.zeros((1,params.img_h,params.img_w,1)), epochs=0, steps_per_epoch=0)
     unet.load_weights(weight_file_path)
 
     if not os.path.isdir(params.test_results_path):
-        os.mkdir(params.test_results_path)
+        os.makedirs(params.test_results_path)
     else:
         utils.delete_dir_content(params.test_results_path)
 

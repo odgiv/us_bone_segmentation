@@ -15,8 +15,8 @@ import cv2 as cv
 parser = argparse.ArgumentParser()
 parser.add_argument("--output_dir", "-o", type=str, required=True)
 parser.add_argument("--file_path", "-f", type=str, required=True, help="Images are stored in h5 file.")
-parser.add_argument("--start_index", "-s", type=int, required=True)
-parser.add_argument("--end_index", "-e", type=int, required=True)
+parser.add_argument("--start_index", "-s", type=int, default=0)
+parser.add_argument("--end_index", "-e", type=int, default=None)
 
 args = parser.parse_args()
 

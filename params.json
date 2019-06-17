@@ -1,9 +1,6 @@
 {
-  // "train_datasets_path": "/media/dataraid/tensorflow/segm/juliana_wo_symImages/train",
-  // "valid_datasets_folder": "12-12-16",
-  // "test_datasets_folder": "12-12-16"
   "datasets_path":"/media/dataraid/tensorflow/segm/data",
-  "train_datasets_path": "12-12-16",
-  "valid_datasets_folder": "12-12-16",
-  "test_datasets_folder": "12-12-16"
+  "train_datasets_path": "H:\\14_02_2019_Ben_in_vivo",
+  "valid_datasets_folder": "11-28-21",
+  "test_datasets_folder": "13-02-41"
 }
