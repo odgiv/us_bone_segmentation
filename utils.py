@@ -155,8 +155,8 @@ def img_and_mask_generator(x, y, batch_size=1, shuffle=True):
         image_gen = image_data_generator.flow(x, batch_size=batch_size, seed=seed, shuffle=shuffle)
         mask_gen = mask_data_generator.flow(y, batch_size=batch_size, seed=seed, shuffle=shuffle)
     else:
-        image_gen = image_data_generator.flow_from_directory(x, batch_size=batch_size, seed=seed, shuffle=shuffle, class_mode=None, color_mode="grayscale")
-        mask_gen = mask_data_generator.flow_from_directory(y, batch_size=batch_size, seed=seed, shuffle=shuffle, class_mode=None, color_mode="grayscale")
+        image_gen = image_data_generator.flow_from_directory(x, batch_size=batch_size, seed=seed, shuffle=shuffle, class_mode=None, color_mode="grayscale", target_size=(465, 381))
+        mask_gen = mask_data_generator.flow_from_directory(y, batch_size=batch_size, seed=seed, shuffle=shuffle, class_mode=None, color_mode="grayscale", target_size=(465, 381))
 
     return zip(image_gen, mask_gen)
 
@@ -186,7 +186,7 @@ def augmented_img_and_mask_generator(x, y, batch_size):
 
     seed = 1
     print(x, y)
-    image_gen = image_data_generator.flow_from_directory(x, batch_size=batch_size, seed=seed, class_mode=None, color_mode="grayscale")
-    mask_gen = mask_data_generator.flow_from_directory(y, batch_size=batch_size, seed=seed, class_mode=None, color_mode="grayscale")
+    image_gen = image_data_generator.flow_from_directory(x, batch_size=batch_size, seed=seed, class_mode=None, color_mode="grayscale", target_size=(465, 381))
+    mask_gen = mask_data_generator.flow_from_directory(y, batch_size=batch_size, seed=seed, class_mode=None, color_mode="grayscale", target_size=(465, 381))
 
     return zip(image_gen, mask_gen)

@@ -71,8 +71,8 @@ if os.path.exists('./eval_summaries'):
 # json_path = os.path.join(model_dir, 'params.json')
 # assert os.path.isfile(json_path), "No json configuration file found at {}".format(json_path)
 
-# model_params = Params(json_path)
-model_params = vars(args) # convert args to dict
+model_params = Params("./params.json")
+model_params = {**model_params, **vars(args)} # convert args to dict
 # model_params.model_name = args.model_name
 model_params["train_size"] = 3045 #X_train.shape[0]
 model_params["eval_size"] = 70 #X_val.shape[0]
@@ -96,6 +96,7 @@ steps_per_valid_epoch = int(model_params["eval_size"] / model_params["batch_size
 lr = model_params["learning_rate"]
 current_step = 0
 current_epoch = 0
+max_mean_IoU = 0.0
 global_step = tf.train.get_or_create_global_step()
 
 if args.model_name == 'segan':        
@@ -140,8 +141,8 @@ for imgs, labels in train_gen:
                 delete_dir_content(save_model_weights_dir)
 
             # segmentor_net._set_inputs(img)
-            print("Saving weights to ", save_weights_path)
-            segmentor_net.save_weights(save_weights_path + model_params["model_name"] + '_val_maxIoU_{:.3f}.h5'.format(maxIoU))            
+            print("Saving weights to ", save_model_weights_dir)
+            segmentor_net.save_weights(save_model_weights_dir + model_params["model_name"] + '_val_maxIoU_{:.3f}.h5'.format(max_mean_IoU))            
 
     if current_epoch == model_params["num_epochs"] + 1:
         break
@@ -171,4 +172,8 @@ for imgs, labels in train_gen:
             tf.contrib.summary.scalar("total_loss", epoch_critic_loss_avg.result() + epoch_seg_loss_avg.result())
             tf.contrib.summary.image("seg_result", tf.round(tf.sigmoid(segmentor_net(imgs))) * 255)
         else:
-            tf.contrib.summary.image("seg_result", tf.cast(segmentor_net(imgs) * 255, tf.uint8))
+
+            seg_results = segmentor_net(tf.image.convert_image_dtype(imgs, tf.float32))
+            seg_results = tf.argmax(seg_results, axis=-1, output_type=tf.int32)
+            seg_results = tf.expand_dims(seg_results, -1)
+            tf.contrib.summary.image("seg_result", tf.cast(seg_results) * 255, tf.uint8)

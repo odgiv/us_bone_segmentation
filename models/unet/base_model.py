@@ -10,8 +10,8 @@ from tensorflow.python.keras.layers import Input, Conv2D, UpSampling2D, MaxPooli
 from utils import get_crop_shape
 
 
-def unet_conv2d(nb_filters, kernel=(3, 3), activation="relu", padding="same"):
-    conv2d_1 = Conv2D(nb_filters, kernel, activation=activation, padding=padding)
+def unet_conv2d(nb_filters, kernel=(3, 3), activation="relu", padding="same", kernel_regularizer=0.01):
+    conv2d_1 = Conv2D(nb_filters, kernel, activation=activation, padding=padding, kernel_regularizer=kernel_regularizer)
     conv2d_2 = Conv2D(nb_filters, kernel, activation=activation, padding=padding)
     return Sequential([conv2d_1, conv2d_2])
 

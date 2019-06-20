@@ -1,6 +1,8 @@
 {
-  "datasets_path":"/media/dataraid/tensorflow/segm/data",
-  "train_datasets_path": "H:\\14_02_2019_Ben_in_vivo",
-  "valid_datasets_folder": "11-28-21",
-  "test_datasets_folder": "13-02-41"
+  "img_h": 465,
+  "img_w": 381,
+  "test_results_path": "C:\\Users\\odgiiv\\tmp\\code\\ultrasound_bone_segmentation_frmwrk\\models\\unet\\test_results\\new_results\\",
+  "train_size": 3045,
+  "valid_size": 70,
+  "test_size": 250
 }

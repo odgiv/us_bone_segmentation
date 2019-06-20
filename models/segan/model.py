@@ -105,5 +105,5 @@ class SegAN(Model):
 
     def __init__(self):
         super(SegAN, self).__init__()
-        self.segNet = AttentionalUnet()#SegmentorNet()
+        self.segNet = SegmentorNet() # AttentionalUnet()
         self.criNet = CriticNet()
