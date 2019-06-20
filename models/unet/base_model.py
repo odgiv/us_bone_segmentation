@@ -7,10 +7,11 @@
 import tensorflow as tf
 from tensorflow.python.keras.models import Model, Sequential
 from tensorflow.python.keras.layers import Input, Conv2D, UpSampling2D, MaxPooling2D, Cropping2D, concatenate, ZeroPadding2D
+from tensorflow.python.keras.regularizers import l2
 from utils import get_crop_shape
 
 
-def unet_conv2d(nb_filters, kernel=(3, 3), activation="relu", padding="same", kernel_regularizer=0.01):
+def unet_conv2d(nb_filters, kernel=(3, 3), activation="relu", padding="same", kernel_regularizer=l2(0.01)):
     conv2d_1 = Conv2D(nb_filters, kernel, activation=activation, padding=padding, kernel_regularizer=kernel_regularizer)
     conv2d_2 = Conv2D(nb_filters, kernel, activation=activation, padding=padding)
     return Sequential([conv2d_1, conv2d_2])
