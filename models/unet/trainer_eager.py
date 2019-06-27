@@ -163,7 +163,11 @@ def train_step(net, imgs, labels, global_step, optimizer):
         # Run image through segmentor net and get result
         seg_results = net(imgs)        
         # loss = tf.losses.sparse_softmax_cross_entropy(labels=tf.cast(labels, tf.int32), logits=seg_results)
-        loss = dice_loss(seg_results, labels)
+
+        seg_results = np.argmax(seg_results, axis=-1)
+        seg_results = np.expand_dims(seg_results, -1)
+
+        loss = dice_loss(tf.cast(seg_results, tf.int32), tf.cast(labels, tf.int32))
 
     grads = tape.gradient(loss, net.trainable_variables)
 
