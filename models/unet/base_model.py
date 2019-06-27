@@ -6,22 +6,30 @@
 
 import tensorflow as tf
 from tensorflow.python.keras.models import Model, Sequential
-from tensorflow.python.keras.layers import Input, Conv2D, UpSampling2D, MaxPooling2D, Cropping2D, concatenate, ZeroPadding2D, ReLU, BatchNormalization
+from tensorflow.python.keras.layers import Input, Conv2D, UpSampling2D, MaxPooling2D, Cropping2D, concatenate, ZeroPadding2D, ReLU, BatchNormalization, Dropout
 from tensorflow.python.keras.regularizers import l2
 from utils import get_crop_shape
 
 
-def unet_conv2d(nb_filters, kernel=(3, 3), activation="relu", padding="same", kernel_regularizer=l2(0.01), use_batch_norm=True):
-    conv2d_1 = Conv2D(nb_filters, kernel, padding=padding, kernel_regularizer=kernel_regularizer)
-    relu1 = ReLU()
-    batch1 = BatchNormalization()
-    conv2d_2 = Conv2D(nb_filters, kernel, padding=padding, kernel_regularizer=kernel_regularizer)
-    relu2 = ReLU()
-    batch2 = BatchNormalization()
+def unet_conv2d(nb_filters, kernel=(3, 3), activation="relu", padding="same", kernel_regularizer=l2(0.01), use_batch_norm=False, drop=0.5):
+    conv2d_1 = Conv2D(nb_filters, kernel, padding=padding, activation="relu", kernel_regularizer=kernel_regularizer)
+    conv2d_2 = Conv2D(nb_filters, kernel, padding=padding, activation="relu", kernel_regularizer=kernel_regularizer)
+    seq1 = [conv2d_1]
+    seq2 = [conv2d_2]
+
     if use_batch_norm:
-        return Sequential([conv2d_1, relu1, batch1, conv2d_2, relu2, batch2])
-    else:
-        return Sequential([conv2d_1, relu1, conv2d_2, relu2])
+        batch1 = BatchNormalization()
+        batch2 = BatchNormalization()
+        seq1 += [batch1]
+        seq2 += [batch2]
+
+    if drop > 0:
+        drop1 = Dropout()
+        drop2 = Dropout()  
+        seq1 += [drop1]
+        seq2 += [drop2]
+
+    return Sequential(seq1 + seq2)
 
 
 class Unet(Model):

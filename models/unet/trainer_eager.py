@@ -2,7 +2,7 @@ import tensorflow as tf
 import numpy as np
 import os
 from tqdm import tqdm
-from utils import augmented_img_and_mask_generator, img_and_mask_generator, dice_loss
+from utils import augmented_img_and_mask_generator, img_and_mask_generator
 from datetime import datetime
 import logging
 

@@ -135,13 +135,6 @@ def hausdorf_distance(a, b):
     return max(directed_hausdorff(a, b)[0], directed_hausdorff(b, a)[0])
 
 
-def dice_loss(input,target):
-    numerator = 2 * tf.reduce_sum(input * target)
-    denominator = tf.reduce_sum(target + tf.square(input))
-
-    return (numerator + tf.keras.backend.epsilon()) / (denominator + tf.keras.backend.epsilon())
-
-
 def shuffle(imgs, gts):
     np.random.seed(42)
     np.random.shuffle(imgs)
