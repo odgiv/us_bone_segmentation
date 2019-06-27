@@ -72,7 +72,7 @@ if os.path.exists('./eval_summaries'):
 # assert os.path.isfile(json_path), "No json configuration file found at {}".format(json_path)
 
 model_params = Params("./params.json")
-model_params = {**model_params, **vars(args)} # convert args to dict
+model_params = {**model_params.__dict__, **vars(args)} # convert args to dict
 # model_params.model_name = args.model_name
 model_params["train_size"] = 3045 #X_train.shape[0]
 model_params["eval_size"] = 70 #X_val.shape[0]
@@ -176,4 +176,4 @@ for imgs, labels in train_gen:
             seg_results = segmentor_net(tf.image.convert_image_dtype(imgs, tf.float32))
             seg_results = tf.argmax(seg_results, axis=-1, output_type=tf.int32)
             seg_results = tf.expand_dims(seg_results, -1)
-            tf.contrib.summary.image("seg_result", tf.cast(seg_results) * 255, tf.uint8)
+            tf.contrib.summary.image("seg_result", tf.cast(seg_results * 255, tf.uint8))

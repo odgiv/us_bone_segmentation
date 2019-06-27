@@ -6,7 +6,7 @@ Arguments:
 model_name: name of model to be used.
 
 Usage:
-python evaluate.py -m unet -w C:\\Users\\odgiiv\\tmp\\code\\ultrasound_bone_segmentation_frmwrk\\models\\unet\\model_weights\\unet_val_maxIoU_0.543.h5 -d H:\\in_vivo_imgs_combined
+python evaluate.py -m unet -w C:\\Users\\odgiiv\\tmp\\code\\ultrasound_bone_segmentation_frmwrk\\models\\unet\\model_weights\\unet_val_maxIoU_0.543.h5 -d H:\\in_vivo_imgs_combined -s
 """
 import tensorflow as tf
 import argparse
@@ -114,7 +114,7 @@ if __name__ == "__main__":
         pred_np = np.squeeze(pred_np)
         # pred = pred.astype('uint8')
 
-        pred_locations = np.argwhere(pred == 1)
+        pred_locations = np.argwhere(pred_np == 1)
         label_locations = np.argwhere(label == 1)        
 
         hd = hausdorf_distance(pred_locations, label_locations)

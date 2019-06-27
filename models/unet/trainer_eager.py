@@ -2,7 +2,7 @@ import tensorflow as tf
 import numpy as np
 import os
 from tqdm import tqdm
-from utils import augmented_img_and_mask_generator, img_and_mask_generator
+from utils import augmented_img_and_mask_generator, img_and_mask_generator, dice_loss
 from datetime import datetime
 import logging
 
@@ -162,7 +162,8 @@ def train_step(net, imgs, labels, global_step, optimizer):
     with tf.GradientTape() as tape:
         # Run image through segmentor net and get result
         seg_results = net(imgs)        
-        loss = tf.losses.sparse_softmax_cross_entropy(labels=tf.cast(labels, tf.int32), logits=seg_results)
+        # loss = tf.losses.sparse_softmax_cross_entropy(labels=tf.cast(labels, tf.int32), logits=seg_results)
+        loss = dice_loss(seg_results, labels)
 
     grads = tape.gradient(loss, net.trainable_variables)
 

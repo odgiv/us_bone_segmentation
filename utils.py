@@ -10,8 +10,11 @@ import cv2 as cv
 from PIL import Image, ImageEnhance
 import math
 from scipy.spatial.distance import directed_hausdorff
+from scipy.ndimage.interpolation import map_coordinates
+from scipy.ndimage.filters import gaussian_filter
 from tensorflow.python.keras.preprocessing.image import ImageDataGenerator
 from skimage.transform import rotate
+from albumentations.augmentations.transforms import ElasticTransform
 
 def get_crop_shape(target, refer):
     """
@@ -35,30 +38,29 @@ def get_crop_shape(target, refer):
 
     return (ch1, ch2), (cw1, cw2)
 
-
-def focal_loss_softmax(labels, logits, gamma=2):
+def elastic_transform(image, alpha, sigma, alpha_affine, random_state=None):
+    """Elastic deformation of images as described in [Simard2003]_.
+    .. [Simard2003] Simard, Steinkraus and Platt, "Best Practices for
+       Convolutional Neural Networks applied to Visual Document Analysis", in
+       Proc. of the International Conference on Document Analysis and
+       Recognition, 2003.
     """
-    Computer focal loss for multi classification
-    Args:
-      labels: A int32 tensor of shape [batch_size].
-      logits: A float32 tensor of shape [batch_size,num_classes].
-      gamma: A scalar for focal loss gamma hyper-parameter.
-    Returns:
-      A tensor of the same shape as `lables`
-    """
-    # print(backend.int_shape(labels))
+    if random_state is None:
+        random_state = np.random.RandomState(None)
 
-    y_pred = tf.nn.softmax(logits, axis=-1)
-    # print(backend.int_shape(y_pred))
+    shape = image.shape
+    dx = gaussian_filter((random_state.rand(*shape) * 2 - 1), sigma, mode="constant", cval=0) * alpha
+    dy = gaussian_filter((random_state.rand(*shape) * 2 - 1), sigma, mode="constant", cval=0) * alpha
+    dz = np.zeros_like(dx)
 
-    eps = backend.epsilon()
-    y_pred = backend.clip(y_pred, eps, 1. - eps)
+    x, y, z = np.meshgrid(np.arange(shape[1]), np.arange(shape[0]), np.arange(shape[2]))
+    
+    indices = np.reshape(y+dy, (-1, 1)), np.reshape(x+dx, (-1, 1)), np.reshape(z, (-1, 1))
 
-    labels = tf.one_hot(tf.squeeze(labels), depth=y_pred.shape[-1])
-    L = -labels*((1-y_pred)**gamma)*tf.log(y_pred)
-    L = tf.reduce_sum(L, axis=-1)
-    return L, y_pred
+    distored_image = map_coordinates(image, indices, order=1, mode='reflect')
+    return distored_image.reshape(image.shape)
 
+    
 
 class Params():
     """Class that loads hyperparameters from a json file.
@@ -133,6 +135,13 @@ def hausdorf_distance(a, b):
     return max(directed_hausdorff(a, b)[0], directed_hausdorff(b, a)[0])
 
 
+def dice_loss(input,target):
+    numerator = 2 * tf.reduce_sum(input * target)
+    denominator = tf.reduce_sum(target + tf.square(input))
+
+    return (numerator + tf.keras.backend.epsilon()) / (denominator + tf.keras.backend.epsilon())
+
+
 def shuffle(imgs, gts):
     np.random.seed(42)
     np.random.shuffle(imgs)
@@ -162,14 +171,22 @@ def img_and_mask_generator(x, y, batch_size=1, shuffle=True):
 
    
 def augmented_img_and_mask_generator(x, y, batch_size):
+    rs = np.random.RandomState()
+
+    # elastic = ElasticTransform(p=1)
+
+    def preprocessing(img):
+        return img #elastic(img)
+
 
     data_gen_args = dict(
         horizontal_flip=True,
-        # zoom_range=0.2,
-        rotation_range=15,
+        zoom_range=0.2,
+        rotation_range=10,
         # width_shift_range=0.1, 
         #height_shift_range=0.1,
         #shear_range=0.1,
+        preprocessing_function = preprocessing,
         rescale=1./255,
         fill_mode="constant",
         cval=0
