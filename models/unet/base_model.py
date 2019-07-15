@@ -8,7 +8,8 @@ import tensorflow as tf
 from tensorflow.python.keras.models import Model, Sequential
 from tensorflow.python.keras.layers import Input, Conv2D, UpSampling2D, MaxPooling2D, Cropping2D, concatenate, ZeroPadding2D, ReLU, BatchNormalization, Dropout
 from tensorflow.python.keras.regularizers import l2
-from utils import get_crop_shape
+from utils import get_crop_shape, hausdorf_distance
+import numpy as np
 
 
 def unet_conv2d(nb_filters, kernel=(3, 3), activation="relu", padding="same", kernel_regularizer=l2(0.01), use_batch_norm=False, drop_rate=0.5):
@@ -119,6 +120,7 @@ class Unet(Model):
     def evaluate(valid_gen, segmentor_net, steps_per_valid_epoch, model_name):
         IoUs = []
         valid_loss_avg = tf.contrib.eager.metrics.Mean()
+        hds = tf.contrib.eager.metrics.Mean()
         logging.info("Starting validation...")
         current_val_step = 0
         for imgs, labels in valid_gen:
@@ -138,6 +140,12 @@ class Unet(Model):
             loss = tf.losses.sparse_softmax_cross_entropy(labels=tf.cast(labels, tf.int32), logits=pred)
             valid_loss_avg(loss)
 
+            pred_locations = np.argwhere(pred_np == 1)
+            label_locations = np.argwhere(labels == 1)
+
+            hd = hausdorf_distance(pred_locations, label_locations)
+            hds(hd)
+
             for x in range(imgs.shape[0]):
                 IoU = np.sum(pred_np[x][gt[x] == 1]) / float(np.sum(pred_np[x]) + np.sum(gt[x]) - np.sum(pred_np[x][gt[x] == 1]))
                 ##print(IoU)
@@ -152,6 +160,7 @@ class Unet(Model):
         mIoU = np.mean(IoUs, axis=0)
 
         with tf.contrib.summary.always_record_summaries():
+            tf.contrib.summary.scalar("val_avg_hd", hds.result())
             tf.contrib.summary.scalar("val_avg_loss", valid_loss_avg.result())
             tf.contrib.summary.scalar("val_avg_IoU", mIoU)    
         
