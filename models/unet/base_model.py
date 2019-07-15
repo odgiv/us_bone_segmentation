@@ -11,7 +11,7 @@ from tensorflow.python.keras.regularizers import l2
 from utils import get_crop_shape
 
 
-def unet_conv2d(nb_filters, kernel=(3, 3), activation="relu", padding="same", kernel_regularizer=l2(0.01), use_batch_norm=False, drop=0.5):
+def unet_conv2d(nb_filters, kernel=(3, 3), activation="relu", padding="same", kernel_regularizer=l2(0.01), use_batch_norm=False, drop_rate=0.5):
     conv2d_1 = Conv2D(nb_filters, kernel, padding=padding, activation="relu", kernel_regularizer=kernel_regularizer)
     conv2d_2 = Conv2D(nb_filters, kernel, padding=padding, activation="relu", kernel_regularizer=kernel_regularizer)
     seq1 = [conv2d_1]
@@ -23,9 +23,9 @@ def unet_conv2d(nb_filters, kernel=(3, 3), activation="relu", padding="same", ke
         seq1 += [batch1]
         seq2 += [batch2]
 
-    if drop > 0:
-        drop1 = Dropout()
-        drop2 = Dropout()  
+    if drop_rate > 0:
+        drop1 = Dropout(drop_rate)
+        drop2 = Dropout(drop_rate)  
         seq1 += [drop1]
         seq2 += [drop2]
 

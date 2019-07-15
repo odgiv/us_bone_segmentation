@@ -59,8 +59,8 @@ if __name__ == "__main__":
 
     # data_loader = DataLoader(dataset_params)
     # X_test, Y_test = data_loader.loadTestDatasets()
-    x_test_path = os.path.join(args.dataset_path, "test_imgs")
-    y_test_path = os.path.join(args.dataset_path, "test_gts")
+    x_test_path = os.path.join(args.dataset_path, "val_imgs")
+    y_test_path = os.path.join(args.dataset_path, "val_gts")
     test_gen = img_and_mask_generator(x_test_path, y_test_path, batch_size=1, shuffle=False)
 
     x_test_path_data = os.path.join(x_test_path, 'data')
@@ -102,10 +102,10 @@ if __name__ == "__main__":
         label[label<0.5] = 0        
         label = label.astype('uint8')     
 
-        print(np.sum(pred_np[label == 1]))
-        print(float(np.sum(pred_np) + np.sum(label) - np.sum(pred_np[label == 1])))
-        print(np.sum(label))
-        print(np.sum(pred_np))
+        # print(np.sum(pred_np[label == 1]))
+        # print(float(np.sum(pred_np) + np.sum(label) - np.sum(pred_np[label == 1])))
+        # print(np.sum(label))
+        # print(np.sum(pred_np))
         IoU = np.sum(pred_np[label == 1]) / float(np.sum(pred_np) + np.sum(label) - np.sum(pred_np[label == 1]))
         print("Iou: ", IoU)
         IoUs.append(IoU)

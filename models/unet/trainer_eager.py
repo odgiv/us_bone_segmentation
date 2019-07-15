@@ -2,13 +2,14 @@ import tensorflow as tf
 import numpy as np
 import os
 from tqdm import tqdm
-from utils import augmented_img_and_mask_generator, img_and_mask_generator
+from utils import augmented_img_and_mask_generator, img_and_mask_generator, hausdorf_distance
 from datetime import datetime
 import logging
 
     
 def evaluate(valid_gen, u_net, steps_per_valid_epoch):
     IoUs = []
+    hds = tf.contrib.eager.metrics.Mean()
     valid_loss_avg = tf.contrib.eager.metrics.Mean()
     logging.info("Starting validation...")
     current_val_step = 0
@@ -29,6 +30,12 @@ def evaluate(valid_gen, u_net, steps_per_valid_epoch):
         loss = tf.losses.sparse_softmax_cross_entropy(labels=tf.cast(labels, tf.int32), logits=pred)
         valid_loss_avg(loss)
 
+        pred_locations = np.argwhere(pred_np == 1)
+        label_locations = np.argwhere(labels == 1)
+
+        hd = hausdorf_distance(pred_locations, label_locations)
+        hds(hd)
+
         for x in range(imgs.shape[0]):
             IoU = np.sum(pred_np[x][labels[x] == 1]) / float(np.sum(pred_np[x]) + np.sum(labels[x]) - np.sum(pred_np[x][labels[x] == 1]))
             IoUs.append(IoU)
@@ -41,12 +48,13 @@ def evaluate(valid_gen, u_net, steps_per_valid_epoch):
     mIoU = np.mean(IoUs, axis=0)
 
     with tf.contrib.summary.always_record_summaries():
+        tf.contrib.summary.scalar("val_avg_hd", hds.result())
         tf.contrib.summary.scalar("val_avg_loss", valid_loss_avg.result())
         tf.contrib.summary.scalar("val_avg_IoU", mIoU)    
     
     print("loss valid avg {0:.4f}, mIoU on validation set: {1:.4f}".format(valid_loss_avg.result(), mIoU))
     
-    return mIoU    
+    return mIoU, valid_loss_avg.result()    
     
 
 def train_and_evaluate(net, params, train_gen, valid_gen, steps_per_train_epoch, steps_per_valid_epoch):

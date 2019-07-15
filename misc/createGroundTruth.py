@@ -79,21 +79,30 @@ def generate_gt_volume(**kwargs):
     ground_truth_mesh_file = kwargs["gt_mesh_filepath"]
     model2bone_transformation_file = kwargs["model2bone_transformation_filepath"]
     img2thigh_transformation_filename = kwargs["img2thigh_transformation_filename"]
-    us_img_data_filename = kwargs["us_img_data_filename"]
-    (start_at, end_at) = kwargs["start_end_indices_z_axis"] if "start_end_indices_z_axis" in kwargs else (0, -1)
+    manual_transformation_filepath = kwargs["manual_transformation_filepath"]
+    us_image_data = kwargs["us_image_data"]
+    slice_axis = kwargs["slice_axis"] if "slice_axis" in kwargs else 1 # 0,1 or 2
+    (start_at, end_at) = kwargs["start_end_indices"] if "start_end_indices" in kwargs else (0, -1)
+
+    print("us_image_data shape:", us_image_data.shape)
+    print("start_at, end_at: ", start_at, end_at)
 
     model_to_bone_transformation = np.loadtxt(model2bone_transformation_file)
+    manual_transformation = np.loadtxt(manual_transformation_filepath)
+    # print("model2bone", model_to_bone_transformation)
     ground_truth_mesh = mesh.Mesh.from_file(ground_truth_mesh_file)
-    img_to_thigh_transformation = np.loadtxt(os.path.join(files_directory, img2thigh_transformation_filename))    
-    img_to_thigh_transformation = img_to_thigh_transformation.transpose()
+    # img_to_thigh_transformation = np.loadtxt(os.path.join(files_directory, img2thigh_transformation_filename))    
+    # img_to_thigh_transformation = img_to_thigh_transformation.transpose()
 
-    gt_mesh_vertices_in_img_space = transform_ground_truth_model_to_image_space(
-        ground_truth_mesh, model_to_bone_transformation, img_to_thigh_transformation)
-
+    # gt_mesh_vertices_in_img_space = transform_ground_truth_model_to_image_space(ground_truth_mesh, model_to_bone_transformation, img_to_thigh_transformation)
+    gt_mesh_vertices_in_img_space = ground_truth_mesh.vectors.reshape(-1, 3)
+    gt_mesh_vertices_in_img_space = np.append(gt_mesh_vertices_in_img_space, np.ones((gt_mesh_vertices_in_img_space.shape[0], 1), dtype=np.float), axis=1)
+    gt_mesh_vertices_in_img_space = np.matmul(gt_mesh_vertices_in_img_space, manual_transformation.T)
+    gt_mesh_vertices_in_img_space = np.delete(gt_mesh_vertices_in_img_space, -1, axis=1)    
+    
     # Initialize search tree for nearest neibors search
     search_tree = spatial.KDTree(gt_mesh_vertices_in_img_space)
-    ultrasound_data = read_us_data(os.path.join(files_directory, us_img_data_filename))
-    us_image_data = ultrasound_data['image_data']
+    
 
     # fix indices
     # if end_at == -1 or end_at > us_image_data.shape[-1]:
@@ -105,22 +114,28 @@ def generate_gt_volume(**kwargs):
     #     3, -1).T  # 0:us_image_data.shape[2]
     # us_img_query_points = us_img_query_points.astype(np.float64)
 
-    if end_at == -1 or end_at > us_image_data.shape[1]:
-        end_at = us_image_data.shape[1]
+    if end_at == -1 or end_at > us_image_data.shape[slice_axis]:
+        end_at = us_image_data.shape[slice_axis]
     if start_at < 0:
         start_at = 0
 
     # Swap x, y axes
-    us_img_query_points = np.mgrid[start_at:end_at, 0:us_image_data.shape[0], 0:us_image_data.shape[2]].reshape(
-        3, -1).T  # 0:us_image_data.shape[2]
+    if slice_axis == 0:        
+        us_img_query_points = np.mgrid[0:us_image_data.shape[1], start_at:end_at, 0:us_image_data.shape[2]].reshape(3, -1).T  
+    elif slice_axis == 1:
+        us_img_query_points = np.mgrid[start_at:end_at, 0:us_image_data.shape[0], 0:us_image_data.shape[2]].reshape(3, -1).T  # 0:us_image_data.shape[2]
+    elif slice_axis == 2:
+        us_img_query_points = np.mgrid[0:us_image_data.shape[1], 0:us_image_data.shape[0], start_at:end_at].reshape(3, -1).T  
+    else:        
+        raise ValueError("slice_axis must be in [0,1,2]")
+
     us_img_query_points = us_img_query_points.astype(np.float64)
 
     # Change position of x, y axis of us_image_data.shape. Because ??
     #gt_vol = create_ground_truth_2Dimage(xyz, search_tree, (us_image_data.shape[1], us_image_data.shape[0]))
     startime = time.time()
     print("a query started.")
-    nearest_neibors = search_tree.query(
-        us_img_query_points, distance_upper_bound=DISTANCE_UPPPER_BOUND)
+    nearest_neibors = search_tree.query(us_img_query_points, distance_upper_bound=DISTANCE_UPPPER_BOUND)
     duration = (time.time() - startime) / 60
     print("a query took {} minutes".format(duration))
 
@@ -131,12 +146,14 @@ def generate_gt_volume(**kwargs):
 
     # ground_truth_vol = distances.reshape(
     #     (us_image_data.shape[1], us_image_data.shape[0], len(range(start_at, end_at))))
-
-    ground_truth_vol = distances.reshape(
-        (len(range(start_at, end_at)), us_image_data.shape[0], us_image_data.shape[-1]))
-
+    if slice_axis == 0:
+        ground_truth_vol = distances.reshape((us_image_data.shape[1], len(range(start_at, end_at)), us_image_data.shape[-1]))
+    elif slice_axis == 1:
+        ground_truth_vol = distances.reshape((len(range(start_at, end_at)), us_image_data.shape[0], us_image_data.shape[-1]))
+    else:
+        ground_truth_vol = distances.reshape((us_image_data.shape[1], us_image_data.shape[0], len(range(start_at, end_at))))
     # return ground_truth_vol, us_image_data[:, :, start_at:end_at]
-    return ground_truth_vol, us_image_data
+    return ground_truth_vol
 
 
 if __name__ == "__main__":
@@ -146,24 +163,26 @@ if __name__ == "__main__":
     """
 
     # 13-37-47 13-51-47 14-00-18
-    parent_directory = "D:\\Data\\IPASM\\bone_data\\in_vivo_data\\14_02_2019_Ben\\" #"D:\\Data\\IPASM\\bone_data\\phantom_data\\2018_11_23_CAOS_record\\"
+    parent_directory = "H:\\2019_07_03_Ben\\" #"D:\\Data\\IPASM\\bone_data\\phantom_data\\2018_11_23_CAOS_record\\"
     child_directories = [""]
     ground_truth_mesh_file = parent_directory + 'ground_truth.stl'    
     model2bone_transformation_file = parent_directory + 'model2bone.txt'
-    output_directory = "D:\\Users\\odgiiv.khuurkhunkhuu\\Datasets\\14_02_2019_Ben_in_vivo\\"
+    output_directory = "H:\\2019_07_03_Ben_in_vivo\\"
 
-    slice_indices_filename = "slice_indices.txt"
+    slice_indices_filename = "slice_indices_in_axis_2.txt"
     us_img_data_filename = "vol_postProcessedImage_cropped.b8"
     img2thigh_transformation_filename = "image2thighTransformationRefined.txt"
+    manual_transformation_filename = "volImg2GtMeshTransformation.txt"
+    slice_axis = 2
 
     # Read start and end indices from file for each sub directory.
-    # slice_indices = {}
-    # with open(os.path.join(output_directory, slice_indices_filename)) as f:
-    #     lines = f.readlines()
+    slice_indices = {}
+    with open(os.path.join(output_directory, slice_indices_filename)) as f:
+        lines = f.readlines()
 
-    #     for line in lines:
-    #         [dirname, start, end] = line.strip().split(" ")
-    #         slice_indices[dirname] = (int(start), int(end))
+        for line in lines:
+            [dirname, start, end] = line.strip().split(" ")
+            slice_indices[dirname] = (int(start), int(end))
 
     # Iterate over each sub directory which contains us data in parent_directory.
     fs = sorted(os.listdir(parent_directory))
@@ -175,33 +194,41 @@ if __name__ == "__main__":
         else:
             continue
 
-        start_index_in_z, end_index_in_z = 0, -1  # slice_indices[f]
-        if start_index_in_z == 0 and end_index_in_z == 0:
+        start_index, end_index = slice_indices[f] #0, -1  
+        if start_index == 0 and end_index == 0:
             continue
 
-        gt_volume, us_img_volume = generate_gt_volume(files_directory=files_directory,
-                                                      gt_mesh_filepath=ground_truth_mesh_file,
-                                                      model2bone_transformation_filepath=model2bone_transformation_file,
-                                                      img2thigh_transformation_filename=img2thigh_transformation_filename,
-                                                      us_img_data_filename=us_img_data_filename,
-                                                      start_end_indices_z_axis=(start_index_in_z, end_index_in_z))
+        manual_transformation_filepath = os.path.join(parent_directory, files_directory, manual_transformation_filename)
+        ground_truth_mesh_filepath = os.path.join(parent_directory, files_directory, 'ground_truth_imSpace.stl')
+        ultrasound_data = read_us_data(os.path.join(files_directory, us_img_data_filename))
+        us_image_data = ultrasound_data['image_data']
+
+        gt_volume = generate_gt_volume(files_directory=files_directory,
+                                        gt_mesh_filepath=ground_truth_mesh_filepath,
+                                        model2bone_transformation_filepath=model2bone_transformation_file,
+                                        us_image_data = us_image_data,
+                                        img2thigh_transformation_filename=img2thigh_transformation_filename,
+                                        #us_img_data_filename=us_img_data_filename,
+                                        manual_transformation_filepath=manual_transformation_filepath,
+                                        slice_axis= slice_axis,
+                                        start_end_indices=(start_index, end_index))
 
         if not os.path.exists(os.path.join(output_directory, f)):
             os.makedirs(os.path.join(output_directory, f))
 
         h5f = h5py.File(os.path.join(output_directory, f, "us_gt_vol.h5"), 'w')
-        h5f.create_dataset('us_vol', data=us_img_volume)
+        h5f.create_dataset('us_vol', data=us_image_data[:, :, start_index:end_index])
         h5f.create_dataset('gt_vol', data=gt_volume)
         h5f.close()
         print("written a h5 file.")
 
         # step = 1
-
+        # print("gt_volume shape: ", gt_volume.shape)
         # for z_index in range(0, gt_volume.shape[-1], step):
-        #     bone_img = Image.fromarray(us_img_volume[:, :, z_index])
+        #     bone_img = Image.fromarray(us_image_data[:, :, start_index:end_index][:, :, z_index])
         #     # Read image from numpy array as greyscale
         #     gt_img = Image.fromarray(
-        #         np.uint8(gt_volume[:, :, z_index].T * 255), 'L')
+        #         np.uint8(np.transpose(gt_volume, (1, 0, 2))[:, :, z_index] * 255), 'L')
 
         #     overlapped_img = Image.blend(bone_img, gt_img, 0.3)
         #     overlapped_img.show()

@@ -30,6 +30,7 @@ parser.add_argument("-ld", "--learning_rate_decay", type=float, default=0.0)
 parser.add_argument("-b", "--batch_size", type=int, default=10)
 parser.add_argument("-n", "--num_epochs", type=int, default=300)
 parser.add_argument("-s", "--save_summary_steps", type=int, default=100)
+parser.add_argument("-id", "--experiment_id", type=int, required=True)
 
 args = parser.parse_args()
 assert(args.model_name in ['unet', 'segan', 'nested-unet', 'attentionUnet'])
@@ -119,30 +120,30 @@ pbar = tqdm(total=steps_per_train_epoch)
 for imgs, labels in train_gen:
 
     if current_step == steps_per_train_epoch:
-        mean_IoU = evaluate(valid_gen, segmentor_net, steps_per_valid_epoch)
+        mean_IoU, mean_loss = evaluate(valid_gen, segmentor_net, steps_per_valid_epoch)
         current_epoch += 1
         current_step = 0
         pbar.reset()
 
-        if args.model_name == "segan":
-            epoch_critic_loss_avg = tfe.metrics.Mean()
-            epoch_seg_loss_avg = tfe.metrics.Mean()            
-        else:
-            epoch_seg_loss_avg = tfe.metrics.Mean()
-            valid_loss_avg = tfe.metrics.Mean()
+        # if args.model_name == "segan":
+        #     epoch_critic_loss_avg = tfe.metrics.Mean()
+        #     epoch_seg_loss_avg = tfe.metrics.Mean()            
+        # else:
+        #     epoch_seg_loss_avg = tfe.metrics.Mean()
+        #     valid_loss_avg = tfe.metrics.Mean()
 
-        if max_mean_IoU < mean_IoU:
-            max_mean_IoU = mean_IoU
+        # if max_mean_IoU < mean_IoU:
+        # max_mean_IoU = mean_IoU
 
-            save_model_weights_dir = model_dir + '/model_weights/valid_img_vol_' + datetime.now().strftime('%m-%d_%H-%M-%S') + '/'
-            if not os.path.isdir(save_model_weights_dir):
-                os.makedirs(save_model_weights_dir)
-            else: 
-                delete_dir_content(save_model_weights_dir)
+        save_model_weights_dir = model_dir + '/experiments/' + 'experiment_id_' + str(model_params["experiment_id"])
+        if not os.path.isdir(save_model_weights_dir):
+            os.makedirs(save_model_weights_dir)
+        # else: 
+        #     delete_dir_content(save_model_weights_dir)
 
-            # segmentor_net._set_inputs(img)
-            print("Saving weights to ", save_model_weights_dir)
-            segmentor_net.save_weights(save_model_weights_dir + model_params["model_name"] + '_val_maxIoU_{:.3f}.h5'.format(max_mean_IoU))            
+        # segmentor_net._set_inputs(img)
+        print("Saving weights to ", save_model_weights_dir)
+        segmentor_net.save_weights(save_model_weights_dir  + '/' + model_params["model_name"] + '_epoch_' + str(current_epoch) + '_val_meanIoU_{:.3f}_meanLoss_{:.3f}.h5'.format(mean_IoU, mean_loss))
 
     if current_epoch == model_params["num_epochs"] + 1:
         break
