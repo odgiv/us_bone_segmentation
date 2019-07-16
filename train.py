@@ -95,6 +95,7 @@ steps_per_valid_epoch = int(model_params["eval_size"] / model_params["batch_size
 
 # train_and_evaluate(model, model_params, summary_writer, train_gen, valid_gen, steps_per_train_epoch, steps_per_valid_epoch)
 lr = model_params["learning_rate"]
+print("learning rate: {}".format(str(lr)))
 current_step = 0
 current_epoch = 0
 max_mean_IoU = 0.0

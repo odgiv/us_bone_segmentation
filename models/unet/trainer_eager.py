@@ -58,7 +58,7 @@ def evaluate(valid_gen, u_net, steps_per_valid_epoch):
         seg_results = u_net(tf.image.convert_image_dtype(imgs, tf.float32))
         seg_results = tf.argmax(seg_results, axis=-1, output_type=tf.int32)
         seg_results = tf.expand_dims(seg_results, -1)
-        tf.contrib.summary.image("seg_result", tf.cast(seg_results * 255, tf.uint8))
+        tf.contrib.summary.image("val_seg_result", tf.cast(seg_results * 255, tf.uint8))
         
     
     print("loss valid avg {0:.4f}, mIoU on validation set: {1:.4f}, mHd on validation set: {2:.4f}".format(valid_loss_avg.result(), mIoU, hds.result()))
