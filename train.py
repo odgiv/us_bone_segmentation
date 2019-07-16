@@ -75,8 +75,8 @@ if os.path.exists('./eval_summaries'):
 model_params = Params("./params.json")
 model_params = {**model_params.__dict__, **vars(args)} # convert args to dict
 # model_params.model_name = args.model_name
-model_params["train_size"] = 3045 #X_train.shape[0]
-model_params["eval_size"] = 70 #X_val.shape[0]
+model_params["train_size"] = 5370 #X_train.shape[0]
+model_params["eval_size"] = 250 #X_val.shape[0]
 model_params["model_dir"] = model_dir
 
 x_train_path = os.path.join(args.datasets_dir, 'imgs')

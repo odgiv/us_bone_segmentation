@@ -190,6 +190,9 @@ def augmented_img_and_mask_generator(x, y, batch_size):
     # img_gen_args["rescale"]=1./255
         
     mask_gen_args = dict(data_gen_args)
+
+    print("Data generation arguments:")
+    print(data_gen_args)
         
     image_data_generator = ImageDataGenerator(**img_gen_args)
     mask_data_generator = ImageDataGenerator(**mask_gen_args)
