@@ -185,4 +185,25 @@ def train_step(net, imgs, labels, global_step, optimizer):
 
     optimizer.apply_gradients(zip(grads, net.trainable_variables), global_step=global_step)
     # epoch_loss_avg(loss)
-    return loss
+
+    batch_hds = []
+    batch_IoUs = []
+
+    pred_np = seg_results.numpy() 
+    batch_size = pred_np.shape[0]
+    pred_np = np.argmax(pred_np, axis=-1)
+    pred_np = np.expand_dims(pred_np, -1)
+
+    for i in range(batch_size):
+        label_slice = labels[i,:,:,:]
+        pred_slice = pred_np[i,:,:,:]
+        pred_locations = np.argwhere(pred_slice == 1)
+        label_locations = np.argwhere(label_slice == 1)
+
+        hd = hausdorf_distance(pred_locations, label_locations)
+        batch_hds.append(hd)
+
+        IoU = np.sum(pred_slice[label_slice == 1]) / float(np.sum(pred_slice) + np.sum(label_slice) - np.sum(pred_slice[label_slice == 1]))
+        batch_IoUs.append(IoU)
+
+    return loss, np.mean(batch_hds), np.mean(batch_IoUs)

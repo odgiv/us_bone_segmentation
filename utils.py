@@ -193,7 +193,7 @@ def augmented_img_and_mask_generator(x, y, batch_size):
     mask_gen_args = dict(data_gen_args)
 
     print("Data generation arguments:")
-    pprint(data_gen_args)
+    pprint.pprint(data_gen_args)
         
     image_data_generator = ImageDataGenerator(**img_gen_args)
     mask_data_generator = ImageDataGenerator(**mask_gen_args)

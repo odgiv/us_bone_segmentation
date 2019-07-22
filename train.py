@@ -53,7 +53,7 @@ elif args.model_name == 'unet':
     sys.path.append(model_dir)
     from trainer_eager import train_step, evaluate
     from base_model import Unet
-    segmentor_net = Unet(l2=args.l2_regularizer)
+    segmentor_net = Unet(l2_value=args.l2_regularizer)
 
 elif args.model_name == 'attentionUnet':
     sys.path.append('./models/unet')
@@ -117,6 +117,8 @@ else:
     # Optimizer for unet
     optimizerS = tf.train.AdamOptimizer(learning_rate=lr)
     epoch_seg_loss_avg = tfe.metrics.Mean()
+    epoch_IoU_avg = tfe.metrics.Mean()
+    epoch_Hd_avg = tfe.metrics.Mean()
     
     
 pbar = tqdm(total=steps_per_train_epoch)
@@ -129,6 +131,8 @@ for imgs, labels in train_gen:
         current_step = 0
         pbar.reset()
         epoch_seg_loss_avg = tfe.metrics.Mean()
+        epoch_IoU_avg = tfe.metrics.Mean()
+        epoch_Hd_avg = tfe.metrics.Mean()       
 
         # if args.model_name == "segan":
         #     epoch_critic_loss_avg = tfe.metrics.Mean()
@@ -158,10 +162,11 @@ for imgs, labels in train_gen:
         epoch_critic_loss_avg(critic_loss)
 
     else:
-        seg_loss = train_step(segmentor_net, imgs, labels, global_step, optimizerS)    
+        seg_loss, batch_hd, batch_IoU = train_step(segmentor_net, imgs, labels, global_step, optimizerS)    
 
     epoch_seg_loss_avg(seg_loss)
-
+    epoch_Hd_avg(batch_hd)
+    epoch_IoU_avg(batch_IoU)
     tf.assign_add(global_step, 1)
     current_step += 1
     pbar.update(1)
@@ -172,6 +177,8 @@ for imgs, labels in train_gen:
         tf.contrib.summary.image("train_img", tf.cast(imgs * 255, tf.uint8))
         tf.contrib.summary.image("ground_tr", tf.cast(labels * 255, tf.uint8))
         tf.contrib.summary.scalar("seg_loss", epoch_seg_loss_avg.result())
+        tf.contrib.summary.scalar("Hd", epoch_Hd_avg.result())
+        tf.contrib.summary.scalar("IoU", epoch_IoU_avg.result())
 
         if args.model_name == 'segan':
             tf.contrib.summary.scalar("critic_loss", epoch_critic_loss_avg.result())
