@@ -35,36 +35,36 @@ def unet_conv2d(nb_filters, kernel=(3, 3), activation="relu", padding="same", ke
 
 class Unet(Model):
 
-    def __init__(self, num_classes=2, l2=0.0):
+    def __init__(self, num_classes=2, l2_value=0.0):
         super(Unet, self).__init__()
 
         print("Creating Unet model.")
 
-        self.conv1 = unet_conv2d(64, kernel_regularizer=l2(l2))
+        self.conv1 = unet_conv2d(64, kernel_regularizer=l2(l2_value))
         self.pool1 = MaxPooling2D(pool_size=(2, 2))
 
-        self.conv2 = unet_conv2d(128, kernel_regularizer=l2(l2))
+        self.conv2 = unet_conv2d(128, kernel_regularizer=l2(l2_value))
         self.pool2 = MaxPooling2D(pool_size=(2, 2))
 
-        self.conv3 = unet_conv2d(256, kernel_regularizer=l2(l2))
+        self.conv3 = unet_conv2d(256, kernel_regularizer=l2(l2_value))
         self.pool3 = MaxPooling2D(pool_size=(2, 2))
 
-        self.conv4 = unet_conv2d(512, kernel_regularizer=l2(l2))
+        self.conv4 = unet_conv2d(512, kernel_regularizer=l2(l2_value))
         self.pool4 = MaxPooling2D(pool_size=(2, 2))
 
-        self.center = unet_conv2d(1024, kernel_regularizer=l2(l2))
+        self.center = unet_conv2d(1024, kernel_regularizer=l2(l2_value))
 
         self.up_conv5 = UpSampling2D(size=(2, 2))
-        self.conv6 = unet_conv2d(512, kernel_regularizer=l2(l2))
+        self.conv6 = unet_conv2d(512, kernel_regularizer=l2(l2_value))
 
         self.up_conv6 = UpSampling2D(size=(2, 2))
-        self.conv7 = unet_conv2d(256, kernel_regularizer=l2(l2))
+        self.conv7 = unet_conv2d(256, kernel_regularizer=l2(l2_value))
 
         self.up_conv7 = UpSampling2D(size=(2, 2))
-        self.conv8 = unet_conv2d(128, kernel_regularizer=l2(l2))
+        self.conv8 = unet_conv2d(128, kernel_regularizer=l2(l2_value))
 
         self.up_conv8 = UpSampling2D(size=(2, 2))
-        self.conv9 = unet_conv2d(64, kernel_regularizer=l2(l2))
+        self.conv9 = unet_conv2d(64, kernel_regularizer=l2(l2_value))
 
         self.conv10 = Conv2D(num_classes, (1, 1))
 
