@@ -136,6 +136,12 @@ if __name__ == "__main__":
             I.paste(pred_img, (img.size[0]*2, 0))
             I.paste(Image.blend(img.convert("L"), label_img.convert("L"), 0.2), (img.size[0]*3, 0))
             I.paste(Image.blend(img.convert("L"), pred_img.convert("L"), 0.2), (img.size[0]*4, 0))
+
+            # blank_img = np.zeros((bone_img.shape[0], bone_img.shape[1]*3), np.uint8)
+    # blank_img[:, :bone_img.shape[1]] = bone_img        
+    # blank_img[:, bone_img.shape[1]:bone_img.shape[1]*2] = gt_img        
+    # blank_img[:, bone_img.shape[1]*2:] = overlapped_img
+    # cv.imwrite(os.path.join(output_dir_img, args.prefix + "_" + dir_as_prefix + "_" + str(i) + ".jpg"), blank_img)
             
 
             name = 'img_{}_iou_{:.4f}_hausdorf_{:.4f}.jpg'.format(i, IoU, hd)

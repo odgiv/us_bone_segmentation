@@ -12,7 +12,7 @@ from utils import get_crop_shape, hausdorf_distance
 import numpy as np
 
 
-def unet_conv2d(nb_filters, kernel=(3, 3), activation="relu", padding="same", kernel_regularizer=l2(0.01), use_batch_norm=False, drop_rate=0.5):
+def unet_conv2d(nb_filters, kernel=(3, 3), activation="relu", padding="same", kernel_regularizer=l2(0.0), use_batch_norm=False, drop_rate=0.0):
     conv2d_1 = Conv2D(nb_filters, kernel, padding=padding, activation="relu", kernel_regularizer=kernel_regularizer)
     conv2d_2 = Conv2D(nb_filters, kernel, padding=padding, activation="relu", kernel_regularizer=kernel_regularizer)
     seq1 = [conv2d_1]
@@ -35,36 +35,36 @@ def unet_conv2d(nb_filters, kernel=(3, 3), activation="relu", padding="same", ke
 
 class Unet(Model):
 
-    def __init__(self, num_classes=2):
+    def __init__(self, num_classes=2, l2=0.0):
         super(Unet, self).__init__()
 
         print("Creating Unet model.")
 
-        self.conv1 = unet_conv2d(64)
+        self.conv1 = unet_conv2d(64, kernel_regularizer=l2(l2))
         self.pool1 = MaxPooling2D(pool_size=(2, 2))
 
-        self.conv2 = unet_conv2d(128)
+        self.conv2 = unet_conv2d(128, kernel_regularizer=l2(l2))
         self.pool2 = MaxPooling2D(pool_size=(2, 2))
 
-        self.conv3 = unet_conv2d(256)
+        self.conv3 = unet_conv2d(256, kernel_regularizer=l2(l2))
         self.pool3 = MaxPooling2D(pool_size=(2, 2))
 
-        self.conv4 = unet_conv2d(512)
+        self.conv4 = unet_conv2d(512, kernel_regularizer=l2(l2))
         self.pool4 = MaxPooling2D(pool_size=(2, 2))
 
-        self.center = unet_conv2d(1024)
+        self.center = unet_conv2d(1024, kernel_regularizer=l2(l2))
 
         self.up_conv5 = UpSampling2D(size=(2, 2))
-        self.conv6 = unet_conv2d(512)
+        self.conv6 = unet_conv2d(512, kernel_regularizer=l2(l2))
 
         self.up_conv6 = UpSampling2D(size=(2, 2))
-        self.conv7 = unet_conv2d(256)
+        self.conv7 = unet_conv2d(256, kernel_regularizer=l2(l2))
 
         self.up_conv7 = UpSampling2D(size=(2, 2))
-        self.conv8 = unet_conv2d(128)
+        self.conv8 = unet_conv2d(128, kernel_regularizer=l2(l2))
 
         self.up_conv8 = UpSampling2D(size=(2, 2))
-        self.conv9 = unet_conv2d(64)
+        self.conv9 = unet_conv2d(64, kernel_regularizer=l2(l2))
 
         self.conv10 = Conv2D(num_classes, (1, 1))
 

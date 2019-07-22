@@ -7,6 +7,7 @@ import os
 import random
 import numpy as np
 import cv2 as cv
+import pprint
 from PIL import Image, ImageEnhance
 import math
 from scipy.spatial.distance import directed_hausdorff
@@ -192,7 +193,7 @@ def augmented_img_and_mask_generator(x, y, batch_size):
     mask_gen_args = dict(data_gen_args)
 
     print("Data generation arguments:")
-    print(data_gen_args)
+    pprint(data_gen_args)
         
     image_data_generator = ImageDataGenerator(**img_gen_args)
     mask_data_generator = ImageDataGenerator(**mask_gen_args)

@@ -31,6 +31,7 @@ parser.add_argument("-b", "--batch_size", type=int, default=10)
 parser.add_argument("-n", "--num_epochs", type=int, default=300)
 parser.add_argument("-s", "--save_summary_steps", type=int, default=100)
 parser.add_argument("-id", "--experiment_id", type=int, required=True)
+parser.add_argument("-l2", "--l2_regularizer", type=float, default=0.0)
 
 args = parser.parse_args()
 assert(args.model_name in ['unet', 'segan', 'nested-unet', 'attentionUnet'])
@@ -52,7 +53,7 @@ elif args.model_name == 'unet':
     sys.path.append(model_dir)
     from trainer_eager import train_step, evaluate
     from base_model import Unet
-    segmentor_net = Unet()
+    segmentor_net = Unet(l2=args.l2_regularizer)
 
 elif args.model_name == 'attentionUnet':
     sys.path.append('./models/unet')
@@ -95,7 +96,9 @@ steps_per_valid_epoch = int(model_params["eval_size"] / model_params["batch_size
 
 # train_and_evaluate(model, model_params, summary_writer, train_gen, valid_gen, steps_per_train_epoch, steps_per_valid_epoch)
 lr = model_params["learning_rate"]
+l2 = model_params["l2_regularizer"]
 print("learning rate: {}".format(str(lr)))
+print("l2 regularize: {}".format(str(l2)))
 current_step = 0
 current_epoch = 0
 max_mean_IoU = 0.0
