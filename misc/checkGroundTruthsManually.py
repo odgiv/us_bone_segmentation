@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from processUsData import read_us_data
 from createGroundTruth import generate_gt_volume
 
-parent_directory = 'H:\\2019_07_03_Ben\\' #'D:\\Data\\IPASM\\bone_data\\phantom_data\\2018_11_23_CAOS_record\\' 
+parent_directory = 'H:\\2019_07_17_Ben\\' #'D:\\Data\\IPASM\\bone_data\\phantom_data\\2018_11_23_CAOS_record\\' 
 ground_truth_mesh_filepath = parent_directory + 'ground_truth.stl'
 model2bone_transformation_filepath = parent_directory + 'model2bone.txt'
 us_img_data_filename = "vol_postProcessedImage_cropped.b8"
@@ -13,7 +13,7 @@ img2thigh_transformation_filename = "image2thighTransformationRefined.txt"
 manual_transformation_filename = "volImg2GtMeshTransformation.txt"
 slice_axis = 2 # There are from 0 to 2 axes in the 3d volume. 
 skip_step = 50
-start_at = 350
+start_at = 230
 
 # Iterate over each sub directory which contains us data in parent_directory.
 for f in sorted(os.listdir(parent_directory)):
@@ -25,8 +25,8 @@ for f in sorted(os.listdir(parent_directory)):
         if input("Skip this directory? (y/n): ") == "y":
             continue
         
-        if not os.path.exists(os.path.join(files_directory, img2thigh_transformation_filename)):
-            continue
+        # if not os.path.exists(os.path.join(files_directory, img2thigh_transformation_filename)):
+        #     continue
 
         ground_truth_mesh_filepath = os.path.join(parent_directory, files_directory, 'ground_truth_imSpace.stl')
         manual_transformation_filepath = os.path.join(parent_directory, files_directory, manual_transformation_filename)

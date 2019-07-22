@@ -76,7 +76,7 @@ model_params = Params("./params.json")
 model_params = {**model_params.__dict__, **vars(args)} # convert args to dict
 # model_params.model_name = args.model_name
 model_params["train_size"] = 5370 #X_train.shape[0]
-model_params["eval_size"] = 250 #X_val.shape[0]
+model_params["eval_size"] = 756 #X_val.shape[0]
 model_params["model_dir"] = model_dir
 
 x_train_path = os.path.join(args.datasets_dir, 'imgs')
@@ -125,6 +125,7 @@ for imgs, labels in train_gen:
         current_epoch += 1
         current_step = 0
         pbar.reset()
+        epoch_seg_loss_avg = tfe.metrics.Mean()
 
         # if args.model_name == "segan":
         #     epoch_critic_loss_avg = tfe.metrics.Mean()

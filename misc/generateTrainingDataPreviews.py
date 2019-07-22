@@ -14,10 +14,10 @@ from utils import img_and_mask_generator
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--output_dir_img", "-odi", type=str, default="H:\\2019_07_03b_Ben_in_vivo_imgs\\imgs")
-parser.add_argument("--output_dir_gt", "-odg", type=str, default="H:\\2019_07_03b_Ben_in_vivo_imgs\\gts")
+parser.add_argument("--output_dir_img", "-odi", type=str, default="H:\\2019_07_03_Ben_in_vivo_imgs\\imgs")
+parser.add_argument("--output_dir_gt", "-odg", type=str, default="H:\\2019_07_03_Ben_in_vivo_imgs\\gts")
 parser.add_argument("--file_path", "-f", type=str, required=True, help="Images are stored in h5 file.")
-parser.add_argument("--prefix", "-pre", type=str, default="2019_07_03b_Ben")
+parser.add_argument("--prefix", "-pre", type=str, default="2019_07_03_Ben")
 parser.add_argument("--start_index", "-s", type=int, default=0)
 parser.add_argument("--end_index", "-e", type=int, default=None)
 parser.add_argument("--preprocess_gt", "-p", dest="preprocess_gt", default=False, action='store_true'),
