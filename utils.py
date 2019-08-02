@@ -1,5 +1,7 @@
 import tensorflow as tf
 from tensorflow.python.keras import backend
+from tensorflow.python.keras.layers import Conv2D, BatchNormalization, Dropout
+from tensorflow.python.keras.models import Sequential
 import json
 import logging
 import shutil
@@ -16,6 +18,26 @@ from scipy.ndimage.filters import gaussian_filter
 from tensorflow.python.keras.preprocessing.image import ImageDataGenerator
 from skimage.transform import rotate
 from albumentations.augmentations.transforms import ElasticTransform
+
+def unet_conv2d(nb_filters, kernel=(3, 3), activation="relu", padding="same", kernel_regularizer=l2(0.0), use_batch_norm=False, drop_rate=0.0):
+    conv2d_1 = Conv2D(nb_filters, kernel, padding=padding, activation="relu", kernel_regularizer=kernel_regularizer)
+    conv2d_2 = Conv2D(nb_filters, kernel, padding=padding, activation="relu", kernel_regularizer=kernel_regularizer)
+    seq1 = [conv2d_1]
+    seq2 = [conv2d_2]
+
+    if use_batch_norm:
+        batch1 = BatchNormalization()
+        batch2 = BatchNormalization()
+        seq1 += [batch1]
+        seq2 += [batch2]
+
+    if drop_rate > 0:
+        drop1 = Dropout(drop_rate)
+        drop2 = Dropout(drop_rate)  
+        seq1 += [drop1]
+        seq2 += [drop2]
+
+    return Sequential(seq1 + seq2)
 
 def get_crop_shape(target, refer):
     """
@@ -199,7 +221,6 @@ def augmented_img_and_mask_generator(x, y, batch_size):
     mask_data_generator = ImageDataGenerator(**mask_gen_args)
 
     seed = 1
-    print(x, y)
     image_gen = image_data_generator.flow_from_directory(x, batch_size=batch_size, seed=seed, class_mode=None, color_mode="grayscale", target_size=(465, 381))
     mask_gen = mask_data_generator.flow_from_directory(y, batch_size=batch_size, seed=seed, class_mode=None, color_mode="grayscale", target_size=(465, 381))
 

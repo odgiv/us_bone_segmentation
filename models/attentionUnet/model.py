@@ -6,9 +6,9 @@
 import tensorflow as tf
 from tensorflow.python.keras.models import Model, Sequential
 from tensorflow.python.keras.layers import Lambda, Input, Conv2D, UpSampling2D, MaxPooling2D, Cropping2D, concatenate, ZeroPadding2D, BatchNormalization, Activation, Add, Multiply
+from tensorflow.python.keras.regularizers import l2
 import sys
-from models.unet.base_model import unet_conv2d
-from utils import get_crop_shape
+from utils import get_crop_shape, unet_conv2d
 
 
 def gating_signal(num_filters, is_batchnorm=False):
@@ -69,24 +69,24 @@ class SubAttentionBlock(Model):
 
 class AttentionalUnet(Model):
 
-    def __init__(self, num_classes=2):
+    def __init__(self, num_classes=2, l2_value=0.0):
         super(AttentionalUnet, self).__init__()
 
         print("Creating AttentionalUnet model.")
 
-        self.conv1 = unet_conv2d(32)
+        self.conv1 = unet_conv2d(32, kernel_regularizer=l2(l2_value))
         self.pool1 = MaxPooling2D(pool_size=(2,2))
         
-        self.conv2 = unet_conv2d(64)
+        self.conv2 = unet_conv2d(64, kernel_regularizer=l2(l2_value)) 
         self.pool2 = MaxPooling2D(pool_size=(2,2))
 
-        self.conv3 = unet_conv2d(128)
+        self.conv3 = unet_conv2d(128, kernel_regularizer=l2(l2_value))
         self.pool3 = MaxPooling2D(pool_size=(2,2))
 
-        self.conv4 = unet_conv2d(256)
+        self.conv4 = unet_conv2d(256, kernel_regularizer=l2(l2_value))
         self.pool4 = MaxPooling2D(pool_size=(2,2))
 
-        self.center = unet_conv2d(512)
+        self.center = unet_conv2d(512, kernel_regularizer=l2(l2_value))
 
         # AttentionBlock1 layers
 
@@ -95,7 +95,7 @@ class AttentionalUnet(Model):
         # AttentionBlock end
 
         self.up_conv5 = UpSampling2D(size=(2,2))
-        self.up_conv6 = unet_conv2d(256)
+        self.up_conv6 = unet_conv2d(256, kernel_regularizer=l2(l2_value))
 
         # AttentionBlock2 layers
         
@@ -103,7 +103,7 @@ class AttentionalUnet(Model):
         # AttentionBlock end
 
         self.up_conv7 = UpSampling2D(size=(2,2))
-        self.up_conv8 = unet_conv2d(128)
+        self.up_conv8 = unet_conv2d(128, kernel_regularizer=l2(l2_value))
 
         # AttentionBlock3 layers
 
@@ -111,7 +111,7 @@ class AttentionalUnet(Model):
         # AttentionBlock end
 
         self.up_conv9 = UpSampling2D(size=(2,2))
-        self.up_conv10 = unet_conv2d(64)
+        self.up_conv10 = unet_conv2d(64, kernel_regularizer=l2(l2_value))
 
         # AttentionBlock4 layers
         
@@ -119,7 +119,7 @@ class AttentionalUnet(Model):
         # AttentionBlock end
 
         self.up_conv11 = UpSampling2D(size=(2,2))
-        self.up_conv12 = unet_conv2d(32)
+        self.up_conv12 = unet_conv2d(32, kernel_regularizer=l2(l2_value))
 
         self.up_conv13 = Conv2D(num_classes, (1,1))
 

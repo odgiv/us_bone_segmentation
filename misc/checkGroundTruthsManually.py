@@ -1,29 +1,38 @@
 import os
 import numpy as np
 import cv2 as cv
-import matplotlib.pyplot as plt
 from processUsData import read_us_data
 from createGroundTruth import generate_gt_volume
 
-parent_directory = 'H:\\2019_07_17_Ben\\' #'D:\\Data\\IPASM\\bone_data\\phantom_data\\2018_11_23_CAOS_record\\' 
-ground_truth_mesh_filepath = parent_directory + 'ground_truth.stl'
+parent_directory = 'H:\\09_05_2019_in_vivo_record_Ben\\' #'D:\\Data\\IPASM\\bone_data\\phantom_data\\2018_11_23_CAOS_record\\' 
+# ground_truth_mesh_filepath = parent_directory + 'ground_truth.stl'
 model2bone_transformation_filepath = parent_directory + 'model2bone.txt'
 us_img_data_filename = "vol_postProcessedImage_cropped.b8"
 img2thigh_transformation_filename = "image2thighTransformationRefined.txt"
 manual_transformation_filename = "volImg2GtMeshTransformation.txt"
-slice_axis = 2 # There are from 0 to 2 axes in the 3d volume. 
+slice_axis = 1 # There are from 0 to 2 axes in the 3d volume. 
+# start_at = 250
 skip_step = 50
-start_at = 230
+
 
 # Iterate over each sub directory which contains us data in parent_directory.
 for f in sorted(os.listdir(parent_directory)):
     # If f is directory, not a file
-    files_directory = os.path.join(parent_directory, f)
+    files_directory = os.path.join(parent_directory, f) 
     if os.path.isdir(files_directory):
         print("Entering directory: {}".format(files_directory))
 
         if input("Skip this directory? (y/n): ") == "y":
             continue
+                
+        start_at = input("Start at (int): ")
+        try:
+            start_at = int(start_at)
+        except Exception:
+            print("start_at must be int.") 
+            break
+
+                    
         
         # if not os.path.exists(os.path.join(files_directory, img2thigh_transformation_filename)):
         #     continue
@@ -35,16 +44,15 @@ for f in sorted(os.listdir(parent_directory)):
         print("Shape of us_img_volume: {}".format(us_image_data.shape))
         for start_index in range(start_at, us_image_data.shape[slice_axis], skip_step):
             end_index = start_index + 1
-            print("start_index_in_z: {} and end_index_in_z: {}".format(start_index, end_index))
+            print("start_index: {} and end_index: {}".format(start_index, end_index))
             gt_volume = generate_gt_volume(files_directory=files_directory,
                                             gt_mesh_filepath=ground_truth_mesh_filepath,
                                             model2bone_transformation_filepath=model2bone_transformation_filepath,
-                                            us_image_data=us_image_data,                                                
+                                            us_image_data=us_image_data,
                                             img2thigh_transformation_filename=img2thigh_transformation_filename,
-                                            manual_transformation_filepath=manual_transformation_filepath,
-                                            slice_axis=slice_axis,
-                                            start_end_indices=(start_index, end_index))
-            
+                                            manual_transformation_filepath = manual_transformation_filepath,
+                                            slice_axis = slice_axis,
+                                            start_end_indices=(start_index, end_index))            
             step = 1
             if slice_axis == 1:
                 size = gt_volume.shape[0]
@@ -52,6 +60,7 @@ for f in sorted(os.listdir(parent_directory)):
                 size = gt_volume.shape[1]
             else:
                 size = gt_volume.shape[2]
+
             for z_index in range(0, size, step):
                 # bone_img = us_img_volume[:, :, z_index]
                 if slice_axis == 0:
@@ -71,6 +80,8 @@ for f in sorted(os.listdir(parent_directory)):
                 overlapped_img = cv.addWeighted(bone_img, slice_axis, gt_img, 0.2, 0)
                 cv.imshow("Overlayed", overlapped_img)
                 cv.imshow("Original", bone_img)
+
+                # cv.imwrite("orig.png", bone_img)
 
                 print("Showing image {} / {} with step: {}".format(z_index + 1, end_index - start_index, step))
                 cv.waitKey(0)

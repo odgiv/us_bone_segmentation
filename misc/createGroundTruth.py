@@ -163,17 +163,17 @@ if __name__ == "__main__":
     """
 
     # 13-37-47 13-51-47 14-00-18
-    parent_directory = "H:\\2019_07_17_Ben\\" #"D:\\Data\\IPASM\\bone_data\\phantom_data\\2018_11_23_CAOS_record\\"
+    parent_directory = "H:\\14_02_2019_Ben\\" #"D:\\Data\\IPASM\\bone_data\\phantom_data\\2018_11_23_CAOS_record\\"
     child_directories = [""]
     ground_truth_mesh_file = parent_directory + 'ground_truth.stl'    
     model2bone_transformation_file = parent_directory + 'model2bone.txt'
-    output_directory = "H:\\2019_07_17_Ben_in_vivo\\"
+    output_directory = "H:\\14_02_2019_Ben_in_vivo\\axis-1\\"
 
-    slice_indices_filename = "slice_indices_in_axis_2.txt"
+    slice_indices_filename = "slice_indices_in_axis_1.txt"
     us_img_data_filename = "vol_postProcessedImage_cropped.b8"
     img2thigh_transformation_filename = "image2thighTransformationRefined.txt"
     manual_transformation_filename = "volImg2GtMeshTransformation.txt"
-    slice_axis = 2
+    slice_axis = 1
 
     # Read start and end indices from file for each sub directory.
     slice_indices = {}

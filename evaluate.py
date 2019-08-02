@@ -7,6 +7,7 @@ model_name: name of model to be used.
 
 Usage:
 python evaluate.py -m unet -w C:\\Users\\odgiiv\\tmp\\code\\ultrasound_bone_segmentation_frmwrk\\models\\unet\\model_weights\\unet_val_maxIoU_0.543.h5 -d H:\\in_vivo_imgs_combined -s
+python evaluate.py -m attentionUnet -w ./models/unet/attentionUnet/experiments/experiment_id_4/attentionUnet_epoch_10_val_meanIoU_0.385_meanLoss_0.065.h5 -d /media/dataraid/tensorflow/segm/data/
 """
 import tensorflow as tf
 import argparse
@@ -35,14 +36,12 @@ if __name__ == "__main__":
     if args.model_name == 'segan':
         model_dir = './models/segan'
         sys.path.append(model_dir)
-        from evaluation import evaluate
         from model import SegAN
         model = SegAN().segNet
     
     elif args.model_name == 'unet':
         model_dir = './models/unet'
         sys.path.append(model_dir)
-        from evaluation import evaluate
         from base_model import Unet
         model = Unet()
 
@@ -50,30 +49,23 @@ if __name__ == "__main__":
         sys.path.append('./models/unet')
         model_dir = './models/unet/attentionUnet'
         sys.path.append(model_dir)
-        from evaluation import evaluate
         from model import AttentionalUnet
         model = AttentionalUnet()
 
 
     params.weight_file_path = args.weight_file_path
-
-    # data_loader = DataLoader(dataset_params)
-    # X_test, Y_test = data_loader.loadTestDatasets()
-    x_test_path = os.path.join(args.dataset_path, "val_imgs")
-    y_test_path = os.path.join(args.dataset_path, "val_gts")
+    x_test_path = os.path.join(args.dataset_path, "test_imgs")
+    y_test_path = os.path.join(args.dataset_path, "test_gts")
     test_gen = img_and_mask_generator(x_test_path, y_test_path, batch_size=1, shuffle=False)
 
     x_test_path_data = os.path.join(x_test_path, 'data')
     num_imgs = len([name for name in os.listdir(x_test_path_data) if os.path.isfile(os.path.join(x_test_path_data, name))])
 
-    #test_inputs = input_fn(False, is_eager, X_test, Y_test, params)
-
-    # predict_model_specs = {"unet": model, "dataset": (X_test, Y_test)} #model.model_fn("eval", test_inputs)
-    # evaluate(predict_model_specs, params)
     segmentor_net = model
     IoUs = []
     hds = []
-
+    dices = []
+    
     sess = tf.keras.backend.get_session()
     sess.run(tf.global_variables_initializer())
 
@@ -96,16 +88,11 @@ if __name__ == "__main__":
         pred_np = pred.eval(session=sess)
         pred_np = np.argmax(pred_np, axis=-1)
         pred_np = np.expand_dims(pred_np, -1)
-        # pred = np.squeeze(pred, axis=0)
 
         label[label>=0.5] = 1
         label[label<0.5] = 0        
         label = label.astype('uint8')     
 
-        # print(np.sum(pred_np[label == 1]))
-        # print(float(np.sum(pred_np) + np.sum(label) - np.sum(pred_np[label == 1])))
-        # print(np.sum(label))
-        # print(np.sum(pred_np))
         IoU = np.sum(pred_np[label == 1]) / float(np.sum(pred_np) + np.sum(label) - np.sum(pred_np[label == 1]))
         print("Iou: ", IoU)
         IoUs.append(IoU)
@@ -138,10 +125,10 @@ if __name__ == "__main__":
             I.paste(Image.blend(img.convert("L"), pred_img.convert("L"), 0.2), (img.size[0]*4, 0))
 
             # blank_img = np.zeros((bone_img.shape[0], bone_img.shape[1]*3), np.uint8)
-    # blank_img[:, :bone_img.shape[1]] = bone_img        
-    # blank_img[:, bone_img.shape[1]:bone_img.shape[1]*2] = gt_img        
-    # blank_img[:, bone_img.shape[1]*2:] = overlapped_img
-    # cv.imwrite(os.path.join(output_dir_img, args.prefix + "_" + dir_as_prefix + "_" + str(i) + ".jpg"), blank_img)
+            # blank_img[:, :bone_img.shape[1]] = bone_img        
+            # blank_img[:, bone_img.shape[1]:bone_img.shape[1]*2] = gt_img        
+            # blank_img[:, bone_img.shape[1]*2:] = overlapped_img
+            # cv.imwrite(os.path.join(output_dir_img, args.prefix + "_" + dir_as_prefix + "_" + str(i) + ".jpg"), blank_img)
             
 
             name = 'img_{}_iou_{:.4f}_hausdorf_{:.4f}.jpg'.format(i, IoU, hd)
