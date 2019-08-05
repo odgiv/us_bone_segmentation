@@ -8,8 +8,9 @@ import logging
 
     
 def evaluate(valid_gen, u_net, steps_per_valid_epoch):
-    IoUs = []
+    IoUs = tf.contrib.eager.metrics.Mean()
     hds = tf.contrib.eager.metrics.Mean()
+    dices = tf.contrib.eager.metrics.Mean()
     valid_loss_avg = tf.contrib.eager.metrics.Mean()
     logging.info("Starting validation...")
     current_val_step = 0
@@ -38,19 +39,20 @@ def evaluate(valid_gen, u_net, steps_per_valid_epoch):
 
         for x in range(imgs.shape[0]):
             IoU = np.sum(pred_np[x][labels[x] == 1]) / float(np.sum(pred_np[x]) + np.sum(labels[x]) - np.sum(pred_np[x][labels[x] == 1]))
-            IoUs.append(IoU)
+            dice = np.sum(pred_np[x][labels[x] == 1])*2 / float(np.sum(pred_np[x]) + np.sum(labels[x]))
+            dices(dice)
+            IoUs(IoU)
         
         current_val_step += 1
         if current_val_step == steps_per_valid_epoch:
             break
-
-    IoUs = np.array(IoUs, dtype=np.float64)
-    mIoU = np.mean(IoUs, axis=0)
+            
 
     with tf.contrib.summary.always_record_summaries():
         tf.contrib.summary.scalar("val_avg_hd", hds.result())
         tf.contrib.summary.scalar("val_avg_loss", valid_loss_avg.result())
-        tf.contrib.summary.scalar("val_avg_IoU", mIoU)   
+        tf.contrib.summary.scalar("val_avg_IoU", IoUs.result())   
+        tf.contrib.summary.scalar("val_avg_dice", dices.result())
 
         tf.contrib.summary.image("valid_img", tf.cast(imgs * 255, tf.uint8))
         tf.contrib.summary.image("valid_ground_tr", tf.cast(labels * 255, tf.uint8))
@@ -63,7 +65,7 @@ def evaluate(valid_gen, u_net, steps_per_valid_epoch):
     
     print("loss valid avg {0:.4f}, mIoU on validation set: {1:.4f}, mHd on validation set: {2:.4f}".format(valid_loss_avg.result(), mIoU, hds.result()))
     
-    return mIoU, hds.result(), valid_loss_avg.result()    
+    return IoUs.result(), hds.result(), valid_loss_avg.result(), dices.result()     
 
 
 def train_step(net, imgs, labels, global_step, optimizer):
@@ -85,6 +87,7 @@ def train_step(net, imgs, labels, global_step, optimizer):
 
     batch_hds = []
     batch_IoUs = []
+    batch_dices = []
 
     pred_np = seg_results.numpy() 
     batch_size = pred_np.shape[0]
@@ -101,6 +104,8 @@ def train_step(net, imgs, labels, global_step, optimizer):
         batch_hds.append(hd)
 
         IoU = np.sum(pred_slice[label_slice == 1]) / float(np.sum(pred_slice) + np.sum(label_slice) - np.sum(pred_slice[label_slice == 1]))
+        dice = np.sum(pred_slice[label_slice == 1])*2 / float(np.sum(pred_slice) + np.sum(label_slice))
         batch_IoUs.append(IoU)
+        batch_dices.append(dice)
 
-    return loss, np.mean(batch_hds), np.mean(batch_IoUs)
+    return loss, np.mean(batch_hds), np.mean(batch_IoUs), np.mean(batch_dices)

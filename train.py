@@ -110,7 +110,7 @@ optimizerS = tf.train.AdamOptimizer(learning_rate=decayed_lr)
 epoch_seg_loss_avg = tfe.metrics.Mean()
 epoch_IoU_avg = tfe.metrics.Mean()
 epoch_Hd_avg = tfe.metrics.Mean()
-    
+epoch_dice_avg = tfe.metrics.Mean()
     
 pbar = tqdm(total=steps_per_train_epoch)
 
@@ -124,6 +124,7 @@ for imgs, labels in train_gen:
         epoch_seg_loss_avg = tfe.metrics.Mean()
         epoch_IoU_avg = tfe.metrics.Mean()
         epoch_Hd_avg = tfe.metrics.Mean()       
+        epoch_dice_avg = tfe.metrics.Mean()
 
         save_model_weights_dir = model_dir + '/experiments/' + 'experiment_id_' + str(model_params["experiment_id"])
         if not os.path.isdir(save_model_weights_dir):
@@ -135,11 +136,12 @@ for imgs, labels in train_gen:
     if current_epoch == model_params["num_epochs"] + 1:
         break
     
-    seg_loss, batch_hd, batch_IoU = train_step(segmentor_net, imgs, labels, global_step, optimizerS)    
+    seg_loss, batch_hd, batch_IoU, batch_dice = train_step(segmentor_net, imgs, labels, global_step, optimizerS)    
 
     epoch_seg_loss_avg(seg_loss)
     epoch_Hd_avg(batch_hd)
     epoch_IoU_avg(batch_IoU)
+    epoch_dice_avg(batch_dice)
     tf.assign_add(global_step, 1)
     current_step += 1
     pbar.update(1)
@@ -151,6 +153,7 @@ for imgs, labels in train_gen:
         tf.contrib.summary.scalar("seg_loss", epoch_seg_loss_avg.result())
         tf.contrib.summary.scalar("Hd", epoch_Hd_avg.result())
         tf.contrib.summary.scalar("IoU", epoch_IoU_avg.result())
+        tf.contrib.summary.scalar("Dice", epoch_IoU_avg.result())
 
         seg_results = segmentor_net(tf.image.convert_image_dtype(imgs, tf.float32))
         seg_results = tf.argmax(seg_results, axis=-1, output_type=tf.int32)
