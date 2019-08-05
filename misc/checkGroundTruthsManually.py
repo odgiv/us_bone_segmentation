@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import cv2 as cv
+from PIL import Image
 from processUsData import read_us_data
 from createGroundTruth import generate_gt_volume
 
@@ -72,17 +73,18 @@ for f in sorted(os.listdir(parent_directory)):
                 else:
                     bone_img = us_image_data[:, :, start_index:end_index][:, :, z_index]
                     gt_img = np.uint8(np.transpose(gt_volume, (1, 0, 2))[:, :, z_index] * 255)
-                
+                                
 
-                # Read image from numpy array as greyscale
-                # gt_img = np.uint8(gt_volume[:, :, z_index].T * 255)
+                # overlapped_img = cv.addWeighted(bone_img, slice_axis, gt_img, 0.2, 0)
+                # cv.imshow("Overlayed", overlapped_img)
+                # cv.imshow("Original", bone_img)                
+                # print("Showing image {} / {} with step: {}".format(z_index + 1, end_index - start_index, step))
+                # cv.waitKey(0)
+                # cv.destroyAllWindows()
 
-                overlapped_img = cv.addWeighted(bone_img, slice_axis, gt_img, 0.2, 0)
-                cv.imshow("Overlayed", overlapped_img)
-                cv.imshow("Original", bone_img)
-
-                # cv.imwrite("orig.png", bone_img)
-
+                bone_img = Image.fromarray(bone_img)
+                gt_img = Image.fromarray(gt_img)
+                overlapped_img = Image.blend(bone_img, gt_img, 0.2)
+                overlapped_img.show()
                 print("Showing image {} / {} with step: {}".format(z_index + 1, end_index - start_index, step))
-                cv.waitKey(0)
-                cv.destroyAllWindows()
+                input("Press Enter to continue...")

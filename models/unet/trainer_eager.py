@@ -63,7 +63,7 @@ def evaluate(valid_gen, u_net, steps_per_valid_epoch):
     
     print("loss valid avg {0:.4f}, mIoU on validation set: {1:.4f}, mHd on validation set: {2:.4f}".format(valid_loss_avg.result(), mIoU, hds.result()))
     
-    return mIoU, valid_loss_avg.result()    
+    return mIoU, hds.result(), valid_loss_avg.result()    
 
 
 def train_step(net, imgs, labels, global_step, optimizer):

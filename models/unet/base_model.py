@@ -7,7 +7,6 @@
 import tensorflow as tf
 from tensorflow.python.keras.models import Model, Sequential
 from tensorflow.python.keras.layers import Input, Conv2D, UpSampling2D, MaxPooling2D, Cropping2D, concatenate, ZeroPadding2D, ReLU, BatchNormalization, Dropout
-from tensorflow.python.keras.regularizers import l2
 from utils import get_crop_shape, hausdorf_distance, unet_conv2d
 import numpy as np
 

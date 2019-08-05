@@ -124,70 +124,13 @@ def find_breaking_points_from_top(img, gt):
 
     return left_most_point_from_top, right_most_point_from_top
 
-
-# def find_breaking_points_from_bottom(img, gt):
-#     center_in_x = round(gt.shape[1] / 2)
-
-#     left_most_point_from_btm = None
-#     right_most_point_from_btm = None
-
-#     for i in range(gt.shape[0]-1, 0, -1):
-#         l_rr_btm, l_cc_btm = line(gt.shape[0]-1, center_in_x, i, 0)
-#         r_rr_btm, r_cc_btm = line(gt.shape[0]-1, center_in_x, i, gt.shape[1] - 1)
-        
-#         if not left_most_point_from_btm:
-#             for (lr, lc) in zip(l_rr_btm, l_cc_btm):
-#                 if left_most_point_from_btm == None and gt[lr, lc] == 1:
-#                     left_most_point_from_btm = (lr, lc)
-#                     break
-
-#         if not right_most_point_from_btm:
-#             for (rr, rc) in zip(r_rr_btm, r_cc_btm):
-#                 if right_most_point_from_btm == None and gt[rr, rc] == 1:
-#                     right_most_point_from_btm = (rr, rc)
-#                     break
-        
-#         if left_most_point_from_btm and right_most_point_from_btm:
-#             break
-    
-    
-#     if left_most_point_from_btm == None:
-#         for i in range(round(gt.shape[1] / 2)):
-#             l_rr_btm, l_cc_btm = line(gt.shape[0]-1, center_in_x, 0, i)
-#             for (lr, lc) in zip(l_rr_btm, l_cc_btm):
-#                 if left_most_point_from_btm == None and gt[lr, lc] == 1:
-#                     left_most_point_from_btm = (lr, lc)
-#                     break
-
-#             if left_most_point_from_btm:
-#                 break
-    
-#     if right_most_point_from_btm == None:
-#         for i in range(gt.shape[1] - 1, round(gt.shape[1] / 2), -1):
-#             r_rr_btm, r_cc_btm = line(gt.shape[0]-1, center_in_x, 0, i)
-#             for (rr, rc) in zip(r_rr_btm, r_cc_btm):
-#                 if right_most_point_from_btm == None and gt[rr, rc] == 1:
-#                     right_most_point_from_btm = (rr, rc)
-#                     break
-            
-#             if right_most_point_from_btm:
-#                 break
-
-#     return left_most_point_from_btm, right_most_point_from_btm
-
-
-def clear_gt_below_breaking_point_from_top(img, gt):
-    center_in_x = round(gt.shape[1] / 2)
+def clear_gt_below_breaking_point_from_top(img, gt):    
 
     left_most_point_from_top, right_most_point_from_top = find_breaking_points_from_top(img, gt)    
 
-    # l_rr, l_cc = line(0, center_in_x, left_most_point_from_top[0], left_most_point_from_top[1])
-    # r_rr, r_cc = line(0, center_in_x, right_most_point_from_top[0], right_most_point_from_top[1])
-    # gt[l_rr, l_cc] = 1
-    # gt[r_rr, r_cc] = 1
     if left_most_point_from_top and right_most_point_from_top:
-        lb_rr, lb_cc = line(left_most_point_from_top[0], left_most_point_from_top[1], gt.shape[0] - 1, center_in_x)
-        rb_rr, rb_cc = line(right_most_point_from_top[0], right_most_point_from_top[1], gt.shape[0] - 1, center_in_x)
+        lb_rr, lb_cc = line(left_most_point_from_top[0], left_most_point_from_top[1], gt.shape[0] - 1, round(gt.shape[1] / 2))
+        rb_rr, rb_cc = line(right_most_point_from_top[0], right_most_point_from_top[1], gt.shape[0] - 1, round(gt.shape[1] / 2))
         
         for (lb_r, lb_c) in zip(lb_rr, lb_cc):
             gt[lb_r:, :lb_c] = 0
@@ -195,9 +138,7 @@ def clear_gt_below_breaking_point_from_top(img, gt):
         for (rb_r, rb_c) in zip(rb_rr, rb_cc):
             gt[rb_r:, rb_c:] = 0
     
-    # gt[lb_rr, lb_cc] = 1
-    # gt[rb_rr, rb_cc] = 1
-    
+       
     return gt
 
 def preprocess_gt(img, gt_img, is_threshold, is_clear_below_bps):
@@ -235,7 +176,7 @@ if __name__ == "__main__":
 
         gt_vol_copy[:,:,i] = gt_img
 
-    h5f = h5py.File(os.path.join(args.output_dir, "us_gt_vol_new.h5"), 'w')
+    h5f = h5py.File(os.path.join(args.output_dir, "us_gt_vol.h5"), 'w')
     h5f.create_dataset('gt_vol', data=gt_vol_copy)
     h5f.create_dataset('us_vol', data=us_vol)
     h5f.close()    

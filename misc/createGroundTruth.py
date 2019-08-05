@@ -163,11 +163,11 @@ if __name__ == "__main__":
     """
 
     # 13-37-47 13-51-47 14-00-18
-    parent_directory = "H:\\14_02_2019_Ben\\" #"D:\\Data\\IPASM\\bone_data\\phantom_data\\2018_11_23_CAOS_record\\"
+    parent_directory = "H:\\09_05_2019_in_vivo_record_Ben\\" #"D:\\Data\\IPASM\\bone_data\\phantom_data\\2018_11_23_CAOS_record\\"
     child_directories = [""]
     ground_truth_mesh_file = parent_directory + 'ground_truth.stl'    
     model2bone_transformation_file = parent_directory + 'model2bone.txt'
-    output_directory = "H:\\14_02_2019_Ben_in_vivo\\axis-1\\"
+    output_directory = "H:\\09_05_2019_Ben_in_vivo\\axis-1"
 
     slice_indices_filename = "slice_indices_in_axis_1.txt"
     us_img_data_filename = "vol_postProcessedImage_cropped.b8"
@@ -217,18 +217,32 @@ if __name__ == "__main__":
             os.makedirs(os.path.join(output_directory, f))
 
         h5f = h5py.File(os.path.join(output_directory, f, "us_gt_vol.h5"), 'w')
-        h5f.create_dataset('us_vol', data=us_image_data[:, :, start_index:end_index])
-        h5f.create_dataset('gt_vol', data=gt_volume)
+        if slice_axis == 2:
+            h5f.create_dataset('us_vol', data=us_image_data[:, :, start_index:end_index])
+            h5f.create_dataset('gt_vol', data=np.transpose(gt_volume, (1,2,0)))
+        elif slice_axis == 1:
+            h5f.create_dataset('us_vol', data=np.transpose(us_image_data[:, start_index:end_index, :], (0,2,1)))
+            h5f.create_dataset('gt_vol', data=np.transpose(gt_volume, (1,2,0)))
         h5f.close()
         print("written a h5 file.")
 
         # step = 1
         # print("gt_volume shape: ", gt_volume.shape)
-        # for z_index in range(0, gt_volume.shape[-1], step):
-        #     bone_img = Image.fromarray(us_image_data[:, :, start_index:end_index][:, :, z_index])
-        #     # Read image from numpy array as greyscale
-        #     gt_img = Image.fromarray(
-        #         np.uint8(np.transpose(gt_volume, (1, 0, 2))[:, :, z_index] * 255), 'L')
+        # if slice_axis == 1:
+        #     size = gt_volume.shape[0]
+        # elif slice_axis == 0:
+        #     size = gt_volume.shape[1]
+        # else:
+        #     size = gt_volume.shape[2]
+            
+        # for z_index in range(0, size, step):
+        #     if slice_axis == 2:
+        #         bone_img = Image.fromarray(us_image_data[:, :, start_index:end_index][:, :, z_index])
+        #         # Read image from numpy array as greyscale
+        #         gt_img = Image.fromarray(np.uint8(np.transpose(gt_volume, (1, 0, 2))[:, :, z_index] * 255), 'L')
+        #     elif slice_axis == 1:
+        #         bone_img = Image.fromarray(us_image_data[:, start_index:end_index, :][:, z_index, :])
+        #         gt_img = Image.fromarray(np.uint8(np.transpose(gt_volume, (1, 2, 0))[:, :, z_index] * 255), 'L')
 
         #     overlapped_img = Image.blend(bone_img, gt_img, 0.3)
         #     overlapped_img.show()

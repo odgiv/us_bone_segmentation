@@ -14,10 +14,10 @@ from utils import img_and_mask_generator
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--output_dir_img", "-odi", type=str, default="H:\\14_02_2019_Ben_in_vivo_imgs\\overlapped_imgs_1")
-parser.add_argument("--output_dir_gt", "-odg", type=str, default="H:\\14_02_2019_Ben_in_vivo_imgs\\gts")
+parser.add_argument("--output_dir_img", "-odi", type=str, default="H:\\14_02_2019_Ben_in_vivo_imgs\\ax1\\imgs")
+parser.add_argument("--output_dir_gt", "-odg", type=str, default="H:\\14_02_2019_Ben_in_vivo_imgs\\ax1\\gts")
 parser.add_argument("--file_path", "-f", type=str, required=True, help="Images are stored in h5 file.")
-parser.add_argument("--prefix", "-pre", type=str, default="14_02_2019_Ben")
+parser.add_argument("--prefix", "-pre", type=str, default="14_02_2019_Ben_ax1")
 parser.add_argument("--start_index", "-s", type=int, default=0)
 parser.add_argument("--end_index", "-e", type=int, default=None)
 parser.add_argument("--preprocess_gt", "-p", dest="preprocess_gt", default=False, action='store_true'),
@@ -33,7 +33,7 @@ def generate_original_and_overlayed_imgs(gt_volume, us_img_volume, start_index=0
     
     us_img_volume = np.transpose(us_img_volume, [2, 0, 1])
     us_img_volume = np.expand_dims(us_img_volume, -1)
-    gt_volume = np.transpose(gt_volume, [2, 1, 0])
+    gt_volume = np.transpose(gt_volume, [2, 0, 1])
     gt_volume = np.expand_dims(gt_volume, -1)
     
     gen = img_and_mask_generator(us_img_volume, gt_volume, batch_size=1, shuffle=False)
@@ -92,6 +92,7 @@ for bone_img, gt_img, overlapped_img in generate_original_and_overlayed_imgs(gt,
     # blank_img[:, :bone_img.shape[1]] = bone_img        
     # blank_img[:, bone_img.shape[1]:bone_img.shape[1]*2] = gt_img        
     # blank_img[:, bone_img.shape[1]*2:] = overlapped_img
+
     cv.imwrite(os.path.join(output_dir_img, args.prefix + "_" + dir_as_prefix + "_" + str(i) + ".jpg"), overlapped_img)
 
     # cv.imwrite(os.path.join(output_dir_gt, args.prefix + "_" + dir_as_prefix + "_" + str(i) + ".jpg"), gt_img)

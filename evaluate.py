@@ -16,8 +16,6 @@ import sys
 import json
 import numpy as np
 from PIL import Image
-from data_loader import DataLoader
-from input_fn import input_fn
 from utils import Params, img_and_mask_generator, delete_dir_content, hausdorf_distance
 
 parser = argparse.ArgumentParser()
@@ -26,20 +24,12 @@ parser.add_argument("-d", "--dataset_path", required=True)
 parser.add_argument("-w", "--weight_file_path", help="Full path to the weight file.")
 parser.add_argument("-s", "--store_imgs", default=False, action='store_true')
 
-params = Params("./params.json")
-
 if __name__ == "__main__":
-
-    args = parser.parse_args()
-    assert(args.model_name in ['unet', 'segan', 'attentionUnet'])
-
-    if args.model_name == 'segan':
-        model_dir = './models/segan'
-        sys.path.append(model_dir)
-        from model import SegAN
-        model = SegAN().segNet
     
-    elif args.model_name == 'unet':
+    args = parser.parse_args()
+    assert(args.model_name in ['unet', 'attentionUnet'])
+   
+    if args.model_name == 'unet':
         model_dir = './models/unet'
         sys.path.append(model_dir)
         from base_model import Unet
@@ -52,8 +42,10 @@ if __name__ == "__main__":
         from model import AttentionalUnet
         model = AttentionalUnet()
 
-
-    params.weight_file_path = args.weight_file_path
+    img_h = 465
+    img_w = 381
+    test_results_path = os.path.join(model_dir, "test_results", "new_results")
+    weight_file_path = args.weight_file_path
     x_test_path = os.path.join(args.dataset_path, "test_imgs")
     y_test_path = os.path.join(args.dataset_path, "test_gts")
     test_gen = img_and_mask_generator(x_test_path, y_test_path, batch_size=1, shuffle=False)
@@ -72,13 +64,13 @@ if __name__ == "__main__":
     weight_file_path = args.weight_file_path
 
     segmentor_net.compile(optimizer='adam', loss='sparse_categorical_crossentropy')
-    segmentor_net.fit(x=np.zeros((1, params.img_h, params.img_w, 1)), y=np.zeros((1, params.img_h, params.img_w, 1)), epochs=0, steps_per_epoch=0)
+    segmentor_net.fit(x=np.zeros((1, img_h, img_w, 1)), y=np.zeros((1, img_h, img_w, 1)), epochs=0, steps_per_epoch=0)
     segmentor_net.load_weights(weight_file_path)
 
-    if not os.path.isdir(params.test_results_path):
-        os.makedirs(params.test_results_path)
+    if not os.path.isdir(test_results_path):
+        os.makedirs(test_results_path)
     elif args.store_imgs:
-        delete_dir_content(params.test_results_path)
+        delete_dir_content(test_results_path)
 
     i = 0
     for img, label in test_gen:
@@ -132,7 +124,7 @@ if __name__ == "__main__":
             
 
             name = 'img_{}_iou_{:.4f}_hausdorf_{:.4f}.jpg'.format(i, IoU, hd)
-            I.save(os.path.join(params.test_results_path, name))
+            I.save(os.path.join(test_results_path, name))
         i += 1
 
         if num_imgs == i:

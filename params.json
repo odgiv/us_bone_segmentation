@@ -1,8 +1,0 @@
-{
-  "img_h": 465,
-  "img_w": 381,
-  "test_results_path": "C:\\Users\\odgiiv\\tmp\\code\\ultrasound_bone_segmentation_frmwrk\\models\\unet\\test_results\\new_results\\",
-  "train_size": 3045,
-  "valid_size": 70,
-  "test_size": 250
-}

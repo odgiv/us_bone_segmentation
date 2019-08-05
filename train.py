@@ -9,8 +9,6 @@ import json
 import numpy as np
 import tensorflow as tf
 from utils import Params, set_logger, delete_dir_content, augmented_img_and_mask_generator, img_and_mask_generator
-from data_loader import DataLoader
-from input_fn import input_fn
 from tqdm import tqdm
 from datetime import datetime
 
@@ -37,11 +35,14 @@ parser.add_argument("-l2", "--l2_regularizer", type=float, default=0.0)
 args = parser.parse_args()
 assert(args.model_name in ['unet', 'attentionUnet'])
 assert(os.path.exists(args.datasets_dir))
- 
+
+sys.path.append('./models/unet')
+from trainer_eager import train_step, evaluate
+
 if args.model_name == 'unet':
     model_dir = './models/unet'
-    sys.path.append(model_dir)
-    from trainer_eager import train_step, evaluate
+    # sys.path.append(model_dir)
+    
     from base_model import Unet
     segmentor_net = Unet(l2_value=args.l2_regularizer)
 
@@ -50,7 +51,7 @@ elif args.model_name == 'attentionUnet':
     # model_dir = os.path.join('./models/unet/', args.model_name)
     model_dir = './models/attentionUnet'
     sys.path.append(model_dir)
-    from trainer_eager import train_step, evaluate
+    # from trainer_eager import train_step, evaluate
     from model import AttentionalUnet
     segmentor_net = AttentionalUnet(l2_value=args.l2_regularizer)
 
@@ -70,13 +71,13 @@ y_train_path = os.path.join(args.datasets_dir, 'gts')
 x_valid_path = os.path.join(args.datasets_dir, 'val_imgs')
 y_valid_path = os.path.join(args.datasets_dir, 'val_gts')
 
-num_train_imgs = len([name for name in os.listdir(x_train_path) if os.path.isfile(os.path.join(x_train_path, name))])
-num_train_lbls = len([name for name in os.listdir(y_train_path) if os.path.isfile(os.path.join(y_train_path, name))])
+num_train_imgs = len([name for name in os.listdir(os.path.join(x_train_path, 'data')) if os.path.isfile(os.path.join(x_train_path, 'data', name))])
+num_train_lbls = len([name for name in os.listdir(os.path.join(y_train_path, 'data')) if os.path.isfile(os.path.join(y_train_path, 'data', name))])
 
 assert(num_train_imgs == num_train_lbls)
 
-num_valid_imgs = len([name for name in os.listdir(x_train_path) if os.path.isfile(os.path.join(x_train_path, name))])
-num_valid_lbls = len([name for name in os.listdir(y_train_path) if os.path.isfile(os.path.join(y_train_path, name))])
+num_valid_imgs = len([name for name in os.listdir(os.path.join(x_train_path, 'data')) if os.path.isfile(os.path.join(x_train_path, 'data', name))])
+num_valid_lbls = len([name for name in os.listdir(os.path.join(y_train_path, 'data')) if os.path.isfile(os.path.join(y_train_path, 'data', name))])
 
 assert(num_valid_imgs == num_valid_lbls)
 
@@ -92,6 +93,8 @@ valid_gen = img_and_mask_generator(x_valid_path, y_valid_path, batch_size=model_
 steps_per_train_epoch = int(model_params["train_size"] / model_params["batch_size"])
 steps_per_valid_epoch = int(model_params["eval_size"] / model_params["batch_size"])
 
+print("steps per train epoch", steps_per_train_epoch)
+print("steps per valid epoch", steps_per_valid_epoch)
 # train_and_evaluate(model, model_params, summary_writer, train_gen, valid_gen, steps_per_train_epoch, steps_per_valid_epoch)
 lr = model_params["learning_rate"]
 l2 = model_params["l2_regularizer"]
@@ -102,7 +105,8 @@ current_epoch = 0
 max_mean_IoU = 0.0
 global_step = tf.train.get_or_create_global_step()
 
-optimizerS = tf.train.AdamOptimizer(learning_rate=lr)
+decayed_lr = tf.train.exponential_decay(lr, global_step, 2 * (steps_per_train_epoch), 0.5, staircase=True)
+optimizerS = tf.train.AdamOptimizer(learning_rate=decayed_lr)
 epoch_seg_loss_avg = tfe.metrics.Mean()
 epoch_IoU_avg = tfe.metrics.Mean()
 epoch_Hd_avg = tfe.metrics.Mean()
