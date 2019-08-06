@@ -154,7 +154,7 @@ for imgs, labels in train_gen:
 
     with tf.contrib.summary.record_summaries_every_n_global_steps(model_params["save_summary_steps"]):
         
-        print("step {}, seg_loss {:.4f}, batch_hd {:.4f}, batch_IoU {:.4f}, batch_dice {:.4f}, batch_combi {:.4f}".format(current_step, seg_loss, batch_hd, batch_IoU, batch_dice, batch_combi))
+        
             
         tf.contrib.summary.image("train_img", tf.cast(imgs * 255, tf.uint8))
         tf.contrib.summary.image("ground_tr", tf.cast(labels * 255, tf.uint8))
@@ -166,7 +166,10 @@ for imgs, labels in train_gen:
 
         tf.contrib.summary.scalar("lr", learning_rate)
 
-        seg_results = segmentor_net(tf.image.convert_image_dtype(imgs, tf.float32))
-        seg_results = tf.argmax(seg_results, axis=-1, output_type=tf.int32)
-        seg_results = tf.expand_dims(seg_results, -1)
-        tf.contrib.summary.image("seg_result", tf.cast(seg_results * 255, tf.uint8))
+        if global_step % model_params["save_summary_steps"] == 0:
+            print("step {}, seg_loss {:.4f}, batch_hd {:.4f}, batch_IoU {:.4f}, batch_dice {:.4f}, batch_combi {:.4f}".format(current_step, seg_loss, batch_hd, batch_IoU, batch_dice, batch_combi))
+            seg_results = segmentor_net(tf.image.convert_image_dtype(imgs, tf.float32))
+            seg_results = tf.argmax(seg_results, axis=-1, output_type=tf.int32)
+            seg_results = tf.expand_dims(seg_results, -1)
+
+            tf.contrib.summary.image("seg_result", tf.cast(seg_results * 255, tf.uint8))
