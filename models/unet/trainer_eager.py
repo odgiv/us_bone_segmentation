@@ -42,7 +42,10 @@ def evaluate(valid_gen, u_net, steps_per_valid_epoch):
             IoU = np.sum(pred_np[x][labels[x] == 1]) / float(np.sum(pred_np[x]) + np.sum(labels[x]) - np.sum(pred_np[x][labels[x] == 1]))
             dice = np.sum(pred_np[x][labels[x] == 1])*2 / float(np.sum(pred_np[x]) + np.sum(labels[x]))
 
-            combi = 100 * (1-IoU) + hd + 100 * (1 - (np.sum(pred_np[x]) / np.sum(labels[x])))
+            if np.sum(labels[x]) > 0:
+                combi = 100 * (1-IoU) + hd + 100 * (1 - (np.sum(pred_np[x]) / np.sum(labels[x])))
+            else:
+                combi = 100 * (1-IoU) + hd
 
             hds(hd)
             dices(dice)
