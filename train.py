@@ -150,11 +150,11 @@ for imgs, labels in train_gen:
     epoch_combi_avg(batch_combi)
     tf.assign_add(global_step, 1)
     current_step += 1
-    # pbar.update(1)
-
-    print("step {}, seg_loss {:.4f}, batch_hd {:.4f}, batch_IoU {:.4f}, batch_dice {:.4f}, batch_combi {:.4f}".format(current_step, seg_loss, batch_hd, batch_IoU, batch_dice, batch_combi))
+    # pbar.update(1)    
 
     with tf.contrib.summary.record_summaries_every_n_global_steps(model_params["save_summary_steps"]):
+        
+        print("step {}, seg_loss {:.4f}, batch_hd {:.4f}, batch_IoU {:.4f}, batch_dice {:.4f}, batch_combi {:.4f}".format(current_step, seg_loss, batch_hd, batch_IoU, batch_dice, batch_combi))
             
         tf.contrib.summary.image("train_img", tf.cast(imgs * 255, tf.uint8))
         tf.contrib.summary.image("ground_tr", tf.cast(labels * 255, tf.uint8))
