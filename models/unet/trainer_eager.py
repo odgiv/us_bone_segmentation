@@ -1,7 +1,7 @@
 import tensorflow as tf
 import numpy as np
 import os
-from tqdm import tqdm
+from tqdm import tqdm_notebook as tqdm
 from utils import augmented_img_and_mask_generator, img_and_mask_generator, hausdorf_distance
 from datetime import datetime
 import logging
