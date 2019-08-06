@@ -134,7 +134,7 @@ for imgs, labels in train_gen:
             os.makedirs(save_model_weights_dir)
         print("current lr ", learning_rate.numpy())
         print("Saving weights to ", save_model_weights_dir)
-        segmentor_net.save_weights(save_model_weights_dir  + '/' + model_params["model_name"] + '_epoch_' + str(current_epoch) + '_val_meanIoU_{:.3f}_meanLoss_{:.3f}_meanHd_{:.3f}_meanDice_{:.3f}.h5'.format(val_mean_IoU, val_mean_loss, val_mean_hd, val_mean_dice))
+        segmentor_net.save_weights(save_model_weights_dir  + '/' + model_params["model_name"] + '_epoch_' + str(current_epoch) + '_val_meanIoU_{:.3f}_meanLoss_{:.3f}_meanHd_{:.3f}_meanDice_{:.3f}_mCombi_{:.3f}.h5'.format(val_mean_IoU, val_mean_loss, val_mean_hd, val_mean_dice, val_combi))
 
     if current_epoch == model_params["num_epochs"] + 1:
         break
