@@ -119,7 +119,7 @@ epoch_combi_avg = tfe.metrics.Mean()
 for imgs, labels in train_gen:
 
     if current_step == steps_per_train_epoch:
-        val_mean_IoU, val_mean_hd, val_mean_loss, val_mean_dice = evaluate(valid_gen, segmentor_net, steps_per_valid_epoch)
+        val_mean_IoU, val_mean_hd, val_mean_loss, val_mean_dice, val_combi = evaluate(valid_gen, segmentor_net, steps_per_valid_epoch)
         current_epoch += 1
         current_step = 0
         # pbar.n = 1
@@ -153,9 +153,7 @@ for imgs, labels in train_gen:
     current_step += 1
     # pbar.update(1)    
 
-    with tf.contrib.summary.record_summaries_every_n_global_steps(model_params["save_summary_steps"]):
-        
-        
+    with tf.contrib.summary.record_summaries_every_n_global_steps(model_params["save_summary_steps"]):       
             
         tf.contrib.summary.image("train_img", tf.cast(imgs * 255, tf.uint8))
         tf.contrib.summary.image("ground_tr", tf.cast(labels * 255, tf.uint8))
