@@ -9,7 +9,7 @@ import json
 import numpy as np
 import tensorflow as tf
 from utils import Params, set_logger, delete_dir_content, augmented_img_and_mask_generator, img_and_mask_generator
-from tqdm import tqdm
+from tqdm import tqdm_notebook as tqdm
 from datetime import datetime
 
 opts = tf.GPUOptions(per_process_gpu_memory_fraction = 1.0)

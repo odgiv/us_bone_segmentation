@@ -16,6 +16,7 @@ def evaluate(valid_gen, u_net, steps_per_valid_epoch):
     valid_loss_avg = tf.contrib.eager.metrics.Mean()
     logging.info("Starting validation...")
     current_val_step = 0
+    pbar = tqdm(total = steps_per_valid_epoch)
     for imgs, labels in valid_gen:        
      
         labels[labels>=0.5] = 1.
@@ -53,6 +54,7 @@ def evaluate(valid_gen, u_net, steps_per_valid_epoch):
             combis(combi)
 
         current_val_step += 1
+        pbar.update()
         if current_val_step == steps_per_valid_epoch:
             break
             
