@@ -18,7 +18,7 @@ from scipy.ndimage.interpolation import map_coordinates
 from scipy.ndimage.filters import gaussian_filter
 from tensorflow.python.keras.preprocessing.image import ImageDataGenerator
 from skimage.transform import rotate
-from albumentations.augmentations.transforms import ElasticTransform
+# from albumentations.augmentations.transforms import ElasticTransform
 
 def unet_conv2d(nb_filters, kernel=(3, 3), activation="relu", padding="same", kernel_regularizer=l2(0.0), use_batch_norm=False, drop_rate=0.0):
     conv2d_1 = Conv2D(nb_filters, kernel, padding=padding, activation="relu", kernel_regularizer=kernel_regularizer)

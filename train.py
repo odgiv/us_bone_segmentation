@@ -139,8 +139,8 @@ for imgs, labels in train_gen:
     
     seg_loss, batch_hd, batch_IoU, batch_dice, batch_combi = train_step(segmentor_net, imgs, labels, global_step, optimizerS)    
 
-    if args.ld > 0.0:
-        learning_rate.assign(tf.train.exponential_decay(lr, global_step, 5000, decay_rate=args.ld)())
+    if args.learning_rate_decay > 0.0:
+        learning_rate.assign(tf.train.exponential_decay(lr, global_step, 5000, decay_rate=args.learning_rate_decay)())
 
     epoch_seg_loss_avg(seg_loss)
     epoch_Hd_avg(batch_hd)
