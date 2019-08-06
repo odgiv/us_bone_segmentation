@@ -148,7 +148,7 @@ for imgs, labels in train_gen:
     epoch_IoU_avg(batch_IoU)
     epoch_dice_avg(batch_dice)
     epoch_combi_avg(batch_combi)
-    tf.assign_add(global_step, 1)
+    # tf.assign_add(global_step, 1)
     current_step += 1
     # pbar.update(1)    
 
@@ -168,8 +168,9 @@ for imgs, labels in train_gen:
 
         if global_step.numpy() % model_params["save_summary_steps"] == 0:
             print("step {}, seg_loss {:.4f}, batch_hd {:.4f}, batch_IoU {:.4f}, batch_dice {:.4f}, batch_combi {:.4f}".format(current_step, seg_loss, batch_hd, batch_IoU, batch_dice, batch_combi))
-            seg_results = segmentor_net(tf.image.convert_image_dtype(imgs, tf.float32))
-            seg_results = tf.argmax(seg_results, axis=-1, output_type=tf.int32)
-            seg_results = tf.expand_dims(seg_results, -1)
+    
+        # seg_results = segmentor_net(tf.image.convert_image_dtype(imgs, tf.float32))
+        # seg_results = tf.argmax(seg_results, axis=-1, output_type=tf.int32)
+        # seg_results = tf.expand_dims(seg_results, -1)
 
-            tf.contrib.summary.image("seg_result", tf.cast(seg_results * 255, tf.uint8))
+        # tf.contrib.summary.image("seg_result", tf.cast(seg_results * 255, tf.uint8))
