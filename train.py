@@ -76,8 +76,8 @@ num_train_lbls = len([name for name in os.listdir(os.path.join(y_train_path, 'da
 
 assert(num_train_imgs == num_train_lbls)
 
-num_valid_imgs = len([name for name in os.listdir(os.path.join(x_train_path, 'data')) if os.path.isfile(os.path.join(x_train_path, 'data', name))])
-num_valid_lbls = len([name for name in os.listdir(os.path.join(y_train_path, 'data')) if os.path.isfile(os.path.join(y_train_path, 'data', name))])
+num_valid_imgs = len([name for name in os.listdir(os.path.join(x_train_path, 'data')) if os.path.isfile(os.path.join(x_valid_path, 'data', name))])
+num_valid_lbls = len([name for name in os.listdir(os.path.join(y_train_path, 'data')) if os.path.isfile(os.path.join(y_valid_path, 'data', name))])
 
 assert(num_valid_imgs == num_valid_lbls)
 
@@ -121,7 +121,8 @@ for imgs, labels in train_gen:
         val_mean_IoU, val_mean_hd, val_mean_loss, val_mean_dice = evaluate(valid_gen, segmentor_net, steps_per_valid_epoch)
         current_epoch += 1
         current_step = 0
-        pbar.reset()
+        pbar.n = 1
+        pbar.last_print_n = 1
         epoch_seg_loss_avg = tfe.metrics.Mean()
         epoch_IoU_avg = tfe.metrics.Mean()
         epoch_Hd_avg = tfe.metrics.Mean()       
@@ -130,7 +131,7 @@ for imgs, labels in train_gen:
         save_model_weights_dir = model_dir + '/experiments/' + 'experiment_id_' + str(model_params["experiment_id"])
         if not os.path.isdir(save_model_weights_dir):
             os.makedirs(save_model_weights_dir)
-        print("current lr ", optimizerS._lr())
+        print("current lr ", learning_rate.numpy())
         print("Saving weights to ", save_model_weights_dir)
         segmentor_net.save_weights(save_model_weights_dir  + '/' + model_params["model_name"] + '_epoch_' + str(current_epoch) + '_val_meanIoU_{:.3f}_meanLoss_{:.3f}_meanHd_{:.3f}_meanDice_{:.3f}.h5'.format(val_mean_IoU, val_mean_loss, val_mean_hd, val_mean_dice))
 
