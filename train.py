@@ -113,7 +113,7 @@ epoch_Hd_avg = tfe.metrics.Mean()
 epoch_dice_avg = tfe.metrics.Mean()
 epoch_combi_avg = tfe.metrics.Mean()
     
-pbar = tqdm(total=steps_per_train_epoch)
+# pbar = tqdm(total=steps_per_train_epoch)
 
 for imgs, labels in train_gen:
 
@@ -150,7 +150,9 @@ for imgs, labels in train_gen:
     epoch_combi_avg(batch_combi)
     tf.assign_add(global_step, 1)
     current_step += 1
-    pbar.update(1)
+    # pbar.update(1)
+
+    print("seg_loss {:.4f}, batch_hd {:.4f}, batch_IoU {:.4f}, batch_dice {:.4f}, batch_combi {:.4f}".format(seg_loss, batch_hd, batch_IoU, batch_dice, batch_combi))
 
     with tf.contrib.summary.record_summaries_every_n_global_steps(model_params["save_summary_steps"]):
             
