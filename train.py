@@ -76,8 +76,8 @@ num_train_lbls = len([name for name in os.listdir(os.path.join(y_train_path, 'da
 
 assert(num_train_imgs == num_train_lbls)
 
-num_valid_imgs = len([name for name in os.listdir(os.path.join(x_train_path, 'data')) if os.path.isfile(os.path.join(x_valid_path, 'data', name))])
-num_valid_lbls = len([name for name in os.listdir(os.path.join(y_train_path, 'data')) if os.path.isfile(os.path.join(y_valid_path, 'data', name))])
+num_valid_imgs = len([name for name in os.listdir(os.path.join(x_valid_path, 'data')) if os.path.isfile(os.path.join(x_valid_path, 'data', name))])
+num_valid_lbls = len([name for name in os.listdir(os.path.join(y_valid_path, 'data')) if os.path.isfile(os.path.join(y_valid_path, 'data', name))])
 
 assert(num_valid_imgs == num_valid_lbls)
 
