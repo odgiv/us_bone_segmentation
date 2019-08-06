@@ -152,7 +152,7 @@ for imgs, labels in train_gen:
     current_step += 1
     # pbar.update(1)
 
-    print("seg_loss {:.4f}, batch_hd {:.4f}, batch_IoU {:.4f}, batch_dice {:.4f}, batch_combi {:.4f}".format(seg_loss, batch_hd, batch_IoU, batch_dice, batch_combi))
+    print("step {}, seg_loss {:.4f}, batch_hd {:.4f}, batch_IoU {:.4f}, batch_dice {:.4f}, batch_combi {:.4f}".format(current_step, seg_loss, batch_hd, batch_IoU, batch_dice, batch_combi))
 
     with tf.contrib.summary.record_summaries_every_n_global_steps(model_params["save_summary_steps"]):
             
