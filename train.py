@@ -31,6 +31,7 @@ parser.add_argument("-n", "--num_epochs", type=int, default=300)
 parser.add_argument("-s", "--save_summary_steps", type=int, default=200)
 parser.add_argument("-id", "--experiment_id", type=int, required=True)
 parser.add_argument("-l2", "--l2_regularizer", type=float, default=0.0)
+parser.add_argument("-b1", "--beta_1", type=float, default=0.9)
 
 args = parser.parse_args()
 assert(args.model_name in ['unet', 'attentionUnet'])

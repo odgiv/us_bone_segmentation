@@ -56,7 +56,7 @@ if __name__ == "__main__":
     segmentor_net = model
     IoUs = []
     hds = []
-    dices = []
+    dices = []    
     combis = []
     
     sess = tf.keras.backend.get_session()
@@ -102,7 +102,8 @@ if __name__ == "__main__":
 
         print("Hausdorf: ", hd)
 
-        combi = 100 * (1-IoU) + hd + 100 * (1 - (np.sum(pred_np) / (np.sum(label) + 0.00001)))
+        combi = 100 * (1-IoU) + hd 
+
         combis.append(combi)
         print("Combi: ", combi)
 

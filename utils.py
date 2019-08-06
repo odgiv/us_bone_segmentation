@@ -158,6 +158,11 @@ def delete_dir_content(dir_path):
 def hausdorf_distance(a, b):
     return max(directed_hausdorff(a, b)[0], directed_hausdorff(b, a)[0])
 
+def iou(pred, label):
+    return np.sum(pred[label == 1]) / float(np.sum(pred) + np.sum(label) - np.sum(pred[label == 1]))
+
+def dice(pred, label):
+    return np.sum(pred[label == 1])*2 / float(np.sum(pred) + np.sum(label))
 
 def shuffle(imgs, gts):
     np.random.seed(42)
