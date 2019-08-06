@@ -166,7 +166,7 @@ for imgs, labels in train_gen:
 
         tf.contrib.summary.scalar("lr", learning_rate)
 
-        if global_step % model_params["save_summary_steps"] == 0:
+        if global_step.numpy() % model_params["save_summary_steps"] == 0:
             print("step {}, seg_loss {:.4f}, batch_hd {:.4f}, batch_IoU {:.4f}, batch_dice {:.4f}, batch_combi {:.4f}".format(current_step, seg_loss, batch_hd, batch_IoU, batch_dice, batch_combi))
             seg_results = segmentor_net(tf.image.convert_image_dtype(imgs, tf.float32))
             seg_results = tf.argmax(seg_results, axis=-1, output_type=tf.int32)
