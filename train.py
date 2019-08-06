@@ -121,8 +121,8 @@ for imgs, labels in train_gen:
         val_mean_IoU, val_mean_hd, val_mean_loss, val_mean_dice = evaluate(valid_gen, segmentor_net, steps_per_valid_epoch)
         current_epoch += 1
         current_step = 0
-        pbar.n = 1
-        pbar.last_print_n = 1
+        # pbar.n = 1
+        # pbar.last_print_n = 1
         epoch_seg_loss_avg = tfe.metrics.Mean()
         epoch_IoU_avg = tfe.metrics.Mean()
         epoch_Hd_avg = tfe.metrics.Mean()       
