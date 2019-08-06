@@ -113,7 +113,11 @@ def train_step(net, imgs, labels, global_step, optimizer):
 
         IoU = np.sum(pred_slice[label_slice == 1]) / float(np.sum(pred_slice) + np.sum(label_slice) - np.sum(pred_slice[label_slice == 1]))
         dice = np.sum(pred_slice[label_slice == 1])*2 / float(np.sum(pred_slice) + np.sum(label_slice))
-        batch_combi = 100 * (1-IoU) + hd + 100 * (1 - (np.sum(pred_slice) / (np.sum(label_slice) + 0.00001)))
+        
+        if np.sum(label_slice) > 0:
+            batch_combi = 100 * (1-IoU) + hd + 100 * (1 - (np.sum(pred_slice) / (np.sum(label_slice))))
+        else:
+            batch_combi = 100 * (1-IoU) + hd
 
         batch_IoUs.append(IoU)
         batch_dices.append(dice)
