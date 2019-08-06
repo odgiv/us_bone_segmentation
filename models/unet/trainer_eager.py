@@ -11,6 +11,8 @@ def evaluate(valid_gen, u_net, steps_per_valid_epoch):
     IoUs = tf.contrib.eager.metrics.Mean()
     hds = tf.contrib.eager.metrics.Mean()
     dices = tf.contrib.eager.metrics.Mean()
+    combis = tf.contrib.eager.metrics.Mean()
+
     valid_loss_avg = tf.contrib.eager.metrics.Mean()
     logging.info("Starting validation...")
     current_val_step = 0
@@ -30,19 +32,23 @@ def evaluate(valid_gen, u_net, steps_per_valid_epoch):
     
         loss = tf.losses.sparse_softmax_cross_entropy(labels=tf.cast(labels, tf.int32), logits=pred)
         valid_loss_avg(loss)
-
-        pred_locations = np.argwhere(pred_np == 1)
-        label_locations = np.argwhere(labels == 1)
-
-        hd = hausdorf_distance(pred_locations, label_locations)
-        hds(hd)
+        
 
         for x in range(imgs.shape[0]):
+            pred_locations = np.argwhere(pred_np[x] == 1)
+            label_locations = np.argwhere(labels[x] == 1)
+
+            hd = hausdorf_distance(pred_locations, label_locations)            
             IoU = np.sum(pred_np[x][labels[x] == 1]) / float(np.sum(pred_np[x]) + np.sum(labels[x]) - np.sum(pred_np[x][labels[x] == 1]))
             dice = np.sum(pred_np[x][labels[x] == 1])*2 / float(np.sum(pred_np[x]) + np.sum(labels[x]))
+
+            combi = 100 * (1-IoU) + hd + 100 * (1 - (np.sum(pred_np[x]) / np.sum(labels[x])))
+
+            hds(hd)
             dices(dice)
-            IoUs(IoU)
-        
+            IoUs(IoU)                
+            combis(combi)
+
         current_val_step += 1
         if current_val_step == steps_per_valid_epoch:
             break
@@ -53,6 +59,7 @@ def evaluate(valid_gen, u_net, steps_per_valid_epoch):
         tf.contrib.summary.scalar("val_avg_loss", valid_loss_avg.result())
         tf.contrib.summary.scalar("val_avg_IoU", IoUs.result())   
         tf.contrib.summary.scalar("val_avg_dice", dices.result())
+        tf.contrib.summary.scalar("val_avg_combi", combis.result())
 
         tf.contrib.summary.image("valid_img", tf.cast(imgs * 255, tf.uint8))
         tf.contrib.summary.image("valid_ground_tr", tf.cast(labels * 255, tf.uint8))
@@ -63,7 +70,7 @@ def evaluate(valid_gen, u_net, steps_per_valid_epoch):
         tf.contrib.summary.image("val_seg_result", tf.cast(seg_results * 255, tf.uint8))
         
     
-    print("loss valid avg {0:.4f}, mIoU on validation set: {1:.4f}, mHd on validation set: {2:.4f}".format(valid_loss_avg.result(), mIoU, hds.result()))
+    print("loss valid avg {0:.4f}, mIoU on validation set: {1:.4f}, mHd on validation set: {2:.4f}, mdice on validation set: {3:.4f}, combis on validation set: {4:.4f}".format(valid_loss_avg.result(), IoUs.result(), hds.result(), dices.result(), combis.result()))
     
     return IoUs.result(), hds.result(), valid_loss_avg.result(), dices.result()     
 
@@ -88,6 +95,7 @@ def train_step(net, imgs, labels, global_step, optimizer):
     batch_hds = []
     batch_IoUs = []
     batch_dices = []
+    batch_combis = []
 
     pred_np = seg_results.numpy() 
     batch_size = pred_np.shape[0]
@@ -105,7 +113,10 @@ def train_step(net, imgs, labels, global_step, optimizer):
 
         IoU = np.sum(pred_slice[label_slice == 1]) / float(np.sum(pred_slice) + np.sum(label_slice) - np.sum(pred_slice[label_slice == 1]))
         dice = np.sum(pred_slice[label_slice == 1])*2 / float(np.sum(pred_slice) + np.sum(label_slice))
+        batch_combi = 100 * (1-IoU) + hd + 100 * (1 - (np.sum(pred_slice) / (np.sum(label_slice) + 0.00001)))
+
         batch_IoUs.append(IoU)
         batch_dices.append(dice)
+        batch_combis.append(batch_combi)
 
-    return loss, np.mean(batch_hds), np.mean(batch_IoUs), np.mean(batch_dices)
+    return loss, np.mean(batch_hds), np.mean(batch_IoUs), np.mean(batch_dices), np.mean(batch_combis)

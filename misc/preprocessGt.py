@@ -74,7 +74,7 @@ def threshold_gt(img, gt, threshold_val=0):
     
     return gt
 
-def find_breaking_points_from_top(img, gt):
+def find_breaking_points_from_top_axis2(img, gt):
     center_in_x = round(gt.shape[1] / 2)
 
     left_most_point_from_top = None
@@ -124,9 +124,77 @@ def find_breaking_points_from_top(img, gt):
 
     return left_most_point_from_top, right_most_point_from_top
 
-def clear_gt_below_breaking_point_from_top(img, gt):    
+def find_breaking_points_from_top_axis1(img, gt):
+    center_in_x = round(gt.shape[1] / 2)
 
-    left_most_point_from_top, right_most_point_from_top = find_breaking_points_from_top(img, gt)    
+    left_most_point_from_top = None
+    right_most_point_from_top = None
+
+    left_boundary_rr, left_boundary_cc = line(0, 105, gt.shape[0] - 1, 0)
+    right_boundary_rr, right_boundary_cc = line(0, 447, gt.shape[0] - 1, gt.shape[1] - 1)
+
+    for (lb_r, lb_c) in zip(left_boundary_rr, left_boundary_cc):
+            gt[:lb_r, :lb_c] = 0
+    
+    for (rb_r, rb_c) in zip(right_boundary_rr, right_boundary_cc):
+            gt[:rb_r, rb_c:] = 0
+            
+
+    for left_boundary_point in zip(left_boundary_rr, left_boundary_cc):
+        l_rr_top, l_cc_top = line(0, center_in_x, *left_boundary_point)
+        # r_rr_top, r_cc_top = line(0, center_in_x, i, gt.shape[1] - 1)
+        
+        if left_most_point_from_top == None:
+            for (lr, lc) in zip(l_rr_top, l_cc_top):
+                if left_most_point_from_top == None and gt[lr, lc] == 1:
+                    left_most_point_from_top = (lr, lc)
+                    break
+                    
+        if left_most_point_from_top:
+            break
+    
+    for righ_boundary_point in zip(right_boundary_rr, right_boundary_cc):
+        r_rr_top, r_cc_top = line(0, center_in_x, *righ_boundary_point)
+
+        if right_most_point_from_top == None:
+            for (rr, rc) in zip(r_rr_top, r_cc_top):
+                if right_most_point_from_top == None and gt[rr, rc] == 1:
+                    right_most_point_from_top = (rr, rc)
+                    break
+
+        if right_most_point_from_top:
+            break
+    
+    if left_most_point_from_top == None:
+        for i in range(round(gt.shape[1] / 2)):
+            l_rr_top, l_cc_top = line(0, center_in_x, gt.shape[0] - 1, i)
+            for (lr, lc) in zip(l_rr_top, l_cc_top):
+                if left_most_point_from_top == None and gt[lr, lc] == 1:
+                    left_most_point_from_top = (lr, lc)
+                    break
+
+            if left_most_point_from_top:
+                break
+    
+    if right_most_point_from_top == None:
+        for i in range(gt.shape[1] - 1, round(gt.shape[1] / 2), -1):
+            r_rr_top, r_cc_top = line(0, center_in_x, gt.shape[0] - 1, i)
+            for (rr, rc) in zip(r_rr_top, r_cc_top):
+                if right_most_point_from_top == None and gt[rr, rc] == 1:
+                    right_most_point_from_top = (rr, rc)
+                    break
+            
+            if right_most_point_from_top:
+                break
+
+    return left_most_point_from_top, right_most_point_from_top
+
+def clear_gt_below_breaking_point_from_top(img, gt, axis):    
+
+    if axis == 1:        
+        left_most_point_from_top, right_most_point_from_top = find_breaking_points_from_top_axis1(img, gt)    
+    elif axis == 2:
+        left_most_point_from_top, right_most_point_from_top = find_breaking_points_from_top_axis2(img, gt)    
 
     if left_most_point_from_top and right_most_point_from_top:
         lb_rr, lb_cc = line(left_most_point_from_top[0], left_most_point_from_top[1], gt.shape[0] - 1, round(gt.shape[1] / 2))
@@ -141,45 +209,13 @@ def clear_gt_below_breaking_point_from_top(img, gt):
        
     return gt
 
-def preprocess_gt(img, gt_img, is_threshold, is_clear_below_bps):
+def preprocess_gt(img, gt_img, is_threshold, is_clear_below_bps, axis):
     if is_threshold:
         gt_img = threshold_gt(img, gt_img)
 
     if is_clear_below_bps:
-        gt_img = clear_gt_below_breaking_point_from_top(img, gt_img)
+        gt_img = clear_gt_below_breaking_point_from_top(img, gt_img, axis)
 
     gt_img = remove_non_consequetive_white_pixels(gt_img)
     
     return gt_img
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--file_path", "-f", type=str, required=True, help="path to h5 file.")
-    parser.add_argument("--output_dir", "-o", type=str, required=True, help="output h5 file path")
-    parser.add_argument("--use_threshold", "-t", dest="use_threshold_gt", default=True, action="store_false")
-    parser.add_argument("--find_break_points", "-p", dest="find_break_points_from_top_gt", default=True, action="store_false")
-    args = parser.parse_args()
-
-
-    f = h5py.File(args.file_path, 'r')
-    gt_vol = f["gt_vol"]
-    us_vol = f["us_vol"]
-
-    gt_vol_copy = gt_vol[:,:,:]
-
-    for i in range(gt_vol.shape[-1]):
-
-        us_img = us_vol[:,:,i]
-        gt_img = np.uint8(gt_vol[:,:,i])
-
-        gt_img = preprocess_gt(us_img, gt_img, args.use_threshold_gt, args.find_break_points_from_top_gt)
-
-        gt_vol_copy[:,:,i] = gt_img
-
-    h5f = h5py.File(os.path.join(args.output_dir, "us_gt_vol.h5"), 'w')
-    h5f.create_dataset('gt_vol', data=gt_vol_copy)
-    h5f.create_dataset('us_vol', data=us_vol)
-    h5f.close()    
-    f.close()
-
-    print("Done")

@@ -57,6 +57,7 @@ if __name__ == "__main__":
     IoUs = []
     hds = []
     dices = []
+    combis = []
     
     sess = tf.keras.backend.get_session()
     sess.run(tf.global_variables_initializer())
@@ -101,6 +102,10 @@ if __name__ == "__main__":
 
         print("Hausdorf: ", hd)
 
+        combi = 100 * (1-IoU) + hd + 100 * (1 - (np.sum(pred_np) / (np.sum(label) + 0.00001)))
+        combis.append(combi)
+        print("Combi: ", combi)
+
         img = np.squeeze(img) * 255
         pred_img = pred_np * 255
         label_img = label * 255
@@ -134,5 +139,8 @@ if __name__ == "__main__":
 
     IoUs = np.array(IoUs, dtype=np.float64)
     mIoU = np.mean(IoUs, axis=0)
+    hds = np.array(hds, dtype=np.float64)
     mhd = np.mean(hds, axis=0)
-    print("mIoU: ", mIoU, "mHausdorf:", mhd)
+    combis = np.array(combis, dtype=np.float64)
+    mCombi = np.mean(combis, axis=0)
+    print("mIoU: ", mIoU, "mHausdorf:", mhd, "mCombi:", mCombi)

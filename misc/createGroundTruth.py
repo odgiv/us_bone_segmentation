@@ -163,11 +163,11 @@ if __name__ == "__main__":
     """
 
     # 13-37-47 13-51-47 14-00-18
-    parent_directory = "H:\\09_05_2019_in_vivo_record_Ben\\" #"D:\\Data\\IPASM\\bone_data\\phantom_data\\2018_11_23_CAOS_record\\"
+    parent_directory = "H:\\2019_07_03b_Ben\\" #"D:\\Data\\IPASM\\bone_data\\phantom_data\\2018_11_23_CAOS_record\\"
     child_directories = [""]
     ground_truth_mesh_file = parent_directory + 'ground_truth.stl'    
     model2bone_transformation_file = parent_directory + 'model2bone.txt'
-    output_directory = "H:\\09_05_2019_Ben_in_vivo\\axis-1"
+    output_directory = "H:\\2019_07_03b_Ben_in_vivo\\axis-1"
 
     slice_indices_filename = "slice_indices_in_axis_1.txt"
     us_img_data_filename = "vol_postProcessedImage_cropped.b8"

@@ -14,18 +14,21 @@ from utils import img_and_mask_generator
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--output_dir_img", "-odi", type=str, default="H:\\14_02_2019_Ben_in_vivo_imgs\\ax1\\imgs")
-parser.add_argument("--output_dir_gt", "-odg", type=str, default="H:\\14_02_2019_Ben_in_vivo_imgs\\ax1\\gts")
+parser.add_argument("--output_dir_img", "-odi", type=str, default="H:\\09_05_2019_Ben_in_vivo_imgs\\ax1\\imgs")
+parser.add_argument("--output_dir_gt", "-odg", type=str, default="H:\\09_05_2019_Ben_in_vivo_imgs\\ax1\\gts")
 parser.add_argument("--file_path", "-f", type=str, required=True, help="Images are stored in h5 file.")
 parser.add_argument("--prefix", "-pre", type=str, default="14_02_2019_Ben_ax1")
 parser.add_argument("--start_index", "-s", type=int, default=0)
 parser.add_argument("--end_index", "-e", type=int, default=None)
 parser.add_argument("--preprocess_gt", "-p", dest="preprocess_gt", default=False, action='store_true'),
 parser.add_argument("--threshold_gt", "-t", dest="threshold_gt", default=False, action='store_true')
+parser.add_argument("--axis", "-a", type=int)
 
 args = parser.parse_args()
 
-def generate_original_and_overlayed_imgs(gt_volume, us_img_volume, start_index=0, end_index=None, is_threshold=True, is_clear_below_break_points_gt=True):
+assert(args.axis in [1,2])
+
+def generate_original_and_overlayed_imgs(gt_volume, us_img_volume, axis, start_index=0, end_index=None, is_threshold=True, is_clear_below_break_points_gt=True):
     step = 1
 
     print(us_img_volume.shape)
@@ -59,7 +62,7 @@ def generate_original_and_overlayed_imgs(gt_volume, us_img_volume, start_index=0
         bone_img = np.squeeze(bone_img)
         gt_img = np.squeeze(gt_img)
 
-        gt_img = preprocess_gt(bone_img, gt_img, is_threshold, is_clear_below_break_points_gt)        
+        gt_img = preprocess_gt(bone_img, gt_img, is_threshold, is_clear_below_break_points_gt, axis)        
         
         gt_img = gt_img * 255        
 
@@ -85,7 +88,7 @@ gt = f["gt_vol"]
 
 
 i = 0
-for bone_img, gt_img, overlapped_img in generate_original_and_overlayed_imgs(gt, us, start_index=args.start_index, end_index=args.end_index, is_threshold=args.threshold_gt, is_clear_below_break_points_gt=args.preprocess_gt):
+for bone_img, gt_img, overlapped_img in generate_original_and_overlayed_imgs(gt, us, args.axis, start_index=args.start_index, end_index=args.end_index, is_threshold=args.threshold_gt, is_clear_below_break_points_gt=args.preprocess_gt):
     dir_as_prefix = args.file_path.split("\\")[-2]
     
     # blank_img = np.zeros((bone_img.shape[0], bone_img.shape[1]*3), np.uint8)
@@ -93,10 +96,10 @@ for bone_img, gt_img, overlapped_img in generate_original_and_overlayed_imgs(gt,
     # blank_img[:, bone_img.shape[1]:bone_img.shape[1]*2] = gt_img        
     # blank_img[:, bone_img.shape[1]*2:] = overlapped_img
 
-    cv.imwrite(os.path.join(output_dir_img, args.prefix + "_" + dir_as_prefix + "_" + str(i) + ".jpg"), overlapped_img)
+    # cv.imwrite(os.path.join(output_dir_img, args.prefix + "_" + dir_as_prefix + "_" + str(i) + ".jpg"), overlapped_img)
 
-    # cv.imwrite(os.path.join(output_dir_gt, args.prefix + "_" + dir_as_prefix + "_" + str(i) + ".jpg"), gt_img)
-    # cv.imwrite(os.path.join(output_dir_img, args.prefix + "_" + dir_as_prefix + "_" + str(i) + ".jpg"), bone_img)
+    cv.imwrite(os.path.join(output_dir_gt, args.prefix + "_" + dir_as_prefix + "_" + str(i) + ".jpg"), gt_img)
+    cv.imwrite(os.path.join(output_dir_img, args.prefix + "_" + dir_as_prefix + "_" + str(i) + ".jpg"), bone_img)
     i += 1
 
 print("Done")
