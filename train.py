@@ -107,7 +107,7 @@ max_mean_IoU = 0.0
 global_step = tf.train.get_or_create_global_step()
 
 learning_rate = tfe.Variable(lr)
-optimizerS = tf.train.AdamOptimizer(learning_rate=learning_rate)
+optimizerS = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=model_params["beta_1"])
 epoch_seg_loss_avg = tfe.metrics.Mean()
 epoch_IoU_avg = tfe.metrics.Mean()
 epoch_Hd_avg = tfe.metrics.Mean()
