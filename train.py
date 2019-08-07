@@ -32,6 +32,7 @@ parser.add_argument("-s", "--save_summary_steps", type=int, default=200)
 parser.add_argument("-id", "--experiment_id", type=int, required=True)
 parser.add_argument("-l2", "--l2_regularizer", type=float, default=0.0)
 parser.add_argument("-b1", "--beta_1", type=float, default=0.9)
+parser.add_argument("-ds", "--decay_step", type=int, default=5000)
 
 args = parser.parse_args()
 assert(args.model_name in ['unet', 'attentionUnet'])
@@ -142,7 +143,7 @@ for imgs, labels in train_gen:
     seg_loss, batch_hd, batch_IoU, batch_dice, batch_combi = train_step(segmentor_net, imgs, labels, global_step, optimizerS)    
 
     if args.learning_rate_decay > 0.0:
-        learning_rate.assign(tf.train.exponential_decay(lr, global_step, 5000, decay_rate=args.learning_rate_decay)())
+        learning_rate.assign(tf.train.exponential_decay(lr, global_step, model_params["decay_step"], decay_rate=args.learning_rate_decay)())
 
     epoch_seg_loss_avg(seg_loss)
     epoch_Hd_avg(batch_hd)
