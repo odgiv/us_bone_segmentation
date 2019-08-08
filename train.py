@@ -57,7 +57,7 @@ elif args.model_name == 'attentionUnet':
     from model import AttentionalUnet
     segmentor_net = AttentionalUnet(l2_value=args.l2_regularizer)
 
-set_logger(os.path.join(model_dir, 'train_{}.log'.format(datetime.now().strftime('%m-%d_%H-%M'))))
+set_logger(os.path.join(model_dir, 'train_{}_exp_id_{}_{}.log'.format(args.model_name, str(args.id), datetime.now().strftime('%m-%d_%H-%M'))))
 
 if os.path.exists('./train_summaries'):
     shutil.rmtree('./train_summaries')
@@ -95,13 +95,13 @@ valid_gen = img_and_mask_generator(x_valid_path, y_valid_path, batch_size=model_
 steps_per_train_epoch = int(model_params["train_size"] / model_params["batch_size"])
 steps_per_valid_epoch = int(model_params["eval_size"] / model_params["batch_size"])
 
-print("steps per train epoch", steps_per_train_epoch)
-print("steps per valid epoch", steps_per_valid_epoch)
+logging.info("steps per train epoch", steps_per_train_epoch)
+logging.info("steps per valid epoch", steps_per_valid_epoch)
 # train_and_evaluate(model, model_params, summary_writer, train_gen, valid_gen, steps_per_train_epoch, steps_per_valid_epoch)
 lr = model_params["learning_rate"]
 l2 = model_params["l2_regularizer"]
-print("learning rate: {}".format(str(lr)))
-print("l2 regularize: {}".format(str(l2)))
+logging.info("learning rate: {}".format(str(lr)))
+logging.info("l2 regularize: {}".format(str(l2)))
 current_step = 0
 current_epoch = 0
 max_mean_IoU = 0.0
@@ -133,8 +133,8 @@ for imgs, labels in train_gen:
         save_model_weights_dir = model_dir + '/experiments/' + 'experiment_id_' + str(model_params["experiment_id"])
         if not os.path.isdir(save_model_weights_dir):
             os.makedirs(save_model_weights_dir)
-        print("current lr ", learning_rate.numpy())
-        print("Saving weights to ", save_model_weights_dir)
+        logging.info("current lr ", learning_rate.numpy())
+        logging.info("Saving weights to ", save_model_weights_dir)
         segmentor_net.save_weights(save_model_weights_dir  + '/' + model_params["model_name"] + '_epoch_' + str(current_epoch) + '_val_meanIoU_{:.3f}_meanLoss_{:.3f}_meanHd_{:.3f}_meanDice_{:.3f}_mCombi_{:.3f}.h5'.format(val_mean_IoU, val_mean_loss, val_mean_hd, val_mean_dice, val_combi))
 
     if current_epoch == model_params["num_epochs"] + 1:
@@ -167,7 +167,7 @@ for imgs, labels in train_gen:
         tf.contrib.summary.scalar("lr", learning_rate)
 
         if global_step.numpy() % model_params["save_summary_steps"] == 0:
-            print("step {}, seg_loss {:.4f}, batch_hd {:.4f}, batch_IoU {:.4f}, batch_dice {:.4f}, batch_combi {:.4f}".format(current_step, seg_loss, batch_hd, batch_IoU, batch_dice, batch_combi))
+            logging.info("step {}, seg_loss {:.4f}, batch_hd {:.4f}, batch_IoU {:.4f}, batch_dice {:.4f}, batch_combi {:.4f}".format(current_step, seg_loss, batch_hd, batch_IoU, batch_dice, batch_combi))
     
         # seg_results = segmentor_net(tf.image.convert_image_dtype(imgs, tf.float32))
         # seg_results = tf.argmax(seg_results, axis=-1, output_type=tf.int32)

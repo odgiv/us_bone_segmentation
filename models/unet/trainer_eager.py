@@ -69,7 +69,7 @@ def evaluate(valid_gen, u_net, steps_per_valid_epoch):
         tf.contrib.summary.image("val_seg_result", tf.cast(seg_results * 255, tf.uint8))
         
     combi = (100* (1 - IoUs.result()) + hds.result())
-    print("loss valid avg {0:.4f}, mIoU on validation set: {1:.4f}, mHd on validation set: {2:.4f}, mdice on validation set: {3:.4f}, mIoU + mHd on validation set: {4:.4f}".format(valid_loss_avg.result(), IoUs.result(), hds.result(), dices.result(), combi))
+    logging.info("loss valid avg {0:.4f}, mIoU on validation set: {1:.4f}, mHd on validation set: {2:.4f}, mdice on validation set: {3:.4f}, mIoU + mHd on validation set: {4:.4f}".format(valid_loss_avg.result(), IoUs.result(), hds.result(), dices.result(), combi))
     
     return IoUs.result(), hds.result(), valid_loss_avg.result(), dices.result(), combi     
 
