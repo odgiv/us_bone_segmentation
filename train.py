@@ -95,8 +95,8 @@ valid_gen = img_and_mask_generator(x_valid_path, y_valid_path, batch_size=model_
 steps_per_train_epoch = int(model_params["train_size"] / model_params["batch_size"])
 steps_per_valid_epoch = int(model_params["eval_size"] / model_params["batch_size"])
 
-logging.info("steps per train epoch", steps_per_train_epoch)
-logging.info("steps per valid epoch", steps_per_valid_epoch)
+logging.info("steps per train epoch {}".format(str(steps_per_train_epoch)))
+logging.info("steps per valid epoch {}".format(str(steps_per_valid_epoch)))
 # train_and_evaluate(model, model_params, summary_writer, train_gen, valid_gen, steps_per_train_epoch, steps_per_valid_epoch)
 lr = model_params["learning_rate"]
 l2 = model_params["l2_regularizer"]
@@ -133,8 +133,8 @@ for imgs, labels in train_gen:
         save_model_weights_dir = model_dir + '/experiments/' + 'experiment_id_' + str(model_params["experiment_id"])
         if not os.path.isdir(save_model_weights_dir):
             os.makedirs(save_model_weights_dir)
-        logging.info("current lr ", learning_rate.numpy())
-        logging.info("Saving weights to ", save_model_weights_dir)
+        logging.info("current lr {}".format(str(learning_rate.numpy())))
+        logging.info("Saving weights to {} ".format(save_model_weights_dir))
         segmentor_net.save_weights(save_model_weights_dir  + '/' + model_params["model_name"] + '_epoch_' + str(current_epoch) + '_val_meanIoU_{:.3f}_meanLoss_{:.3f}_meanHd_{:.3f}_meanDice_{:.3f}_mCombi_{:.3f}.h5'.format(val_mean_IoU, val_mean_loss, val_mean_hd, val_mean_dice, val_combi))
 
     if current_epoch == model_params["num_epochs"] + 1:
