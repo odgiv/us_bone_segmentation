@@ -57,7 +57,7 @@ elif args.model_name == 'attentionUnet':
     from model import AttentionalUnet
     segmentor_net = AttentionalUnet(l2_value=args.l2_regularizer)
 
-set_logger(os.path.join(model_dir, 'train_{}_exp_id_{}_{}.log'.format(args.model_name, str(args.id), datetime.now().strftime('%m-%d_%H-%M'))))
+set_logger(os.path.join(model_dir, 'train_{}_exp_id_{}_{}.log'.format(args.model_name, str(args.experiment_id), datetime.now().strftime('%m-%d_%H-%M'))))
 
 if os.path.exists('./train_summaries'):
     shutil.rmtree('./train_summaries')
