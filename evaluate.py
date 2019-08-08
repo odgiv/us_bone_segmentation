@@ -28,16 +28,15 @@ if __name__ == "__main__":
     
     args = parser.parse_args()
     assert(args.model_name in ['unet', 'attentionUnet'])
-   
+    sys.path.append('./models/unet')
+
     if args.model_name == 'unet':
-        model_dir = './models/unet'
-        sys.path.append(model_dir)
+        model_dir = './models/unet'    
         from base_model import Unet
         model = Unet()
 
-    elif args.model_name == 'attentionUnet' :
-        sys.path.append('./models/unet')
-        model_dir = './models/unet/attentionUnet'
+    elif args.model_name == 'attentionUnet' :        
+        model_dir = './models/attentionUnet'
         sys.path.append(model_dir)
         from model import AttentionalUnet
         model = AttentionalUnet()
