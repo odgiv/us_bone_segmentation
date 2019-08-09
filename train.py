@@ -117,8 +117,6 @@ epoch_dice_avg = tfe.metrics.Mean()
 epoch_combi_avg = tfe.metrics.Mean()
     
 # pbar = tqdm(total=steps_per_train_epoch)
-if args.continue_training:
-    
 
 for imgs, labels in train_gen:
 
