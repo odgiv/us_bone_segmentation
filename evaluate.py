@@ -136,7 +136,7 @@ if __name__ == "__main__":
     parser.add_argument("-d", "--dataset_path", required=True)
     parser.add_argument("-w", "--weight_file_path", help="Full path to the weight file.")
     parser.add_argument("-s", "--store_imgs", default=False, action='store_true')
-    parser.add_argument("-i", "--ex_id", type=int, required=True)
+    parser.add_argument("-i", "--exp_id", type=int, required=True)
     args = parser.parse_args()
 
     assert(args.model_name in ['unet', 'attentionUnet'])
@@ -154,5 +154,5 @@ if __name__ == "__main__":
         from model import AttentionalUnet
         model = AttentionalUnet()
 
-    eval(model, args.weight_file_path, args.store_imgs, args.dataset_path, args.ex_id)
+    eval(model, args.weight_file_path, args.store_imgs, args.dataset_path, args.exp_id)
     
