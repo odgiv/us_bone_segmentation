@@ -19,7 +19,7 @@ from PIL import Image
 from utils import Params, img_and_mask_generator, delete_dir_content, hausdorf_distance
 
 
-def eval(model, weight_file_path, store_imgs, dataset_path, ex_id):
+def eval(model, weight_file_path, store_imgs, dataset_path, ex_id, is_ax1):
     
     img_h = 465
     img_w = 381
@@ -126,8 +126,8 @@ def eval(model, weight_file_path, store_imgs, dataset_path, ex_id):
     start_index = weight_file_name.find("epoch_")
     end_index = weight_file_name.find("_val_")
     epoch_num =  weight_file_name[start_index+len("epoch_"):end_index]
-
-    os.rename(test_results_path, os.path.join(model_dir, "exp{}_epoch{}_mIoU_{:.2f}_mHd_{:.2f}_mC_{:.2f}".format(ex_id, epoch_num, mIoU, mhd, mCombi)))
+    
+    os.rename(test_results_path, os.path.join(model_dir, "test_results", "exp{}_epoch{}_mIoU_{:.2f}_mHd_{:.2f}_mC_{:.2f}_nImgs_{}".format(ex_id, epoch_num, mIoU, mhd, mCombi, num_imgs)))
 
 if __name__ == "__main__":
 
@@ -136,6 +136,7 @@ if __name__ == "__main__":
     parser.add_argument("-d", "--dataset_path", required=True)
     parser.add_argument("-w", "--weight_file_path", help="Full path to the weight file.")
     parser.add_argument("-s", "--store_imgs", default=False, action='store_true')
+    parser.add_argument("-a1", "--is_ax1", default=False, action='store_true')
     parser.add_argument("-i", "--ex_id", type=int, required=True)
     args = parser.parse_args()
 
@@ -154,5 +155,5 @@ if __name__ == "__main__":
         from model import AttentionalUnet
         model = AttentionalUnet()
 
-    eval(model, args.weight_file_path, args.store_imgs, args.dataset_path, args.ex_id)
+    eval(model, args.weight_file_path, args.store_imgs, args.dataset_path, args.ex_id, args.is_ax1)
     
