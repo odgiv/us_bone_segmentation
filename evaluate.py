@@ -18,35 +18,14 @@ import numpy as np
 from PIL import Image
 from utils import Params, img_and_mask_generator, delete_dir_content, hausdorf_distance
 
-parser = argparse.ArgumentParser()
-parser.add_argument("-m", "--model_name", help="Name of directory of specific model in ./models parent directory, such as unet, attention-unet or segan.")
-parser.add_argument("-d", "--dataset_path", required=True)
-parser.add_argument("-w", "--weight_file_path", help="Full path to the weight file.")
-parser.add_argument("-s", "--store_imgs", default=False, action='store_true')
 
-if __name__ == "__main__":
+def eval(model, weight_file_path, store_imgs, dataset_path, ex_id):
     
-    args = parser.parse_args()
-    assert(args.model_name in ['unet', 'attentionUnet'])
-    sys.path.append('./models/unet')
-
-    if args.model_name == 'unet':
-        model_dir = './models/unet'    
-        from base_model import Unet
-        model = Unet()
-
-    elif args.model_name == 'attentionUnet' :        
-        model_dir = './models/attentionUnet'
-        sys.path.append(model_dir)
-        from model import AttentionalUnet
-        model = AttentionalUnet()
-
     img_h = 465
     img_w = 381
     test_results_path = os.path.join(model_dir, "test_results", "new_results")
-    weight_file_path = args.weight_file_path
-    x_test_path = os.path.join(args.dataset_path, "test_imgs")
-    y_test_path = os.path.join(args.dataset_path, "test_gts")
+    x_test_path = os.path.join(dataset_path, "test_imgs")
+    y_test_path = os.path.join(dataset_path, "test_gts")
     test_gen = img_and_mask_generator(x_test_path, y_test_path, batch_size=1, shuffle=False)
 
     x_test_path_data = os.path.join(x_test_path, 'data')
@@ -61,15 +40,13 @@ if __name__ == "__main__":
     sess = tf.keras.backend.get_session()
     sess.run(tf.global_variables_initializer())
 
-    weight_file_path = args.weight_file_path
-
     segmentor_net.compile(optimizer='adam', loss='sparse_categorical_crossentropy')
     segmentor_net.fit(x=np.zeros((1, img_h, img_w, 1)), y=np.zeros((1, img_h, img_w, 1)), epochs=0, steps_per_epoch=0)
     segmentor_net.load_weights(weight_file_path)
 
     if not os.path.isdir(test_results_path):
         os.makedirs(test_results_path)
-    elif args.store_imgs:
+    elif store_imgs:
         delete_dir_content(test_results_path)
 
     i = 0
@@ -109,7 +86,7 @@ if __name__ == "__main__":
         img = np.squeeze(img) * 255
         pred_img = pred_np * 255
         label_img = label * 255
-        if args.store_imgs:
+        if store_imgs:
             pred_img = Image.fromarray(pred_img.astype(np.uint8), mode='P')
             label_img = Image.fromarray(label_img.astype(np.uint8), mode='P')
             img = Image.fromarray(img.astype(np.uint8), mode='P')
@@ -144,3 +121,37 @@ if __name__ == "__main__":
     combis = np.array(combis, dtype=np.float64)
     mCombi = np.mean(combis, axis=0)
     print("mIoU: ", mIoU, "mHausdorf:", mhd, "mCombi:", mCombi)
+
+    weight_file_name = os.path.basename(weight_file_path) 
+    start_index = weight_file_name.find("epoch_")
+    end_index = weight_file_name.find("_val_")
+    epoch_num =  weight_file_name[start_index+len("epoch_"):end_index]
+
+    os.rename(test_results_path, os.path.join(model_dir, "exp{}_epoch{}_mIoU_{:.2f}_mHd_{:.2f}_mC_{:.2f}".format(ex_id, epoch_num, mIoU, mhd, mCombi)))
+
+if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-m", "--model_name", help="Name of directory of specific model in ./models parent directory, such as unet, attention-unet or segan.")
+    parser.add_argument("-d", "--dataset_path", required=True)
+    parser.add_argument("-w", "--weight_file_path", help="Full path to the weight file.")
+    parser.add_argument("-s", "--store_imgs", default=False, action='store_true')
+    parser.add_argument("-i", "--ex_id", type=int, required=True)
+    args = parser.parse_args()
+
+    assert(args.model_name in ['unet', 'attentionUnet'])
+
+    sys.path.append('./models/unet')
+
+    if args.model_name == 'unet':
+        model_dir = './models/unet'    
+        from base_model import Unet
+        model = Unet()
+
+    elif args.model_name == 'attentionUnet' :        
+        model_dir = './models/attentionUnet'
+        sys.path.append(model_dir)
+        from model import AttentionalUnet
+        model = AttentionalUnet()
+
+    eval(model, args.weight_file_path, args.dataset_path, args.ex_id)

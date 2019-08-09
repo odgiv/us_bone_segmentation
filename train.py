@@ -33,6 +33,7 @@ parser.add_argument("-id", "--experiment_id", type=int, required=True)
 parser.add_argument("-l2", "--l2_regularizer", type=float, default=0.0)
 parser.add_argument("-b1", "--beta_1", type=float, default=0.9)
 parser.add_argument("-ds", "--decay_step", type=int, default=5000)
+parser.add_argument("-c", "--continue_training", dest="continue_training", default=False, action='store_true')
 
 args = parser.parse_args()
 assert(args.model_name in ['unet', 'attentionUnet'])
@@ -116,6 +117,8 @@ epoch_dice_avg = tfe.metrics.Mean()
 epoch_combi_avg = tfe.metrics.Mean()
     
 # pbar = tqdm(total=steps_per_train_epoch)
+if args.continue_training:
+    
 
 for imgs, labels in train_gen:
 
