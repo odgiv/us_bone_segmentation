@@ -27,7 +27,7 @@ class SubAttentionBlock(Model):
         super(SubAttentionBlock, self).__init__()
 
         self.gating = gating_signal(256)
-        self.att_conv1 = Conv2D(num_filters, (1,1), strides=(1,1))
+        self.att_conv1 = Conv2D(num_filters, (2,2), strides=(2,2))
         self.att_conv2 = Conv2D(num_filters, (1,1), use_bias=True)
 
         self.att_add = Add()
@@ -138,17 +138,16 @@ class AttentionalUnet(Model):
 
         down_conv4 = self.conv4(down_pool3)
         down_pool4 = self.pool4(down_conv4)
-
+   
         center = self.center(down_pool4)        
 
         # attention1 part
 
         att1_batch_norm = self.att1([down_conv4, center])
-        print(att1_batch_norm.get_shape().as_list())
-        att1_up_conv5 = self.up_conv5(center)
-        print(att1_up_conv5.get_shape().as_list())
 
-        ch, cw = get_crop_shape(att1_up_conv5, att1_batch_norm)
+        att1_up_conv5 = self.up_conv5(center)
+
+        ch, cw = get_crop_shape(att1_batch_norm, att1_up_conv5)
 
         attn1_zero_pad = ZeroPadding2D(padding=((ch[0], ch[1]), (cw[0], cw[1])))(att1_batch_norm)
         up_concat1 = concatenate([att1_up_conv5, attn1_zero_pad], axis=concat_axis) 
@@ -160,7 +159,7 @@ class AttentionalUnet(Model):
 
         att2_up_conv5 = self.up_conv7(up_conv6)
 
-        ch, cw = get_crop_shape(att2_up_conv5, att2_batch_norm)
+        ch, cw = get_crop_shape(att2_batch_norm, att2_up_conv5)
 
         attn2_zero_pad = ZeroPadding2D(padding=((ch[0], ch[1]), (cw[0], cw[1])))(att2_batch_norm)
         up_concat2 = concatenate([att2_up_conv5, attn2_zero_pad], axis=concat_axis) 
@@ -172,7 +171,7 @@ class AttentionalUnet(Model):
 
         att3_up_conv5 = self.up_conv9(up_conv7)
 
-        ch, cw = get_crop_shape(att3_up_conv5, att3_batch_norm)
+        ch, cw = get_crop_shape(att3_batch_norm, att3_up_conv5)
 
         attn3_zero_pad = ZeroPadding2D(padding=((ch[0], ch[1]), (cw[0], cw[1])))(att3_batch_norm)
         up_concat3 = concatenate([att3_up_conv5, attn3_zero_pad], axis=concat_axis) 
@@ -184,7 +183,7 @@ class AttentionalUnet(Model):
 
         att4_up_conv5 = self.up_conv11(up_conv8)
 
-        ch, cw = get_crop_shape(att4_up_conv5, att4_batch_norm)
+        ch, cw = get_crop_shape(att4_batch_norm, att4_up_conv5)
 
         attn4_zero_pad = ZeroPadding2D(padding=((ch[0], ch[1]), (cw[0], cw[1])))(att4_batch_norm)
         up_concat4 = concatenate([att4_up_conv5, attn4_zero_pad], axis=concat_axis) 

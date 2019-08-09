@@ -30,7 +30,7 @@ class Unet(Model):
 
         self.conv4 = unet_conv2d(512, kernel_regularizer=l2(l2_value))
         self.pool4 = MaxPooling2D(pool_size=(2, 2))
-
+        
         self.center = unet_conv2d(1024, kernel_regularizer=l2(l2_value))
 
         self.up_conv5 = UpSampling2D(size=(2, 2))
