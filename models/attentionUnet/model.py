@@ -149,8 +149,8 @@ class AttentionalUnet(Model):
 
         ch, cw = get_crop_shape(att1_batch_norm, att1_up_conv5)
 
-        attn1_zero_pad = ZeroPadding2D(padding=((ch[0], ch[1]), (cw[0], cw[1])))(att1_batch_norm)
-        up_concat1 = concatenate([att1_up_conv5, attn1_zero_pad], axis=concat_axis) 
+        attn1_zero_pad = ZeroPadding2D(padding=((ch[0], ch[1]), (cw[0], cw[1])))(att1_up_conv5)
+        up_concat1 = concatenate([att1_batch_norm, attn1_zero_pad], axis=concat_axis) 
         up_conv6 = self.up_conv6(up_concat1)
 
         # attention2 part
@@ -161,8 +161,8 @@ class AttentionalUnet(Model):
 
         ch, cw = get_crop_shape(att2_batch_norm, att2_up_conv5)
 
-        attn2_zero_pad = ZeroPadding2D(padding=((ch[0], ch[1]), (cw[0], cw[1])))(att2_batch_norm)
-        up_concat2 = concatenate([att2_up_conv5, attn2_zero_pad], axis=concat_axis) 
+        attn2_zero_pad = ZeroPadding2D(padding=((ch[0], ch[1]), (cw[0], cw[1])))(att2_up_conv5)
+        up_concat2 = concatenate([att2_batch_norm, attn2_zero_pad], axis=concat_axis) 
         up_conv7 = self.up_conv8(up_concat2)
 
         # attention3 part
@@ -173,8 +173,8 @@ class AttentionalUnet(Model):
 
         ch, cw = get_crop_shape(att3_batch_norm, att3_up_conv5)
 
-        attn3_zero_pad = ZeroPadding2D(padding=((ch[0], ch[1]), (cw[0], cw[1])))(att3_batch_norm)
-        up_concat3 = concatenate([att3_up_conv5, attn3_zero_pad], axis=concat_axis) 
+        attn3_zero_pad = ZeroPadding2D(padding=((ch[0], ch[1]), (cw[0], cw[1])))(att3_up_conv5)
+        up_concat3 = concatenate([att3_batch_norm, attn3_zero_pad], axis=concat_axis) 
         up_conv8 = self.up_conv10(up_concat3)
 
         # attention4 part
@@ -185,8 +185,8 @@ class AttentionalUnet(Model):
 
         ch, cw = get_crop_shape(att4_batch_norm, att4_up_conv5)
 
-        attn4_zero_pad = ZeroPadding2D(padding=((ch[0], ch[1]), (cw[0], cw[1])))(att4_batch_norm)
-        up_concat4 = concatenate([att4_up_conv5, attn4_zero_pad], axis=concat_axis) 
+        attn4_zero_pad = ZeroPadding2D(padding=((ch[0], ch[1]), (cw[0], cw[1])))(att4_up_conv5)
+        up_concat4 = concatenate([att4_batch_norm, attn4_zero_pad], axis=concat_axis) 
         up_conv9 = self.up_conv12(up_concat4)
 
         # Last part
