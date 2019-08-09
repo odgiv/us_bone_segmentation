@@ -27,4 +27,4 @@ elif args.model_name == 'attentionUnet' :
 
 for f in os.listdir(args.weights_path):
     print("loading weight: {}".format(f))
-    eval(model, os.path.join(args.weights_path, f), args.store_imgs, args.dataset_path, args.exp_id)
+    eval(model, model_dir, os.path.join(args.weights_path, f), args.store_imgs, args.dataset_path, args.exp_id)
