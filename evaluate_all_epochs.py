@@ -1,4 +1,4 @@
-import argparse, os, sympy.series
+import argparse, os, sys
 from evaluate import eval
 
 parser = argparse.ArgumentParser()
