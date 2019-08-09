@@ -143,7 +143,7 @@ class AttentionalUnet(Model):
 
         # attention1 part
 
-        att1_batch_norm = self.att1([down_pool4, center])
+        att1_batch_norm = self.att1([down_conv4, center])
 
         att1_up_conv5 = self.up_conv5(center)
 
@@ -155,7 +155,7 @@ class AttentionalUnet(Model):
 
         # attention2 part
 
-        att2_batch_norm = self.att2([down_pool3, up_conv6])
+        att2_batch_norm = self.att2([down_conv3, up_conv6])
 
         att2_up_conv5 = self.up_conv7(up_conv6)
 
@@ -167,7 +167,7 @@ class AttentionalUnet(Model):
 
         # attention3 part
 
-        att3_batch_norm = self.att3([down_pool2, up_conv7])
+        att3_batch_norm = self.att3([down_conv2, up_conv7])
 
         att3_up_conv5 = self.up_conv9(up_conv7)
 
@@ -179,7 +179,7 @@ class AttentionalUnet(Model):
 
         # attention4 part
 
-        att4_batch_norm = self.att4([down_pool1, up_conv8])
+        att4_batch_norm = self.att4([down_conv1, up_conv8])
 
         att4_up_conv5 = self.up_conv11(up_conv8)
 
