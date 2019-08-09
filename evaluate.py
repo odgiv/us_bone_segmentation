@@ -19,7 +19,7 @@ from PIL import Image
 from utils import Params, img_and_mask_generator, delete_dir_content, hausdorf_distance
 
 
-def eval(model, weight_file_path, store_imgs, dataset_path, ex_id):
+def eval(model, model_dir, weight_file_path, store_imgs, dataset_path, ex_id):
     
     img_h = 465
     img_w = 381
@@ -154,5 +154,5 @@ if __name__ == "__main__":
         from model import AttentionalUnet
         model = AttentionalUnet()
 
-    eval(model, args.weight_file_path, args.store_imgs, args.dataset_path, args.exp_id)
+    eval(model, model_dir, args.weight_file_path, args.store_imgs, args.dataset_path, args.exp_id)
     
