@@ -121,6 +121,7 @@ epoch_combi_avg = tfe.metrics.Mean()
 for imgs, labels in train_gen:
 
     if current_step == steps_per_train_epoch:
+        logging.info("current epoch:", current_epoch)
         val_mean_IoU, val_mean_hd, val_mean_loss, val_mean_dice, val_combi = evaluate(valid_gen, segmentor_net, steps_per_valid_epoch)
         current_epoch += 1
         current_step = 0
