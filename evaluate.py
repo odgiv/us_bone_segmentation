@@ -24,8 +24,8 @@ def eval(model, model_dir, weight_file_path, store_imgs, dataset_path, ex_id):
     img_h = 465
     img_w = 381
     test_results_path = os.path.join(model_dir, "test_results", "new_results")
-    x_test_path = os.path.join(dataset_path, "test_imgs")
-    y_test_path = os.path.join(dataset_path, "test_gts")
+    x_test_path = os.path.join(dataset_path, "test300_imgs")
+    y_test_path = os.path.join(dataset_path, "test300_gts")
     test_gen = img_and_mask_generator(x_test_path, y_test_path, batch_size=1, shuffle=False)
 
     x_test_path_data = os.path.join(x_test_path, 'data')
