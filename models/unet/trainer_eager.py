@@ -85,7 +85,7 @@ def train_step(net, imgs, labels, global_step, optimizer):
         # Run image through segmentor net and get result
         seg_results = net(imgs)        
         # loss = tf.losses.sparse_softmax_cross_entropy(labels=tf.cast(labels, tf.int32), logits=seg_results)
-        loss = focal_loss(tf.cast(labels, tf.int32), seg_results)
+        loss = focal_loss(seg_results, tf.cast(labels, tf.int32))
 
     grads = tape.gradient(loss, net.trainable_variables)
 
