@@ -240,7 +240,7 @@ def focal_loss(alpha=0.25, gamma=2):
         return (tf.log1p(tf.exp(-tf.abs(logits))) + tf.nn.relu(-logits)) * (weight_a + weight_b) + logits * weight_b 
 
     def loss(y_true, y_pred):
-        y_pred = tf.clip_by_value(y_pred, tf.keras.backend.epsilon(), 1 - tf.keras.backend.epsilon())
+        y_pred = tf.clip_by_value(y_pred, backend.epsilon(), 1 - backend.epsilon())
         logits = tf.log(y_pred / (1 - y_pred))
 
         loss = focal_loss_with_logits(logits=logits, targets=y_true, alpha=alpha, gamma=gamma, y_pred=y_pred)
