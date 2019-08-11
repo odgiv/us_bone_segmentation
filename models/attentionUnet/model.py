@@ -11,7 +11,7 @@ import sys
 from utils import get_crop_shape, unet_conv2d
 
 
-def gating_signal(num_filters, is_batchnorm=False):
+def gating_signal(num_filters, is_batchnorm=True):
     conv2d = Conv2D(num_filters, (1,1))
     batch_norm = BatchNormalization()
     relu = Activation('relu')
@@ -26,7 +26,7 @@ class SubAttentionBlock(Model):
     def __init__(self, num_filters):
         super(SubAttentionBlock, self).__init__()
 
-        self.gating = gating_signal(256)
+        # self.gating = gating_signal(256)
         self.att_conv1 = Conv2D(num_filters, (2,2), strides=(2,2))
         self.att_conv2 = Conv2D(num_filters, (1,1), use_bias=True)
 
@@ -43,9 +43,10 @@ class SubAttentionBlock(Model):
 
     def call(self, inputs):
         down_pool = inputs[0]
-        down_conv = inputs[1]
+        # down_conv = inputs[1]
+        gating = inputs[1]
 
-        gating = self.gating(down_conv)
+        # gating = self.gating(down_conv)
         att_conv1 = self.att_conv1(down_pool)
         att_conv2 = self.att_conv2(gating)
 
@@ -88,9 +89,11 @@ class AttentionalUnet(Model):
 
         self.center = unet_conv2d(1024, kernel_regularizer=l2(l2_value))
 
+        self.gating = gating_signal(128)
+
         # AttentionBlock1 layers
 
-        self.att1 = SubAttentionBlock(1024)
+        self.att1 = SubAttentionBlock(256)
 
         # AttentionBlock end
 
@@ -99,7 +102,7 @@ class AttentionalUnet(Model):
 
         # AttentionBlock2 layers
         
-        self.att2 = SubAttentionBlock(512)
+        self.att2 = SubAttentionBlock(128)
         # AttentionBlock end
 
         self.up_conv7 = UpSampling2D(size=(2,2))
@@ -107,7 +110,7 @@ class AttentionalUnet(Model):
 
         # AttentionBlock3 layers
 
-        self.att3 = SubAttentionBlock(256)
+        self.att3 = SubAttentionBlock(64)
         # AttentionBlock end
 
         self.up_conv9 = UpSampling2D(size=(2,2))
@@ -115,7 +118,7 @@ class AttentionalUnet(Model):
 
         # AttentionBlock4 layers
         
-        self.att4 = SubAttentionBlock(128)
+        self.att4 = SubAttentionBlock(32)
         # AttentionBlock end
 
         self.up_conv11 = UpSampling2D(size=(2,2))
@@ -143,7 +146,10 @@ class AttentionalUnet(Model):
 
         # attention1 part
 
-        att1_batch_norm = self.att1([down_conv4, center])
+        gating = self.gating(center)
+
+        # att1_batch_norm = self.att1([down_conv4, center])
+        att1_batch_norm = self.att1([down_conv4, gating])
 
         att1_up_conv5 = self.up_conv5(center)
 
@@ -155,7 +161,8 @@ class AttentionalUnet(Model):
 
         # attention2 part
 
-        att2_batch_norm = self.att2([down_conv3, up_conv6])
+        # att2_batch_norm = self.att2([down_conv3, up_conv6])
+        att2_batch_norm = self.att2([down_conv3, gating])
 
         att2_up_conv5 = self.up_conv7(up_conv6)
 
@@ -167,7 +174,8 @@ class AttentionalUnet(Model):
 
         # attention3 part
 
-        att3_batch_norm = self.att3([down_conv2, up_conv7])
+        # att3_batch_norm = self.att3([down_conv2, up_conv7])
+        att3_batch_norm = self.att3([down_conv2, gating])
 
         att3_up_conv5 = self.up_conv9(up_conv7)
 
@@ -179,7 +187,8 @@ class AttentionalUnet(Model):
 
         # attention4 part
 
-        att4_batch_norm = self.att4([down_conv1, up_conv8])
+        # att4_batch_norm = self.att4([down_conv1, up_conv8])
+        att4_batch_norm = self.att4([down_conv1, gating])
 
         att4_up_conv5 = self.up_conv11(up_conv8)
 
