@@ -154,5 +154,5 @@ if __name__ == "__main__":
         from model import AttentionalUnet
         model = AttentionalUnet()
 
-    eval(model, model_dir, os.path.join(model_dir, "experiment_id_%d" % args.exp_id, args.weight_file), args.store_imgs, args.dataset_path, args.exp_id)
+    eval(model, model_dir, os.path.join(model_dir, "experiments", "experiment_id_%d" % args.exp_id, args.weight_file), args.store_imgs, args.dataset_path, args.exp_id)
     
