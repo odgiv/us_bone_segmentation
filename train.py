@@ -69,8 +69,8 @@ if os.path.exists('./eval_summaries'):
 model_params = vars(args) # convert args to dict merge with dict from params.json
 model_params["model_dir"] = model_dir
 
-x_train_path = os.path.join(args.datasets_dir, 'train1500_imgs')
-y_train_path = os.path.join(args.datasets_dir, 'train1500_gts')
+x_train_path = os.path.join(args.datasets_dir, 'train2500_imgs')
+y_train_path = os.path.join(args.datasets_dir, 'train2500_gts')
 x_valid_path = os.path.join(args.datasets_dir, 'val_imgs')
 y_valid_path = os.path.join(args.datasets_dir, 'val_gts')
 
