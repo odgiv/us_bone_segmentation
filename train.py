@@ -70,7 +70,7 @@ model_params = vars(args) # convert args to dict merge with dict from params.jso
 model_params["model_dir"] = model_dir
 
 x_train_path = os.path.join(args.datasets_dir, 'train3500_invitro1500_imgs')
-y_train_path = os.path.join(args.datasets_dir, 'train3500_invitro15500_gts')
+y_train_path = os.path.join(args.datasets_dir, 'train3500_invitro1500_gts')
 x_valid_path = os.path.join(args.datasets_dir, 'val_imgs')
 y_valid_path = os.path.join(args.datasets_dir, 'val_gts')
 
