@@ -31,7 +31,7 @@ def evaluate(valid_gen, u_net, steps_per_valid_epoch):
         pred_np = np.expand_dims(pred_np, -1)
     
         loss = tf.losses.sparse_softmax_cross_entropy(labels=tf.cast(labels, tf.int32), logits=pred)
-        #loss = focal_loss(pred, labels)
+        # loss = focal_loss(pred, labels)
         valid_loss_avg(loss)
         
 
@@ -86,7 +86,7 @@ def train_step(net, imgs, labels, global_step, optimizer):
         # Run image through segmentor net and get result
         seg_results = net(imgs)        
         loss = tf.losses.sparse_softmax_cross_entropy(labels=tf.cast(labels, tf.int32), logits=seg_results)
-        #loss = focal_loss(seg_results, labels)
+        # loss = focal_loss(seg_results, labels)
 
     grads = tape.gradient(loss, net.trainable_variables)
 
