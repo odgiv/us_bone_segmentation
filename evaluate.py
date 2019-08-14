@@ -15,6 +15,7 @@ import os
 import sys
 import json
 import numpy as np
+import cv2 as cv
 from PIL import Image
 from utils import Params, img_and_mask_generator, delete_dir_content, hausdorf_distance
 from skimage.morphology import skeletonize
@@ -61,9 +62,20 @@ def eval(model, model_dir, weight_file_path, store_imgs, dataset_path, ex_id, th
         label[label>=0.5] = 1
         label[label<0.5] = 0        
         label = label.astype('uint8')     
-        if thinning:
+        
+        if thinning:            
             label = skeletonize(np.squeeze(label))
             pred_np = skeletonize(np.squeeze(pred_np))
+            new_pred = np.array(pred_np)
+
+            ret, labels, stats, _ = cv.connectedComponentsWithStats(pred_np)
+            for r in range(1, ret):
+                if stats[r, cv.CC_STAT_AREA] <= 20:
+
+                    new_pred[labels == r] = 0
+            
+            pred_np = new_pred
+
 
         IoU = np.sum(pred_np[label == 1]) / float(np.sum(pred_np) + np.sum(label) - np.sum(pred_np[label == 1]))
         print("Iou: ", IoU)

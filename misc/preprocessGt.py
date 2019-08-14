@@ -12,7 +12,7 @@ def remove_non_consequetive_white_pixels(gt):
     If there are more than one component, we find center for each of component after finding contour.
     We keep the component on the top by comparing X coordinate of center coordinates. 
     """
-    ret, labels = cv.connectedComponents(gt)
+    ret, labels = cv.connectedComponentsWithStats(gt)
     if ret <= 2:
         return gt
     top_r = 0
