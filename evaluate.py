@@ -17,9 +17,9 @@ import json
 import numpy as np
 from PIL import Image
 from utils import Params, img_and_mask_generator, delete_dir_content, hausdorf_distance
+from skimage.morphology import skeletonize
 
-
-def eval(model, model_dir, weight_file_path, store_imgs, dataset_path, ex_id):
+def eval(model, model_dir, weight_file_path, store_imgs, dataset_path, ex_id, thinning):
     
     img_h = 465
     img_w = 381
@@ -61,6 +61,10 @@ def eval(model, model_dir, weight_file_path, store_imgs, dataset_path, ex_id):
         label[label>=0.5] = 1
         label[label<0.5] = 0        
         label = label.astype('uint8')     
+
+        label = skeletonize(label)
+
+        pred_np = skeletonize(pred_np)
 
         IoU = np.sum(pred_np[label == 1]) / float(np.sum(pred_np) + np.sum(label) - np.sum(pred_np[label == 1]))
         print("Iou: ", IoU)
@@ -137,6 +141,7 @@ if __name__ == "__main__":
     parser.add_argument("-w", "--weight_file", help="The weight file name")
     parser.add_argument("-s", "--store_imgs", default=False, action='store_true')
     parser.add_argument("-i", "--exp_id", type=int, required=True)
+    parser.add_argument("-t", "--thinning", action='store_true')
     args = parser.parse_args()
 
     assert(args.model_name in ['unet', 'attentionUnet'])
@@ -154,5 +159,5 @@ if __name__ == "__main__":
         from model import AttentionalUnet
         model = AttentionalUnet()
 
-    eval(model, model_dir, os.path.join(model_dir, "experiments", "experiment_id_%d" % args.exp_id, args.weight_file), args.store_imgs, args.dataset_path, args.exp_id)
+    eval(model, model_dir, os.path.join(model_dir, "experiments", "experiment_id_%d" % args.exp_id, args.weight_file), args.store_imgs, args.dataset_path, args.exp_id, args.thinning)
     
