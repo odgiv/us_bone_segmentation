@@ -18,7 +18,7 @@ import numpy as np
 import cv2 as cv
 from PIL import Image
 from utils import Params, img_and_mask_generator, delete_dir_content, hausdorf_distance
-from skimage.morphology import skeletonize, label
+from skimage.morphology import skeletonize, label as find_connected
 
 def eval(model, model_dir, weight_file_path, store_imgs, dataset_path, ex_id, thinning):
     
@@ -68,7 +68,7 @@ def eval(model, model_dir, weight_file_path, store_imgs, dataset_path, ex_id, th
             pred_np = skeletonize(np.squeeze(pred_np))
             new_pred = np.array(pred_np)
 
-            labels, num = label(pred_np, return_num=True)
+            labels, num = find_connected(pred_np, return_num=True)
             for n in range(1, num):
                 if np.sum(labels == n) <= 20:
 
