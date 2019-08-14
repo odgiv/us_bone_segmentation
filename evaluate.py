@@ -62,8 +62,8 @@ def eval(model, model_dir, weight_file_path, store_imgs, dataset_path, ex_id, th
         label[label<0.5] = 0        
         label = label.astype('uint8')     
         if thinning:
-            label = skeletonize(label)
-            pred_np = skeletonize(pred_np)
+            label = skeletonize(np.squeeze(label))
+            pred_np = skeletonize(np.squeeze(pred_np))
 
         IoU = np.sum(pred_np[label == 1]) / float(np.sum(pred_np) + np.sum(label) - np.sum(pred_np[label == 1]))
         print("Iou: ", IoU)
