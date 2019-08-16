@@ -71,7 +71,6 @@ def eval(model, model_dir, weight_file_path, store_imgs, dataset_path, ex_id, th
             labels, num = find_connected(pred_np, return_num=True)
             for n in range(1, num):
                 if np.sum(labels == n) <= 20:
-
                     new_pred[labels == n] = 0
             
             pred_np = new_pred
