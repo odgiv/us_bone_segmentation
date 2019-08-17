@@ -25,8 +25,8 @@ def eval(model, model_dir, weight_file_path, store_imgs, dataset_path, ex_id, th
     img_h = 465
     img_w = 381
     test_results_path = os.path.join(model_dir, "test_results", "new_results")
-    x_test_path = os.path.join(dataset_path, "test_imgs")
-    y_test_path = os.path.join(dataset_path, "test_gts")
+    x_test_path = os.path.join(dataset_path, "test300_imgs")
+    y_test_path = os.path.join(dataset_path, "test300_gts")
     test_gen = img_and_mask_generator(x_test_path, y_test_path, batch_size=1, shuffle=False)
 
     x_test_path_data = os.path.join(x_test_path, 'data')
@@ -69,8 +69,10 @@ def eval(model, model_dir, weight_file_path, store_imgs, dataset_path, ex_id, th
             new_pred = np.array(pred_np)
 
             labels, num = find_connected(pred_np, return_num=True)
-            for n in range(1, num):
-                if np.sum(labels == n) <= 20:
+            
+            for n in range(1, num+1):
+                if np.sum(labels == n) <= 50:
+
                     new_pred[labels == n] = 0
             
             pred_np = new_pred
@@ -112,17 +114,22 @@ def eval(model, model_dir, weight_file_path, store_imgs, dataset_path, ex_id, th
             # I.paste(Image.blend(img.convert("L"), label_img.convert("L"), 0.2), (img.size[0]*3, 0))
             # I.paste(Image.blend(img.convert("L"), pred_img.convert("L"), 0.2), (img.size[0]*4, 0))
             
-                        
-            img = img * 255
 
-            img[0, label == 1] =  255
-            img[1, pred_np == 1, :] =  255
+            #I = cv.cvtColor(np.float32(img), cv.COLOR_GRAY2RGB)
             
-            
-
+            img = np.squeeze(img) * 255
+            new_img = np.zeros((*img.shape, 3), dtype=np.uint8)
+            new_img[:,:,0] = img.astype(np.uint8)
+            new_img[:,:,1] = img.astype(np.uint8)
+            new_img[:,:,2] = img.astype(np.uint8)
+            new_img[:,:,2][pred_np == 1] =  255
+            new_img[:,:,1][label == 1] =  255
+             
             name = 'img_{}_iou_{:.4f}_hausdorf_{:.4f}.jpg'.format(i, IoU, hd)
-            I = Image.fromarray(img)
-            I.save(os.path.join(test_results_path, name))
+            #I = Image.fromarray(new_img.astype('uint8'))
+            #I.save(os.path.join(test_results_path, name))
+            
+            cv.imwrite(os.path.join(test_results_path, name),new_img.astype('uint8'))
         i += 1
 
         if num_imgs == i:
