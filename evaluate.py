@@ -103,9 +103,9 @@ def eval(model, model_dir, weight_file_path, store_imgs, dataset_path, ex_id, th
         pred_img = pred_np * 255
         label_img = label * 255
         if store_imgs:
-            pred_img = Image.fromarray(pred_img.astype(np.uint8), mode='P')
-            label_img = Image.fromarray(label_img.astype(np.uint8), mode='P')
-            img = Image.fromarray(img.astype(np.uint8), mode='P')
+            # pred_img = Image.fromarray(pred_img.astype(np.uint8), mode='P')
+            # label_img = Image.fromarray(label_img.astype(np.uint8), mode='P')
+            # img = Image.fromarray(img.astype(np.uint8), mode='P')
 
             # I = Image.new('RGB', (img.size[0]*5, img.size[1]))
             # I.paste(img, (0, 0))
