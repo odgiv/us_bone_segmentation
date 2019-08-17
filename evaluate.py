@@ -114,15 +114,22 @@ def eval(model, model_dir, weight_file_path, store_imgs, dataset_path, ex_id, th
             # I.paste(Image.blend(img.convert("L"), label_img.convert("L"), 0.2), (img.size[0]*3, 0))
             # I.paste(Image.blend(img.convert("L"), pred_img.convert("L"), 0.2), (img.size[0]*4, 0))
             
-            I = cv.cvtColor(np.float32(img), cv.COLOR_GRAY2RGB)
 
-            I[label == 1, :, :] =  255
-            I[:, pred_np == 1, :] =  255
+            #I = cv.cvtColor(np.float32(img), cv.COLOR_GRAY2RGB)
             
-            
-
+            img = np.squeeze(img) * 255
+            new_img = np.zeros((*img.shape, 3), dtype=np.uint8)
+            new_img[:,:,0] = img.astype(np.uint8)
+            new_img[:,:,1] = img.astype(np.uint8)
+            new_img[:,:,2] = img.astype(np.uint8)
+            new_img[:,:,2][pred_np == 1] =  255
+            new_img[:,:,1][label == 1] =  255
+             
             name = 'img_{}_iou_{:.4f}_hausdorf_{:.4f}.jpg'.format(i, IoU, hd)
-            I.save(os.path.join(test_results_path, name))
+            #I = Image.fromarray(new_img.astype('uint8'))
+            #I.save(os.path.join(test_results_path, name))
+            
+            cv.imwrite(os.path.join(test_results_path, name),new_img.astype('uint8'))
         i += 1
 
         if num_imgs == i:
