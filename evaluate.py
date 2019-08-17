@@ -99,9 +99,9 @@ def eval(model, model_dir, weight_file_path, store_imgs, dataset_path, ex_id, th
         combis.append(combi)
         print("Combi: ", combi)
 
-        img = np.squeeze(img) * 255
-        pred_img = pred_np * 255
-        label_img = label * 255
+        # img = np.squeeze(img) * 255
+        # pred_img = pred_np * 255
+        # label_img = label * 255
         if store_imgs:
             # pred_img = Image.fromarray(pred_img.astype(np.uint8), mode='P')
             # label_img = Image.fromarray(label_img.astype(np.uint8), mode='P')
@@ -116,8 +116,8 @@ def eval(model, model_dir, weight_file_path, store_imgs, dataset_path, ex_id, th
             
             I = cv.cvtColor(np.float32(img), cv.COLOR_GRAY2RGB)
 
-            I[label_img == 255, :, :] =  255
-            I[:, pred_img == 255, :] =  255
+            I[label_img == 1, :, :] =  255
+            I[:, pred_img == 1, :] =  255
             
             
 
