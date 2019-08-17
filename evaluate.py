@@ -123,6 +123,8 @@ def eval(model, model_dir, weight_file_path, store_imgs, dataset_path, ex_id, th
             new_img[:,:,1] = img.astype(np.uint8)
             new_img[:,:,2] = img.astype(np.uint8)
             new_img[:,:,2][pred_np == 1] =  255
+            new_img[:,:,0][pred_np == 1] =  255
+            
             new_img[:,:,1][label == 1] =  255
              
             name = 'img_{}_iou_{:.4f}_hausdorf_{:.4f}.jpg'.format(i, IoU, hd)
