@@ -112,14 +112,16 @@ def eval(model, model_dir, weight_file_path, store_imgs, dataset_path, ex_id, th
             # I.paste(Image.blend(img.convert("L"), label_img.convert("L"), 0.2), (img.size[0]*3, 0))
             # I.paste(Image.blend(img.convert("L"), pred_img.convert("L"), 0.2), (img.size[0]*4, 0))
             
-            I = cv.cvtColor(img.astype(np.float32), cv.COLOR_GRAY2RGB)
+            # I = cv.cvtColor(img.astype(np.float32), cv.COLOR_GRAY2RGB)
+            img = img * 255
 
-            I[label_img == 1, :, :] =  255
-            I[:, pred_img == 1, :] =  255
+            img[label == 1, :, :] =  255
+            img[:, pred_np == 1, :] =  255
             
             
 
             name = 'img_{}_iou_{:.4f}_hausdorf_{:.4f}.jpg'.format(i, IoU, hd)
+            I = Image.fromarray(img)
             I.save(os.path.join(test_results_path, name))
         i += 1
 
