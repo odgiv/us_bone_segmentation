@@ -116,8 +116,8 @@ def eval(model, model_dir, weight_file_path, store_imgs, dataset_path, ex_id, th
             
             I = cv.cvtColor(np.float32(img), cv.COLOR_GRAY2RGB)
 
-            I[label_img == 1, :, :] =  255
-            I[:, pred_img == 1, :] =  255
+            I[label == 1, :, :] =  255
+            I[:, pred_np == 1, :] =  255
             
             
 
