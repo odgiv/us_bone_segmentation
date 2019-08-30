@@ -1,6 +1,6 @@
 """
-With this script, read the given h5 file and cut us_vol from start_index to end_index at the end dimension
-and transpose gt_vol to match it with us_vol then store again to the same h5 file. 
+With this script, read the given h5 file and cut us_vol from start_index to end_index in the last dimension
+and transpose gt_vol to match it with us_vol then store again to new h5 file. 
 
 Example usage:
 python fixH5Files.py -o H:\\14_02_2019_Ben_in_vivo\\12-59-16 -f H:\\14_02_2019_Ben_in_vivo\\12-59-16\\us_gt_vol.h5 -s 250 -e 350

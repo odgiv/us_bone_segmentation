@@ -32,9 +32,7 @@ for f in sorted(os.listdir(parent_directory)):
         except Exception:
             print("start_at must be int.") 
             break
-
-                    
-        
+            
         # if not os.path.exists(os.path.join(files_directory, img2thigh_transformation_filename)):
         #     continue
 

@@ -1,13 +1,10 @@
 """
-This script is used for evaluating segmentation on input images
-using a model whose name is given in arguments.
-
-Arguments:
-model_name: name of model to be used.
+This script is used for evaluating model on test dataset.
 
 Usage:
-python evaluate.py -m unet -w C:\\Users\\odgiiv\\tmp\\code\\ultrasound_bone_segmentation_frmwrk\\models\\unet\\model_weights\\unet_val_maxIoU_0.543.h5 -d H:\\in_vivo_imgs_combined -s
-python evaluate.py -m attentionUnet -w ./models/unet/attentionUnet/experiments/experiment_id_4/attentionUnet_epoch_10_val_meanIoU_0.385_meanLoss_0.065.h5 -d /media/dataraid/tensorflow/segm/data/
+python evaluate.py -m unet -w unet_epoch_4_val_meanIoU_0.333_meanLoss_0.053_meanHd_66.633_meanDice_0.492_mCombi_133.338.h5  -d /media/dataraid/tensorflow/segm/experiments_data/ -s -i 7 -t
+
+resulting output images are in ../model_dir/test_results/
 """
 import tensorflow as tf
 import argparse
@@ -20,13 +17,18 @@ from PIL import Image
 from utils import Params, img_and_mask_generator, delete_dir_content, hausdorf_distance
 from skimage.morphology import skeletonize, label as find_connected
 
+IMG_H = 465
+IMG_W = 381
+TEST_IMGS_DIR = "test300_imgs"
+TEST_GTS_DIR = "test300_gts"
+
 def eval(model, model_dir, weight_file_path, store_imgs, dataset_path, ex_id, thinning):
     
     img_h = 465
     img_w = 381
     test_results_path = os.path.join(model_dir, "test_results", "new_results")
-    x_test_path = os.path.join(dataset_path, "test300_imgs")
-    y_test_path = os.path.join(dataset_path, "test300_gts")
+    x_test_path = os.path.join(dataset_path, TEST_IMGS_DIR)
+    y_test_path = os.path.join(dataset_path, TEST_GTS_DIR)
     test_gen = img_and_mask_generator(x_test_path, y_test_path, batch_size=1, shuffle=False)
 
     x_test_path_data = os.path.join(x_test_path, 'data')
@@ -122,9 +124,9 @@ def eval(model, model_dir, weight_file_path, store_imgs, dataset_path, ex_id, th
             new_img[:,:,0] = img.astype(np.uint8)
             new_img[:,:,1] = img.astype(np.uint8)
             new_img[:,:,2] = img.astype(np.uint8)
-            new_img[:,:,2][pred_np == 1] =  255
+            new_img[:,:,1][pred_np == 1] =  255
             new_img[:,:,0][pred_np == 1] =  255
-            
+
             new_img[:,:,1][label == 1] =  255
              
             name = 'img_{}_iou_{:.4f}_hausdorf_{:.4f}.jpg'.format(i, IoU, hd)
@@ -157,7 +159,7 @@ def eval(model, model_dir, weight_file_path, store_imgs, dataset_path, ex_id, th
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("-m", "--model_name", help="Name of directory of specific model in ./models parent directory, such as unet, attention-unet or segan.")
+    parser.add_argument("-m", "--model_name", help="Name of the model. Use either of unet or attention-unet.")
     parser.add_argument("-d", "--dataset_path", required=True)
     parser.add_argument("-w", "--weight_file", help="The weight file name")
     parser.add_argument("-s", "--store_imgs", default=False, action='store_true')

@@ -19,7 +19,7 @@ tfe = tf.contrib.eager
 print("tf version: ",  tf.__version__)
 
 """
-python train.py --model_name unet
+python train.py -m unet -d /where/your/dataset/exists/
 """
 parser = argparse.ArgumentParser()
 parser.add_argument("-m", "--model_name", required=True, help="Name of directory of specific model in ./models parent directory, such as unet, attention-unet or segan")
@@ -44,17 +44,12 @@ from trainer_eager import train_step, evaluate
 
 if args.model_name == 'unet':
     model_dir = './models/unet'
-    # sys.path.append(model_dir)
-    
     from base_model import Unet
     segmentor_net = Unet(l2_value=args.l2_regularizer)
 
 elif args.model_name == 'attentionUnet':
-    # sys.path.append('./models/unet')
-    # model_dir = os.path.join('./models/unet/', args.model_name)
     model_dir = './models/attentionUnet'
     sys.path.append(model_dir)
-    # from trainer_eager import train_step, evaluate
     from model import AttentionalUnet
     segmentor_net = AttentionalUnet(l2_value=args.l2_regularizer)
 
@@ -66,11 +61,14 @@ if os.path.exists('./eval_summaries'):
     shutil.rmtree('./eval_summaries')
 
 
-model_params = vars(args) # convert args to dict merge with dict from params.json
+model_params = vars(args) # convert args to dictionary
 model_params["model_dir"] = model_dir
 
-x_train_path = os.path.join(args.datasets_dir, 'train1500only_imgs')
-y_train_path = os.path.join(args.datasets_dir, 'train1500only_gts')
+# The following directories have to exist in datasets_dir.
+# In each directory, another sub directory called "data" must exist. 
+# Training and validation images must be in this "data" sub directory.  
+x_train_path = os.path.join(args.datasets_dir, 'train_imgs')
+y_train_path = os.path.join(args.datasets_dir, 'train_gts')
 x_valid_path = os.path.join(args.datasets_dir, 'val_imgs')
 y_valid_path = os.path.join(args.datasets_dir, 'val_gts')
 
@@ -98,7 +96,7 @@ steps_per_valid_epoch = int(model_params["eval_size"] / model_params["batch_size
 
 logging.info("steps per train epoch {}".format(str(steps_per_train_epoch)))
 logging.info("steps per valid epoch {}".format(str(steps_per_valid_epoch)))
-# train_and_evaluate(model, model_params, summary_writer, train_gen, valid_gen, steps_per_train_epoch, steps_per_valid_epoch)
+
 lr = model_params["learning_rate"]
 l2 = model_params["l2_regularizer"]
 logging.info("learning rate: {}".format(str(lr)))
@@ -114,19 +112,15 @@ epoch_seg_loss_avg = tfe.metrics.Mean()
 epoch_IoU_avg = tfe.metrics.Mean()
 epoch_Hd_avg = tfe.metrics.Mean()
 epoch_dice_avg = tfe.metrics.Mean()
-epoch_combi_avg = tfe.metrics.Mean()
-    
-# pbar = tqdm(total=steps_per_train_epoch)
 
+    
 for imgs, labels in train_gen:
 
     if current_step == steps_per_train_epoch:
         logging.info("current epoch: {}".format(current_epoch))
         val_mean_IoU, val_mean_hd, val_mean_loss, val_mean_dice, val_combi = evaluate(valid_gen, segmentor_net, steps_per_valid_epoch)
         current_epoch += 1
-        current_step = 0
-        # pbar.n = 1
-        # pbar.last_print_n = 1
+        current_step = 0        
         epoch_seg_loss_avg = tfe.metrics.Mean()
         epoch_IoU_avg = tfe.metrics.Mean()
         epoch_Hd_avg = tfe.metrics.Mean()       
@@ -135,6 +129,7 @@ for imgs, labels in train_gen:
         save_model_weights_dir = model_dir + '/experiments/' + 'experiment_id_' + str(model_params["experiment_id"])
         if not os.path.isdir(save_model_weights_dir):
             os.makedirs(save_model_weights_dir)
+
         logging.info("current lr {}".format(str(learning_rate.numpy())))
         logging.info("Saving weights to {} ".format(save_model_weights_dir))
         segmentor_net.save_weights(save_model_weights_dir  + '/' + model_params["model_name"] + '_epoch_' + str(current_epoch) + '_val_meanIoU_{:.3f}_meanLoss_{:.3f}_meanHd_{:.3f}_meanDice_{:.3f}_mCombi_{:.3f}.h5'.format(val_mean_IoU, val_mean_loss, val_mean_hd, val_mean_dice, val_combi))
@@ -142,7 +137,7 @@ for imgs, labels in train_gen:
     if current_epoch == model_params["num_epochs"] + 1:
         break
     
-    seg_loss, batch_hd, batch_IoU, batch_dice, batch_combi = train_step(segmentor_net, imgs, labels, global_step, optimizerS)    
+    seg_loss, batch_hd, batch_IoU, batch_dice = train_step(segmentor_net, imgs, labels, global_step, optimizerS)    
 
     if args.learning_rate_decay > 0.0:
         learning_rate.assign(tf.train.exponential_decay(lr, global_step, model_params["decay_step"], decay_rate=args.learning_rate_decay)())
@@ -150,11 +145,8 @@ for imgs, labels in train_gen:
     epoch_seg_loss_avg(seg_loss)
     epoch_Hd_avg(batch_hd)
     epoch_IoU_avg(batch_IoU)
-    epoch_dice_avg(batch_dice)
-    epoch_combi_avg(batch_combi)
-    # tf.assign_add(global_step, 1)
-    current_step += 1
-    # pbar.update(1)    
+    epoch_dice_avg(batch_dice)    
+    current_step += 1    
 
     with tf.contrib.summary.record_summaries_every_n_global_steps(model_params["save_summary_steps"]):       
             
@@ -163,8 +155,7 @@ for imgs, labels in train_gen:
         tf.contrib.summary.scalar("seg_loss", epoch_seg_loss_avg.result())
         tf.contrib.summary.scalar("Hd", epoch_Hd_avg.result())
         tf.contrib.summary.scalar("IoU", epoch_IoU_avg.result())
-        tf.contrib.summary.scalar("Dice", epoch_IoU_avg.result())
-        tf.contrib.summary.scalar("Combi", epoch_combi_avg.result())
+        tf.contrib.summary.scalar("Dice", epoch_IoU_avg.result())        
 
         tf.contrib.summary.scalar("lr", learning_rate)
 

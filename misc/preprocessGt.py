@@ -1,3 +1,8 @@
+"""
+Methods for preprocessing ground truth images.
+These methods are used when you generate US and ground truth images for training.
+"""
+
 from scipy.ndimage import binary_closing, binary_opening
 from skimage.draw import line
 import numpy as np

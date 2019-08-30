@@ -1,8 +1,6 @@
-'''
-@author: Odgiiv Khuurkhunkhuu
-@email: odgiiv_kh[gmail]
-@create date: 2019-01-18
-'''
+"""
+Attention U-Net model
+"""
 import tensorflow as tf
 from tensorflow.python.keras.models import Model, Sequential
 from tensorflow.python.keras.layers import Lambda, Input, Conv2D, UpSampling2D, MaxPooling2D, Cropping2D, concatenate, ZeroPadding2D, BatchNormalization, Activation, Add, Multiply

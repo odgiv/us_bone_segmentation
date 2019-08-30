@@ -8,6 +8,9 @@ import logging
 
     
 def evaluate(valid_gen, u_net, steps_per_valid_epoch):
+    """
+    Evalation during training after every epoch. 
+    """
     IoUs = tf.contrib.eager.metrics.Mean()
     hds = tf.contrib.eager.metrics.Mean()
     dices = tf.contrib.eager.metrics.Mean()    
@@ -76,6 +79,9 @@ def evaluate(valid_gen, u_net, steps_per_valid_epoch):
 
 
 def train_step(net, imgs, labels, global_step, optimizer):
+    """
+    Train step for a batch
+    """
     labels[labels>=0.5] = 1.
     labels[labels<0.5] = 0.
     labels = labels.astype('uint8')
@@ -85,14 +91,12 @@ def train_step(net, imgs, labels, global_step, optimizer):
     with tf.GradientTape() as tape:
         # Run image through segmentor net and get result
         seg_results = net(imgs)        
-        loss = tf.losses.sparse_softmax_cross_entropy(labels=tf.cast(labels, tf.int32), logits=seg_results)
-        # loss = focal_loss(seg_results, labels)
+        loss = tf.losses.sparse_softmax_cross_entropy(labels=tf.cast(labels, tf.int32), logits=seg_results)        
 
     grads = tape.gradient(loss, net.trainable_variables)
 
     optimizer.apply_gradients(zip(grads, net.trainable_variables), global_step=global_step)
-    # epoch_loss_avg(loss)
-
+    
     batch_hds = []
     batch_IoUs = []
     batch_dices = []
@@ -116,8 +120,6 @@ def train_step(net, imgs, labels, global_step, optimizer):
 
         batch_IoUs.append(IoU)
         batch_dices.append(Dice)
-        
-    
-    combi = (100* (1 - np.mean(batch_IoUs)) + np.mean(batch_hds))
+            
 
-    return loss, np.mean(batch_hds), np.mean(batch_IoUs), np.mean(batch_dices), combi
+    return loss, np.mean(batch_hds), np.mean(batch_IoUs), np.mean(batch_dices)

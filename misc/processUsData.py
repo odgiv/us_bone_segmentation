@@ -3,6 +3,9 @@ from PIL import Image
 
 
 def read_us_data(filename):
+    """
+    Method for reading US file with .b8 ext.
+    """
     with open(filename, 'rb') as fid:
 
         data_array = np.fromfile(fid, np.uint8)  # data_array is 1D np array
@@ -30,35 +33,9 @@ def read_us_data(filename):
         }
 
 
-def store_us_data(filename, image_data):
-    """
-    image_data is 3D numpy array.
-    TODO: It is not complete. Finish implementation.
-    """
-    (height, width, depth) = image_data.shape
-
-    # first 4 bytes are not used
-    header = bytearray(np.zeros((4*19,), dtype=int))
-    header[4:6] = (height).to_bytes(2, byteorder='big')
-    header[8:10] = (width).to_bytes(2, byteorder='big')
-    header[12:14] = (depth).to_bytes(2, byorder='big')
-    # order='F' is for Fortran ordering
-    header.append(image_data.tobytes(order='F'))
-
-    with open(filename, 'wb') as fid:
-        fid.write(header)
-
-    fid.close()
-
-
 if __name__ == "__main__":
-    data = read_us_data(
-        "D:\\Data\\IPASM\\bone_data\\phantom_data\\juliana wo symImages\\13-51-47\\postProcessedImage.b8")
-    # print(data)
+    data = read_us_data("D:\\Data\\IPASM\\bone_data\\phantom_data\\juliana wo symImages\\13-51-47\\postProcessedImage.b8")    
     aslice = data["image_data"][:, :, 250]  # as example, take a slice in depth
     print(aslice.shape)
     img = Image.fromarray(aslice)
     img.show()
-
-    # image_data = data["image_data"]
-    # store_us_data("D:\\Data\\US Calibration\\2018-11-15 3D phantom training data\\ScanConverted\\11-42-11\\test.b8", image_data)

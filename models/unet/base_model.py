@@ -1,8 +1,6 @@
-'''
-@author: Odgiiv Khuurkhunkhuu
-@email: odgiiv_kh[at]gmail
-@create date: 2019-01-10
-'''
+"""
+U-Net
+"""
 
 import tensorflow as tf
 from tensorflow.python.keras.models import Model, Sequential

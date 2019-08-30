@@ -1,3 +1,6 @@
+"""
+This file contains miscellaneous methods and classes.
+"""
 import tensorflow as tf
 from tensorflow.python.keras import backend
 from tensorflow.python.ops import array_ops
@@ -19,9 +22,12 @@ from scipy.ndimage.interpolation import map_coordinates
 from scipy.ndimage.filters import gaussian_filter
 from tensorflow.python.keras.preprocessing.image import ImageDataGenerator
 from skimage.transform import rotate
-# from albumentations.augmentations.transforms import ElasticTransform
+
 
 def unet_conv2d(nb_filters, kernel=(3, 3), activation="relu", padding="same", kernel_regularizer=l2(0.0), use_batch_norm=False, drop_rate=0.0):
+    """
+    Create block of consecutive two conv. layers of U-Net.
+    """
     conv2d_1 = Conv2D(nb_filters, kernel, padding=padding, activation="relu", kernel_regularizer=kernel_regularizer)
     conv2d_2 = Conv2D(nb_filters, kernel, padding=padding, activation="relu", kernel_regularizer=kernel_regularizer)
     seq1 = [conv2d_1]
@@ -43,6 +49,7 @@ def unet_conv2d(nb_filters, kernel=(3, 3), activation="relu", padding="same", ke
 
 def get_crop_shape(target, refer):
     """
+    Get size difference between target and refer.     
     https://www.tensorflow.org/api_docs/python/tf/keras/layers/Cropping2D
     https://stackoverflow.com/questions/41925765/keras-cropping2d-changes-color-channel
     """
@@ -62,29 +69,6 @@ def get_crop_shape(target, refer):
         ch1, ch2 = int(ch/2), int(ch/2)
 
     return (ch1, ch2), (cw1, cw2)
-
-def elastic_transform(image, alpha, sigma, alpha_affine, random_state=None):
-    """Elastic deformation of images as described in [Simard2003]_.
-    .. [Simard2003] Simard, Steinkraus and Platt, "Best Practices for
-       Convolutional Neural Networks applied to Visual Document Analysis", in
-       Proc. of the International Conference on Document Analysis and
-       Recognition, 2003.
-    """
-    if random_state is None:
-        random_state = np.random.RandomState(None)
-
-    shape = image.shape
-    dx = gaussian_filter((random_state.rand(*shape) * 2 - 1), sigma, mode="constant", cval=0) * alpha
-    dy = gaussian_filter((random_state.rand(*shape) * 2 - 1), sigma, mode="constant", cval=0) * alpha
-    dz = np.zeros_like(dx)
-
-    x, y, z = np.meshgrid(np.arange(shape[1]), np.arange(shape[0]), np.arange(shape[2]))
-    
-    indices = np.reshape(y+dy, (-1, 1)), np.reshape(x+dx, (-1, 1)), np.reshape(z, (-1, 1))
-
-    distored_image = map_coordinates(image, indices, order=1, mode='reflect')
-    return distored_image.reshape(image.shape)
-
     
 
 class Params():
@@ -165,16 +149,19 @@ def iou(pred, label):
 def dice(pred, label):
     return np.sum(pred[label == 1])*2 / float(np.sum(pred) + np.sum(label))
 
-def shuffle(imgs, gts):
-    np.random.seed(42)
-    np.random.shuffle(imgs)
-    np.random.seed(42)
-    np.random.shuffle(gts)
+# def shuffle(imgs, gts):
+#     np.random.seed(42)
+#     np.random.shuffle(imgs)
+#     np.random.seed(42)
+#     np.random.shuffle(gts)
 
-    return imgs, gts
+#     return imgs, gts
 
 
 def img_and_mask_generator(x, y, batch_size=1, shuffle=True):
+    """
+    Create a generator of two combined ImageDataGenerators for input and ground truth images without any data augmentation except scaling.
+    """
     data_gen_args = dict(
         rescale=1./255
     )
@@ -194,13 +181,10 @@ def img_and_mask_generator(x, y, batch_size=1, shuffle=True):
 
    
 def augmented_img_and_mask_generator(x, y, batch_size):
+    """
+    Create a generator of two combined ImageDataGenerators for input and ground truth images with data augmentations.
+    """
     rs = np.random.RandomState()
-
-    # elastic = ElasticTransform(p=1)
-
-    def preprocessing(img):
-        return img #elastic(img)
-
 
     data_gen_args = dict(
         horizontal_flip=True,
@@ -209,16 +193,13 @@ def augmented_img_and_mask_generator(x, y, batch_size):
         width_shift_range=0.2, 
         height_shift_range=0.1,
         shear_range=0.2,
-        preprocessing_function = preprocessing,
         rescale=1./255,
         fill_mode="constant",
         cval=0
     )
 
     img_gen_args = dict(data_gen_args)
-    #img_gen_args["brightness_range"]=(0.5, 1.5)
-    # img_gen_args["rescale"]=1./255
-        
+            
     mask_gen_args = dict(data_gen_args)
 
     print("Data generation arguments:")
@@ -232,33 +213,3 @@ def augmented_img_and_mask_generator(x, y, batch_size):
     mask_gen = mask_data_generator.flow_from_directory(y, batch_size=batch_size, seed=seed, class_mode=None, color_mode="grayscale", target_size=(465, 381))
 
     return zip(image_gen, mask_gen)
-
-def focal_loss(prediction_tensor, target_tensor, weights=None, alpha=0.25, gamma=2):
-    r"""Compute focal loss for predictions.
-        Multi-labels Focal loss formula:
-            FL = -alpha * (z-p)^gamma * log(p) -(1-alpha) * p^gamma * log(1-p)
-                 ,which alpha = 0.25, gamma = 2, p = sigmoid(x), z = target_tensor.
-    Args:
-     prediction_tensor: A float tensor of shape [batch_size, num_anchors,
-        num_classes] representing the predicted logits for each class
-     target_tensor: A float tensor of shape [batch_size, num_anchors,
-        num_classes] representing one-hot encoded classification targets
-     weights: A float tensor of shape [batch_size, num_anchors]
-     alpha: A scalar tensor for focal loss alpha hyper-parameter
-     gamma: A scalar tensor for focal loss gamma hyper-parameter
-    Returns:
-        loss: A (scalar) tensor representing the value of the loss function
-    """
-    sigmoid_p = tf.nn.sigmoid(prediction_tensor)
-    zeros = array_ops.zeros_like(sigmoid_p, dtype=sigmoid_p.dtype)
-    
-    # For poitive prediction, only need consider front part loss, back part is 0;
-    # target_tensor > zeros <=> z=1, so poitive coefficient = z - p.
-    pos_p_sub = array_ops.where(target_tensor > zeros, target_tensor - sigmoid_p, zeros)
-    
-    # For negative prediction, only need consider back part loss, front part is 0;
-    # target_tensor > zeros <=> z=1, so negative coefficient = 0.
-    neg_p_sub = array_ops.where(target_tensor > zeros, zeros, sigmoid_p)
-    per_entry_cross_ent = - alpha * (pos_p_sub ** gamma) * tf.log(tf.clip_by_value(sigmoid_p, 1e-8, 1.0)) \
-                          - (1 - alpha) * (neg_p_sub ** gamma) * tf.log(tf.clip_by_value(1.0 - sigmoid_p, 1e-8, 1.0))
-    return tf.reduce_sum(per_entry_cross_ent)
